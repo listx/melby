@@ -1,0 +1,907 @@
+# Copyright 2023 Linus Arver
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#+title: melby
+#+PROPERTY: header-args :noweb no-export
+
+* Purpose
+
+=melbyd= is a the daemon for Melby. It serves requests to =melbyc= (the client).
+
+* Architectural overview
+
+FIXME: add diagram
+
+* Proto
+
+FIXME: we should probably break this up into smaller noweb bits (=__NREF__...=)
+and combine it into a =melbyd.proto=.
+
+#+name: =melby.proto=
+#+begin_src protobuf :tangle melby.proto
+syntax = "proto3";
+
+package melby;
+
+// Client communication.
+import "melby_client.proto";
+import "melby_daemon.proto";
+import "melby_renderer.proto";
+#+end_src
+
+* Design principles
+
+FIXME: this should be a couple paragrapsh max.
+
+We want melbyd to be as fault-tolerant as possible, and for this reason we use
+Elixir as the foundation. We use NIFs written in Rust for any complicated
+business logic, to help catch bugs early. In addition, we use a small functional
+core written in Haskell (which will run as a separate server) for any bits that
+are too ugly to put in a NIF.
+
+New business logic should ideally reside in Haskell or as a Rust NIF. In this
+way Elixir is only really used as a glue language to tie everything together.
+
+WRT whether to put business logic in a Rust NIF or Haskell, basically it's a
+matter of simplicity. If the task is simple, we can do it in a Rust NIF to avoid
+the extra network roundtrip to Haskell. If the task is complicated (soop...),
+then we should do it in Haskell for additional correctness guarantees. Hmm, or
+actually maybe the delineation is just: Elixir/Rust for data generation and
+Haskell for data formatting (rendering)
+
+The Haskell part is the "prism" and acts as a sort of "rendering" layer to
+present the data back to the client in a nice way. Think of it as
+"server-side-rendering". We do this because we want to make melbyc (the client)
+as thin as possible.
+
+The Lua code sent by melbyc can call into the *melbyc "prism" SDK*, which is made
+up of a set of Elixir functions (luerl) that call into Haskell (via gRPC) to do
+the actual heavy lifting.
+
+FIXME: insert diagram
+
+The goal is to let the user customize their view of data with Lua, and the SDK
+will allow things like outputting equivalent data (colorized prompt strings) in
+Zsh as well as Bash, without the user having to touch any shell code (they can
+just stay inside the SDK). This is the ultimate goal --- we want to let users
+avoid having to write bespoke shell code, which can get pretty ugly, to display
+the data in a format that they would aesthetically prefer.
+
+* Code overview
+
+FIXME: This section could act as a kind of "table of contents" of the most
+important pieces of code. Maybe group certain tangled files together and add a
+blurb about them.
+
+NOTE: melby SDK is a set of exposed Elixir functions to Lua that call various
+Elixir functions. The soop SDK is essentially a subset of the melby SDK. Maybe we
+should just drop the "soop SDK" phrase altogether.
+
+It might make sense to explain things from a "life of a request" point of view.
+Something like:
+
+1. GetView rpc called by melbyc
+2. interpret the Lua payload (which contains calls to the melby SDK), which has
+   calls to *generate data* (melbyd) and calls to *format/render* that data
+   (soop)
+3. call some functions to generate data
+4. call some functions to format that data
+5. return formatted data as a ViewResponse
+
+Conceptually, melbyd is just a system that can collect data from the computer so
+that it can be viewed by the user, with some extra code that that takes user
+(client) input and presents the user a view (based on the data from the model).
+This more or less fits into the Model-View-Controller (MVC) software
+architecture pattern. In our case, the Model is just the code that collects
+information from the host computer where melbyd is running. The View is what the
+client sees, and finally the Controller is responsible for handling user input
+(client calls) presenting them with the View.
+
+We'll look at the "Controller", and see how user requests come into melbyd. Then
+we'll look at the "Model" to understand the kinds of data we collect/parse out
+of the underlying system, and finally end with a look at the "View" to
+understand how this component arranges the final output for consumption by the
+client.
+
+* Controller
+
+#+include: "controller.org" :lines "16-"
+
+* Model
+
+#+include: "model.org" :lines "16-"
+
+* View
+
+#+include: "view.org" :lines "16-"
+
+* Installation
+
+** Start script
+
+This script starts melbyd.
+
+#+begin_src shell :eval no :tangle daemon/melbyd :shebang "#!/usr/bin/env bash"
+set -euo pipefail
+
+SCRIPT_ROOT="$(dirname "$(realpath "$0")")"
+
+cd "${SCRIPT_ROOT}"
+
+# Daemonize with the "-d" flag.
+if [[ "${1:-}" == -d ]]; then
+    nix-shell --command "nohup elixir --sname melbyd \
+        --erl '-kernel inet_dist_listen_min 33001 inet_dist_listen_max 33001' \
+        -S mix run --no-halt >/dev/null & disown"
+else
+    nix-shell --command "elixir --sname melbyd \
+        --erl '-kernel inet_dist_listen_min 33001 inet_dist_listen_max 33001' \
+        -S mix run --no-halt"
+fi
+#+end_src
+
+** Platforms
+
+The stuff here should probably instead be in the User Guide (or Setup Guide).
+
+*** Mac
+
+#+begin_src shell :eval no :tangle daemon/install/launchctl.sh :shebang "#!/usr/bin/env bash"
+set -euo pipefail
+
+SCRIPT_ROOT="$(dirname "$(realpath "$0")")"
+
+pushd "${HOME}/Library/LaunchAgents"
+
+filename=com.melby.daemon.plist
+
+launchctl unload "${filename}" || true
+
+cat <<EOF > "${filename}"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+                "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+
+    <key>Label</key>
+    <string>${filename}</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>PATH</key>
+      <string><![CDATA[${PATH}]]></string>
+    </dict>
+
+    <key>Program</key>
+    <string>${SCRIPT_ROOT}/melbyd</string>
+
+    <key>KeepAlive</key>
+    <true/>
+
+  </dict>
+</plist>
+
+EOF
+
+launchctl load "${filename}"
+#+end_src
+
+*** Linux
+
+We use zsh from the nix profile because this way we get access to the various
+other components (erlang, etc) that are installed via nix
+
+We can use =/bin/sh= and a script. In the script we can pull in the PATH set in
+the user's default shell (there must be some way to do this).
+
+As for the Git checkout path of Melby, we can do what the "pass" utility does and
+just refer to a dotfile directory in the HOME (example: =~/.melby=).
+
+FIXME: Start using melbyd by adding melby configuration into our =~/syscfg= and
+symlinking it to =~/.melby= (new folder).
+
+FIXME: Fix unit tests (make them work again!).
+
+FIXME: Add Darwin support, by using https://github.com/LnL7/nix-darwin. It may
+be that the code needed would ideally sit outside this repo, but even then we
+should at least document how to use our =release.nix= file with that outside
+code. If we're lucky this might be as simple as invoking
+https://daiderd.com/nix-darwin/manual/index.html#opt-environment.launchAgents in
+a bare-bones nix-darwin config. We should probably do some editing of the
+launchd config file to use the nix path, just like how we mod the path for
+systemd for Linux.
+
+#+begin_src text :tangle daemon/install/melby.service
+[Unit]
+Description=melby service
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+ExecStart=melbyd
+Environment=RELEASE_COOKIE=%h/.melby/cookie
+Environment=LUA_PATH=%h/.melby/?.lua
+EnvironmentFile=%h/.melby/systemd/env
+Restart=always
+RestartSec=1
+Type=simple
+#+end_src
+
+* Build system
+
+** Elixir
+
+*** Makefile
+
+#+caption: daemon/Makefile
+#+begin_src makefile :tangle daemon/Makefile
+# See https://stackoverflow.com/a/73509979/437583 for getting the directory of
+# this Makefile.
+ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+# FIXME: Merge these with the env vars already exported in nix-shell.
+export MELBYR_PATH := $(ROOT_DIR)/lib/melbyd/renderer/melbyr
+export LUA_PATH := $(ROOT_DIR)/test/sample/?.lua
+export MELBY_DIR := $(ROOT_DIR)/test/sample
+
+# Platform. E.g., "Darwin", "Linux".
+PLATFORM := $(shell uname)
+
+all:
+	mix deps.get
+	# Run the command below to install protoc-gen-elixir.
+	# mix escript.install hex protobuf
+	# FIXME: replace with a make eval to remove the repetition
+	protoc --elixir_out=plugins=grpc:lib/generated --proto_path=.. ../melby.proto
+	protoc --elixir_out=plugins=grpc:lib/generated --proto_path=.. ../melby_client.proto
+	protoc --elixir_out=plugins=grpc:lib/generated --proto_path=.. ../melby_daemon.proto
+	protoc --elixir_out=plugins=grpc:lib/generated --proto_path=.. ../melby_renderer.proto
+check-deps:
+	mix hex.outdated
+update-mix:
+	mix deps.update --all
+# We have to run this after running 'mix deps.update --all' in order to
+# sync the dependencies used for building the release version with the
+# dependencies used during development.
+update-mix.nix: update-mix
+	mix2nix > mix.nix
+repl: fix-rustler
+	iex -S mix
+fix-rustler:
+	mkdir -p _build/test/lib/melbyd/priv/native
+	mkdir -p _build/dev/lib/melbyd/priv/native
+	mkdir -p _build/prod/lib/melbyd/priv/native
+ifeq ('${PLATFORM}','Darwin')
+	ln -sf $(PWD)/lib/melbyd/nifs/target/debug/deps/libmelbyd_nifs.dylib \
+		$(PWD)/_build/test/lib/melbyd/priv/native/libmelbyd_nifs.so || true
+	ln -sf $(PWD)/lib/melbyd/nifs/target/debug/deps/libmelbyd_nifs.dylib \
+		$(PWD)/_build/dev/lib/melbyd/priv/native/libmelbyd_nifs.so || true
+	ln -sf $(PWD)/lib/melbyd/nifs/target/debug/deps/libmelbyd_nifs.dylib \
+		$(PWD)/_build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so || true
+else
+	ln -sf $(PWD)/lib/melbyd/nifs/target/debug/deps/libmelbyd_nifs.so  \
+		$(PWD)/_build/test/lib/melbyd/priv/native/libmelbyd_nifs.so || true
+	ln -sf $(PWD)/lib/melbyd/nifs/target/debug/deps/libmelbyd_nifs.so \
+		$(PWD)/_build/dev/lib/melbyd/priv/native/libmelbyd_nifs.so || true
+	ln -sf $(PWD)/lib/melbyd/nifs/target/debug/deps/libmelbyd_nifs.so \
+		$(PWD)/_build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so || true
+endif
+PHONY: fix-rustler
+compile-prod:
+	MIX_ENV=prod mix compile
+compile-dev:
+	MIX_ENV=dev mix compile
+run_dev: compile-dev
+	MIX_ENV=dev elixir --sname melbyd-dev -S mix run --no-compile --no-halt
+run_prod: compile-prod
+	MIX_ENV=prod elixir --sname melbyd-prod -S mix run --no-compile --no-halt
+test: fix-rustler
+	mix test
+.PHONY: test
+#+end_src
+
+*** gitattributes
+
+#+caption: daemon/.gitattributes
+#+begin_src gitattributes :tangle daemon/.gitattributes :eval no
+mix.nix diff
+lib/melbyd/nifs/Cargo.lock diff
+lib/melbyd/nifs/Cargo.toml diff
+#+end_src
+
+*** Mix tool configuration
+
+#+begin_src elixir :tangle daemon/mix.exs
+defmodule Melbyd.MixProject do
+  use Mix.Project
+
+  def project do
+    [
+      app: :melbyd,
+      version: "0.1.0",
+      elixir: "~> 1.11",
+      start_permanent: Mix.env() == :prod,
+      deps: deps(),
+      aliases: aliases()
+    ]
+  end
+
+  # Run "mix help compile.app" to learn about applications.
+  def application do
+    [
+      extra_applications: [
+        :file_system,
+        :gproc,
+        :logger,
+      ],
+      mod: {Melbyd.Application, []},
+    ]
+  end
+
+  defp aliases do
+    [
+      test: ["cmd cd lib/melbyd/nifs && make test", "test"]
+    ]
+  end
+
+  # Run "mix help deps" to learn about dependencies.
+  defp deps do
+    [
+      {:cachex, "~> 3.4"},
+      {:file_system, "~> 1.0"},
+      {:gproc, "~> 1.0.0"},
+      {:grpc, "~> 0.7.0"},
+      {:luerl, "~> 1.0"},
+      {:muontrap, "~> 1.4.0"},
+      {:phoenix_pubsub, "~> 2.0"},
+      {:protobuf, "~> 0.10"},
+      {:rustler, "~> 0.31.0"},
+      {:temp, "~> 0.4"},
+      {:timex, "~> 3.7"},
+      {:tz, "~> 0.26.5"},
+      {:wait_for_it, "~> 2.1"}
+    ]
+  end
+end
+#+end_src
+
+*** .gitignore
+
+#+begin_src text :tangle daemon/.gitignore
+# The directory Mix will write compiled artifacts to.
+/_build/
+
+# If you run "mix test --cover", coverage assets end up here.
+/cover/
+
+# The directory Mix downloads your dependencies sources to.
+/deps/
+
+# Where third-party dependencies like ExDoc output generated docs.
+/doc/
+
+# Ignore .fetch files in case you like to edit your project deps locally.
+/.fetch
+
+# If the VM crashes, it generates a dump, let's ignore it too.
+erl_crash.dump
+
+# Also ignore archive artifacts (built via "mix archive.build").
+,*.ez
+
+# Ignore package tarball (built via "mix hex.build").
+melby-*.tar
+
+# Shared object files from Rust NIFs.
+/priv
+
+# Temporary files for e.g. tests
+/tmp
+
+# Files used during testing.
+/test/fake_kube_config
+#+end_src
+
+*** Formatter
+
+#+begin_src elixir :tangle daemon/.formatter.exs
+# Used by "mix format"
+[
+  inputs: ["{mix,.formatter}.exs", "{config,lib,test}/**/*.{ex,exs}"]
+]
+#+end_src
+
+*** protoc-gen-elixir.nix
+
+Sadly the protoc-gen-elixir plugin is not yet packaged in Nixpkgs, so we have to
+package it ourselves by writing our own derivation. This allows us to have a
+working =nix-shell= where we can generate Elixir code from =*.proto= files.
+
+#+begin_src nix :tangle package/protoc-gen-elixir.nix
+{ sources ? import ./nix/sources.nix
+, pkgs ? import sources.nixpkgs {} }:
+let
+  packages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlangR26;
+  mixFodDeps = packages.fetchMixDeps {
+    pname = "mix-deps-${pname}";
+    inherit src version;
+    sha256 = "sha256-9ZHYtxgdvYO8rjVU10OtkJuWNMjpU/4dCX01DO7pu14=";
+  };
+  pname = "protoc-gen-elixir";
+  src = pkgs.fetchgit {
+    url = "https://github.com/elixir-protobuf/protobuf";
+    rev = "v${version}";
+    sha256 = "sha256-J9HEISTDda3E2D20Okw3rhpe29W3qATr0rrfUoQ+81I=";
+  };
+  version = "0.11.0";
+in
+  # FIXME: This is very heavy as it compiles the entire project (which we don't
+  # need to do). However this appears to be the only way possible to compile the
+  # protoc-gen-elixir escript executable.
+  packages.mixRelease {
+    inherit pname src version mixFodDeps;
+    buildPhase = ''
+      MIX_ENV=prod mix do escript.build --force
+    '';
+
+    installPhase = ''
+      mkdir -p $out/bin
+      mv protoc-gen-elixir $out/bin
+    '';
+  }
+#+end_src
+
+*** Mix release
+
+We package up =melbyd= as a standalone "package".
+
+#+caption: daemon/melby-daemon.nix
+#+begin_src nix :tangle daemon/melby-daemon.nix
+{ sources ? import ../package/nix/sources.nix }:
+let
+  # Overlays
+  oxalica-rust-overlay = import sources.rust-overlay;
+  # The final "pkgs" attribute with all the bells and whistles of our overlays.
+  pkgs = import sources.nixpkgs {
+    overlays = [
+      oxalica-rust-overlay
+    ];
+  };
+  systemdAvailable = pkgs.lib.meta.availableOn
+    pkgs.stdenv.hostPlatform
+    pkgs.systemd;
+  packages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlangR26;
+  # FIXME: This appears to result in a SHA mismatch between Linux and Mac. We
+  # should probably use mix2nix to download mix dependencies reproducibly, as
+  # described in
+  # https://github.com/NixOS/nixpkgs/blame/2ea8b001f6ba09cc6eb9a30f4e117cbc3ec5afe2/doc/languages-frameworks/beam.section.md#L79.
+  #
+  # Hmm but this appears to be the same now since upgrading to 23.11.
+  mixFodDeps = packages.fetchMixDeps {
+    pname = "mix-deps-${pname}";
+    inherit src version;
+    sha256 = "sha256-sNHiSWJgB2bRIt6i3o10EV6HL+SbqsyFoN5RBtHTQ3M=";
+  };
+  mixNixDeps = import ./mix.nix {
+    lib = pkgs.lib;
+    beamPackages = pkgs.beamPackages;
+  };
+  pname = "melby-daemon";
+  # FIXME When this file is eventually upstreamed to Nixpkgs (if we want that),
+  # at that point we can start referring to Git tags/releases and use the
+  # version string from that instead (and download the tarball/zip, and proceed
+  # to build the package).
+  version = "0-dev";
+  src = builtins.path {
+    name = "melby-daemon";
+    path = ./.;
+    filter = path: type: builtins.elem (/. + path) files;
+  };
+  files = [
+    ./config
+    ./config/config.exs
+    ./config/dev.exs
+    ./config/prod.exs
+    ./config/runtime.exs
+    ./config/test.exs
+    ./.formatter.exs
+    ./.gitignore
+    ./install
+    ./install/melby.service
+    ./install/launchctl.sh
+    ./lib
+    ./lib/generated
+    ./lib/generated/melby_client.pb.ex
+    ./lib/generated/melby_daemon.pb.ex
+    ./lib/generated/melby.pb.ex
+    ./lib/generated/melby_renderer.pb.ex
+    ./lib/melbyd
+    ./lib/melbyd/router.ex
+
+    ./lib/melbyd/nifs
+    ./lib/melbyd/nifs/Cargo.toml
+    ./lib/melbyd/nifs/Cargo.lock
+    ./lib/melbyd/nifs/.gitignore
+    ./lib/melbyd/nifs/src
+    ./lib/melbyd/nifs/src/path_shorten.rs
+    ./lib/melbyd/nifs/src/color.rs
+    ./lib/melbyd/nifs/src/lib.rs
+    ./lib/melbyd/nifs/Makefile
+
+    ./lib/melbyd/color.ex
+    ./lib/melbyd/application.ex
+    ./lib/melbyd/cache.ex
+    ./lib/melbyd/standard_resource.ex
+    ./lib/melbyd/view.ex
+    ./lib/melbyd/grpc.ex
+    ./lib/melbyd/shell_process.ex
+    ./lib/melbyd/lua_api.ex
+    ./lib/melbyd/nifs.ex
+    ./lib/melbyd/path.ex
+    ./lib/melbyd/renderer
+    ./lib/melbyd/renderer/cabal.project
+    ./lib/melbyd/renderer/.ghci
+    ./lib/melbyd/renderer/lib
+    ./lib/melbyd/renderer/lib/MelbyRenderer
+    ./lib/melbyd/renderer/lib/MelbyRenderer/melby_renderer.proto
+    ./lib/melbyd/renderer/lib/MelbyRenderer/Schema.hs
+    ./lib/melbyd/renderer/lib/MelbyRenderer/GitVersion.hs
+    ./lib/melbyd/renderer/lib/MelbyRenderer/Log.hs
+    ./lib/melbyd/renderer/melby-renderer.cabal
+    ./lib/melbyd/renderer/stack.yaml.lock
+    ./lib/melbyd/renderer/melby-renderer.hs
+    ./lib/melbyd/renderer/.gitignore
+    ./lib/melbyd/renderer/Makefile
+    ./lib/melbyd/renderer/melby-renderer.nix
+    ./lib/melbyd/renderer/stack.yaml
+    ./lib/melbyd/renderer/LICENSE
+    ./Makefile
+    ./mix.exs
+    ./mix.lock
+    ./test
+    ./test/test_helper.exs
+    ./test/sample
+    ./test/sample/get_pods.gotemplate
+    ./test/sample/GitFake.lua
+    ./test/sample/Git.lua
+    ./test/sample/git_staged_bytes.sh
+    ./test/sample/KubeCurrentFake.lua
+    ./test/sample/KubeCurrent.lua
+    ./test/sample/KubeFake.lua
+    ./test/sample/Kube.lua
+    ./test/sample/melby.lua
+    ./test/melbyd_test.exs
+  ];
+  melby = import ../package/build.nix;
+  nifs_ext = if pkgs.stdenv.isDarwin then "dylib" else "so";
+  # FIXME remove this after confirming that the problem doesn't happen any more?
+  # For whatever reason Rustler insists on searching for .so files, even on Darwin. So we do this to make it happy. The exact error we get on Mac is:
+  #
+  #    00:46:00.502 [warning] The on_load function for module Elixir.Melbyd.Nifs returned:
+  #    {:error,
+  #     {:load_failed,
+  #      'Failed to load NIF library: \'dlopen(/private/tmp/nix-build-melby-server-0-dev.drv-0/melby-server/_build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so, 0x0002): tried: \'/private/tmp/nix-build-melby-server-0-dev.drv-0/melby-server/_build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so\' (no such file), \'/System/Volumes/Preboot/Cryptexes/OS/private/tmp/nix-build-melby-server-0-dev.drv-0/melby-server/_build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so\' (no such file), \'/private/tmp/nix-build-melby-server-0-dev.drv-0/melby-server/_build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so\' (no such file)\''}}
+  nifs_cp_lib_cmd = pkgs.lib.strings.optionalString pkgs.stdenv.isDarwin ''
+    cp _build/prod/lib/melbyd/priv/native/libmelbyd_nifs.dylib \
+       _build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so
+  '';
+  # We have to manually compile the "mac_listener" binary because the
+  # "file_system" Elixir package does not do this automatically. See
+  # https://gist.github.com/jbott/2030c133509e7c1db4f41941b5367475.
+  mac_compile_mac_listener_cmd = pkgs.lib.strings.optionalString pkgs.stdenv.isDarwin ''
+    clang -framework CoreFoundation -framework CoreServices -Wno-deprecated-declarations deps/file_system/c_src/mac/*.c -o $out/bin/mac_listener
+  '';
+in
+  packages.mixRelease {
+    inherit pname src version mixNixDeps;
+    #inherit pname src version mixFodDeps;
+    buildInputs = [
+      pkgs.rust-bin.stable.latest.default
+      pkgs.rust-analyzer
+      melby.melby-nifs
+      melby.melby-renderer
+    ]
+    # FIXME: This part is a copy/paste of shell.nix at the root and should be
+    # deduplicated.
+    # For file_system on Linux.
+    ++ pkgs.lib.optional pkgs.stdenv.isLinux pkgs.inotify-tools
+    # For file_system on macOS. See
+    # https://elixirforum.com/t/could-not-compile-file-system-watcher-for-mac/17432/10
+    # for a discussion about getting a file system watcher working on Mac.
+    ++ pkgs.lib.optionals pkgs.stdenv.isDarwin
+        (with pkgs.darwin.apple_sdk.frameworks; [
+          CoreFoundation
+          CoreServices
+          Security
+        ]);
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    LANG = "C.UTF-8";
+    LOCALE_ARCHIVE = pkgs.lib.optional pkgs.stdenv.isLinux
+      "${pkgs.glibcLocales}/lib/locale/locale-archive";
+
+    # Install our Rust NIF shared object that was already compiled in a separate
+    # Nix package we made (called "melby-nifs"). This is required for Rustler to
+    # generate the correct beam bytecode that calls into melbyd_nifs.
+    postConfigure = ''
+      echo "extracting melby-nifs"
+      ${pkgs.zstd}/bin/zstd -d ${melby.melby-nifs}/target.tar.zst --stdout \
+        | tar -x -C ./lib/melbyd/nifs
+      mkdir -p _build/prod/lib/melbyd/priv/native
+      cp lib/melbyd/nifs/target/release/deps/libmelbyd_nifs.${nifs_ext} \
+         _build/prod/lib/melbyd/priv/native
+      ${nifs_cp_lib_cmd}
+    '';
+
+    # Make melbyr available as a runtime dependency.
+    postBuild = ''
+      mkdir -p $out/bin
+      cp ${melby.melby-renderer}/bin/melbyr $out/bin
+      ${mac_compile_mac_listener_cmd}
+    '';
+
+    # Install
+    postInstall = ''
+      mkdir -p $out/share/melby
+      cp -r $src/test/sample $out/share/melby
+
+      if ${ pkgs.lib.boolToString systemdAvailable }; then
+        install -Dm644 $src/install/melby.service \
+          $out/share/systemd/user/melby.service
+
+        # Fix ExecStart path.
+        substituteInPlace "$out/share/systemd/user/melby.service" \
+          --replace 'ExecStart=melbyd' "ExecStart=$out/bin/melbyd start"
+      fi
+
+      # Make the autogenerated "melbyd" wrapper script (courtesy of mixRelease)
+      # source the PATH locations of dependencies, because otherwise if we use
+      # the script in a bare-bones environment (such as systemd), it will fail
+      # to find binaries like "readlink" or "cut" (coreutils).
+      wrapProgram $out/bin/melbyd --prefix PATH : ${pkgs.lib.makeBinPath
+        (with pkgs;
+            [
+                coreutils
+                gawk
+                gnugrep
+                gnused
+            ])}
+    '';
+
+    # See https://github.com/whitfin/cachex/issues/205 and
+    # https://github.com/NixOS/nixpkgs/pull/192472 and
+    # https://github.com/erlang/otp/pull/2114. Cachex breaks with "invalid_hook"
+    # if you strip binaries and beam files.
+    stripDebug = false;
+  }
+#+end_src
+
+Build our Rust library (=melbyd_nifs=).
+
+#+begin_src nix :tangle daemon/lib/melbyd/nifs/melby-nifs.nix
+{ sources ? import ../../../../package/nix/sources.nix }:
+let
+  files = [
+    ./Cargo.toml
+    ./Cargo.lock
+    ./.gitignore
+    ./src
+    ./src/path_shorten.rs
+    ./src/color.rs
+    ./src/lib.rs
+    ./Makefile
+  ];
+
+  src = builtins.path {
+    name = "melby-nifs";
+    path = ./.;
+    filter = path: type: builtins.elem (/. + path) files;
+  };
+  # Overlays
+  oxalica-rust-overlay = import sources.rust-overlay;
+  # Build rust crates.
+  naersk = pkgs.callPackage sources.naersk {};
+  # The final "pkgs" attribute with all the bells and whistles of our overlays.
+  pkgs = import sources.nixpkgs {
+    overlays = [
+      oxalica-rust-overlay
+    ];
+  };
+in
+  naersk.buildPackage {
+    inherit src;
+    copyBins = false;
+    copyTarget = true;
+    # See https://pyo3.rs/v0.14.2/building_and_distribution.html#macos (by way
+    # of https://github.com/PyO3/pyo3/issues/1800#issuecomment-1071890916).
+    CARGO_BUILD_RUSTFLAGS = pkgs.lib.optional
+      pkgs.stdenv.isDarwin
+      "-C link-arg=-undefined -C link-arg=dynamic_lookup";
+  }
+#+end_src
+
+*** Additional application configuration
+
+#+begin_src elixir :tangle daemon/config/config.exs
+import Config
+
+config :logger, :console,
+  format: "$time [$level] $metadata $message\n",
+  metadata: [:error_code, :file, :line, :mfa, :pid]
+
+# Disable truncation of log messages.
+config :logger,
+  truncate: :infinity
+
+config :elixir, :time_zone_database, Tz.TimeZoneDatabase
+
+# This imports config/test.exs when we run unit tests. Otherwise that
+# configuration (used during "mix test", called by "make test") is not used.
+import_config "#{config_env()}.exs"
+#+end_src
+
+#+begin_src elixir :tangle daemon/config/dev.exs
+# Stub.
+#+end_src
+
+#+begin_src elixir :tangle daemon/config/prod.exs
+import Config
+
+config :logger,
+  backends: [:console],
+  compile_time_purge_matching: [
+    [level_lower_than: :info]
+  ]
+#+end_src
+
+#+begin_src elixir :tangle daemon/config/runtime.exs
+import Config
+
+config :melbyd,
+  env: config_env(),
+  # MELBYD_SRS_TTL: Number of ticks (tick about 1 second) to go through (with 0
+  # client usage) before exiting. This is a simple way to garbage-collect unused
+  # SRS GenServers to prevent unbounded growth.
+  melbyd_srs_ttl: System.get_env("MELBYD_SRS_TTL") || 3600 * 4,
+  melbyd_sps_ttl: System.get_env("MELBYD_SPS_TTL") || 3600 * 4,
+  melbyd_port:
+    System.get_env("MELBYD_PORT") ||
+      (if config_env() == :prod do
+         50051
+       else
+         50052
+       end),
+  melbyr_port:
+    System.get_env("MELBYR_PORT") ||
+      (if config_env() == :prod do
+         50055
+       else
+         50056
+       end),
+  # Users can set this variable to make melbyd use it directly (useful for
+  # testing out development, non-packaged versions of melbyr). In production we
+  # would simply expect to run the first "melbyr" binary found on the PATH.
+  melbyr_path: System.get_env("MELBYR_PATH") || "melbyr"
+
+# Avoid
+#
+#   .../latest_remote_poll.txt": read-only file system
+#
+# error with tzdata. Basically tzdata tries to self-update constantly, and it
+# must do this in a writable directory. Currently this defaults to the Nix store
+# for melbyd which is read-only, so we use the ~/.melby/tzdata directory instead.
+# The ~/.melby directory is created on application startup.
+config :tzdata, :data_dir, Path.expand("~/.melby/tzdata")
+#+end_src
+
+
+** Rust NIFs integration
+
+In order to expose our Rust code to Elixir, we have to write some wrappers for
+both the Elixir and Rust side.
+
+*** Elixir wrapper
+
+#+begin_src elixir :tangle daemon/lib/melbyd/nifs.ex
+defmodule Melbyd.Nifs do
+  use Rustler,
+    otp_app: :melbyd,
+    crate: :melbyd_nifs,
+    path: "lib/melbyd/nifs",
+    skip_compilation?: true
+
+  # When your NIFs are loaded, they will override these functions.
+  def path_shorten(_path, _aliases, _env_vars, _shorten_threshold),
+    do: :erlang.nif_error(:nif_not_loaded)
+
+  def parse_color(_color_str), do: :erlang.nif_error(:nif_not_loaded)
+end
+#+end_src
+
+*** Rust wrapper
+
+#+begin_src rust :tangle daemon/lib/melbyd/nifs/src/lib.rs
+pub mod color;
+pub mod path_shorten;
+
+rustler::init!(
+    "Elixir.Melbyd.Nifs",
+    [
+        path_shorten::path_shorten,
+        color::parse_color,
+    ]
+);
+#+end_src
+
+*** Boilerplate
+
+**** Makefile
+
+#+begin_src makefile :tangle daemon/lib/melbyd/nifs/Makefile
+test:
+	cargo test
+#+end_src
+
+**** Cargo
+
+#+begin_src makefile :tangle daemon/lib/melbyd/nifs/Cargo.toml
+[package]
+name = "melbyd_nifs"
+version = "0.1.0"
+authors = []
+edition = "2018"
+
+[lib]
+name = "melbyd_nifs"
+path = "src/lib.rs"
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+csscolorparser = "0.6.2"
+envsubst = "0.2.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+rustler = "0.31.0"
+#+end_src
+
+**** .gitignore
+
+We ignore Cargo.lock for libraries. See
+https://doc.rust-lang.org/cargo/faq.html#why-do-binaries-have-cargolock-in-version-control-but-not-libraries.
+
+#+begin_src text :tangle daemon/lib/melbyd/nifs/.gitignore
+/target
+Cargo.lock
+
+.cargo
+#+end_src
+
+** Haskell (melbyr)
+
+*** Set up GHCi environment
+
+#+begin_src text :tangle daemon/lib/melbyd/renderer/.ghci
+:set -XOverloadedStrings
+#+end_src
+
+* Tests
+
+This probably should be in a separate file, as it requires a pretty big context
+switch.
+
+#+begin_src elixir :tangle daemon/test/test_helper.exs
+# Instead of printing logs, capture them. Only print them for tests that fail.
+# See https://hashrocket.com/blog/posts/silence-logger-messages-in-exunit.
+ExUnit.start(capture_log: true)
+#+end_src
+

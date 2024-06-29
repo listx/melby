@@ -1,0 +1,2269 @@
+# Copyright 2023 Linus Arver
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#+title: User Manual
+#+SETUPFILE: lilac.theme
+#+PROPERTY: header-args :noweb no-export
+#+OPTIONS: ^:{}
+#+OPTIONS: H:5
+
+* Concepts
+
+Ultimately, you will want to provide =melbyc= with a Lua configuration file,
+which will in turn provide it to =melbyd=. Most of your configuration will be
+spent defining resources for the Standard Resource Service that =melbyd=
+provides. This is because SRS generalizes the reading of data through shell
+commands that would normally be run inside a shell script.
+
+** Standard Resource Service (SRS)
+
+Melby allows you to declaratively define a *resource* using the Standard
+Resource Service. Each resource is a collection of shell commands that when
+executed and parsed can create a single "object" of some sort, where the object
+is a collection of key-value pairs (also known as a hashmap or dictionary). One
+example could be a Git type that has various information about a particular Git
+repo on disk at some path. Each object is associated with a type, and this
+*type* information is called the =resource_type=.
+
+Each resource also needs a way to distinguish itself against other resources of
+the same type. The =resource_id= fulfills this role. For example, for the Git
+resource type, the =resource_id= could be the unique path on disk for that Git
+repo.
+
+* Configuration example
+
+Let's look at what a sample configuration might look like. The only requirement
+is that we return a table (in this example, named =Config=) with a =view=
+function. This function takes an =env= variable which is a table whose keys and
+values reflect the environment variables that =melbyc= sees when it is invoked
+by the user.
+
+** Main configuration
+
+We import the above into our main configuration, at =melby.lua=.
+
+Note that we =require= the =Git=, =KubeCurrent=, and =Kube= packages.
+This requires setting the =LUA_PATH= for melbyd when it starts up. Example:
+
+#+begin_example
+LUA_PATH="./?.lua;./?/init.lua;$PWD/test/sample/?.lua" make repl
+#+end_example
+
+The question marks are replaced with the Lua module name. For Luerl, it uses
+the LUA_PATH environment variable [[https://github.com/rvirding/luerl/blob/fc668ef337b04ca2aee83c648cf6853dab8babe6/src/luerl_lib_package.erl#L83][here]].
+
+In our case, we should do 2 things:
+
+1. in tests, make sure to set the LUA_PATH correctly (to the sample config
+   folder as above), and
+2. in production, add the $HOME/.melby folder as a path.
+
+Another option is to modify the package.path global variable like this:
+
+#+begin_example
+package.path = 'function/?.lua;' .. package.path
+require "Git"
+#+end_example
+
+
+#+begin_src lua :tangle daemon/test/sample/melby.lua
+-- FIXME: Make LUA_PATH also include $HOME/.melby/?.lua.
+-- FIXME: Make melbyc use the above path as a default if it's there, and only
+-- overwrite it with the FILEPATH argument (move this FILEPATH argument to an
+-- optional, not required, flag).
+local Git = require "Git"
+local KubeCurrent = require "KubeCurrent"
+local Kube = require "Kube"
+
+Config = {}
+Config["render_options"] = {
+  format = "RENDER_FORMAT_UNIX_TERMINAL",
+  color_depth = "RENDER_COLOR_DEPTH_24_BIT"
+}
+
+-- This is required for both verification and reducing the inputs (env vars) to
+-- a known subset.
+-- FIXME: Also, strip the given env vars coming from melbyc down to only these
+-- env vars. This forces the user to be explicity up-front (at this level)
+-- exactly which env vars they expect to use.
+-- FIXME: Require that these env vars are specified as keys for each element in
+-- Config.validation's env_vars
+Config.view_params_types = {
+  env={
+    HOME                      = {"required", "path"},
+    HOST                      = {"required", "string"},
+    -- "paths" means 1 or more colon-separated paths (no colons if only 1 path).
+    -- We don't need to bother with a real file on disk because we will never
+    -- actually read this path; for validation
+    KUBECONFIG                = {"required", "paths"},
+    MELBY_DIR                  = {"required", "path"},
+    MELBY_LAST_CMD_EXIT_STATUS = {"required", "int"},
+    -- "pathblob" is like "path", except that it represents the *contents* of a
+    -- path. The filename is generated automatically using a temp folder plus
+    -- the name of the env var.
+    MELBY_PATH_ALIASES_FILE    = {"required", "pathblob"},
+    MELBY_TIME_ZONE            = {"optional", "string"},
+    MELBY_UNIX_SECONDS         = {"optional", "uint"},
+    MELBY_ZSH_KEYMAP_INDICATOR = {"required", "string"},
+    PWD                       = {"required", "path"},
+    USER                      = {"required", "string"},
+  },
+  shell_pid                   = {"required", "uint"}
+}
+
+-- Return an array of array of env var overrides and substrings. For the
+-- substrings, these are substrings that must be present in the output of the
+-- Config.view() function.
+--
+-- We have to override some env vars because otherwise they become polluted with
+-- real paths that are coming from the actual melbyc invocation. For the
+-- "preview" (fake) environment we want to control, ideally, all the env vars in
+-- allowed_env_vars...!
+--
+-- FIXME: Set all env vars in allowed_env_vars to make it deterministic. Also
+-- probably set the shell_pid as well to make the function truly pure.
+-- FIXME: rename env_var_overrides to something else because we're overriding
+-- _every_ env var that matters to us.
+Config.view_tests = {
+  -- time_idx 0
+  {env={
+    HOME                      = "/home/alice",
+    HOST                      = "laptop",
+    KUBECONFIG                = "/home/alice/.kube/config",
+    -- We don't actually need to have a real /home/alice/.melby folder with other
+    -- Lua files in it, because by the time this entire config is read, we
+    -- already parsed in all the Lua files we need. So this MELBY_DIR is really
+    -- just a placeholder.
+    MELBY_DIR                  = "/home/alice/.melby",
+    MELBY_LAST_CMD_EXIT_STATUS = "0",
+    -- this is a "blobpath". the actual value here used in the env var will
+    -- point to a temporary filename which has the contents here.
+    MELBY_PATH_ALIASES_FILE    =
+        [[
+            # Kubernetes.
+            hash -d   ki=${HOME}/go/src/github.com/kubernetes/k8s.io
+            hash -d   kk=${HOME}/go/src/k8s.io/kubernetes
+            hash -d   kr=${HOME}/go/src/k8s.io/release
+            hash -d   kt=${HOME}/go/src/k8s.io/test-infra
+            hash -d  cip=${HOME}/go/src/sigs.k8s.io/k8s-container-image-promoter
+
+            # Notes and dotfiles.
+            hash -d    l=${HOME}/lo
+            hash -d    s=${HOME}/syscfg
+        ]],
+    MELBY_TIME_ZONE            = "America/Los_Angeles",
+    MELBY_UNIX_SECONDS         = "1679032715",
+    MELBY_ZSH_KEYMAP_INDICATOR = "I",
+    PWD                       = "/repo/a",
+    USER                      = "alice",
+   },
+  -- FIXME: move shell_pid to an env_var to unify all inputs into env_vars.
+  shell_pid                   = "54311",
+  expected_substrings={"K8s...", "Git..."}},
+}
+
+function Config.view (env, shell_pid)
+  local widgets_ps1_line1 = {}
+  local widgets_ps1_line2 = {}
+  -- FIXME: We need a fake version of get_path_aliases as well, because we don't
+  -- want to actually read from disk, but let the user instead specify the
+  -- *contents* of such a file.
+  local path_aliases = melbyd.get_path_aliases(env["MELBY_PATH_ALIASES_FILE"])
+
+  local pwd = env["PWD"]
+  local pwd_pretty_options = {}
+  -- We try to fit under this length if possible.
+  pwd_pretty_options["shorten_threshold"] = 30
+  pwd_pretty_options["aliases"] = path_aliases
+  pwd_pretty_options["env"] = env
+  -- FIXME: Make melbyd.get_path_pretty return a LIST of strings that should be
+  -- joined with the path separator ("/"). Each element can have fields such as
+  -- color and type (whether it's a regular folder or symlink) as well as the
+  -- owner and permissions on it. For the first element (possibly an alias), we
+  -- can have a field to denote whether it's an alias. All of these bits of
+  -- information can be colorized a different way to give semantic coloring to
+  -- the final colorized path.
+  local pwd_pretty_str = melbyd.get_path_pretty(pwd, pwd_pretty_options)
+
+  -- Get the current time. In non-test-code, we can just call melbyd.get_time("%d
+  -- C %H:%M:%S %Z")
+  local unix_seconds = env["MELBY_UNIX_SECONDS"] or melbyd.get_unix_seconds()
+  local tz = env["MELBY_TIME_ZONE"] or "LOCAL"
+  local time_day_name = melbyd.get_time("%a", unix_seconds, tz)
+  local day_in_kanji = {}
+  day_in_kanji["Mon"] = utf8.char(0x6708) -- "月"
+  day_in_kanji["Tue"] = utf8.char(0x706b) -- "火"
+  day_in_kanji["Wed"] = utf8.char(0x6c34) -- "水"
+  day_in_kanji["Thu"] = utf8.char(0x6728) -- "木"
+  day_in_kanji["Fri"] = utf8.char(0x91d1) -- "金"
+  day_in_kanji["Sat"] = utf8.char(0x571f) -- "土"
+  day_in_kanji["Sun"] = utf8.char(0x65e5) -- "日"
+
+  local time_day_name_kanji = day_in_kanji[time_day_name]
+  local time_str = melbyd.get_time(" %m-%d " .. time_day_name_kanji ..
+                                   " %H:%M:%S %Z ", unix_seconds, tz)
+  local time = {str=time_str, fg="black", bg="gold", styles={"bold"}}
+  table.insert(widgets_ps1_line1, time)
+
+  local time_utc_day_name = melbyd.get_time("%a", env["MELBY_UNIX_SECONDS"],
+                                            "Etc/UTC")
+  local time_utc_day_name_kanji = day_in_kanji[time_utc_day_name]
+  local time_utc_str = melbyd.get_time(" %m-%d " .. time_utc_day_name_kanji ..
+                                       " %H:%M:%S %Z ", unix_seconds, "Etc/UTC")
+  local time_utc = {str=time_utc_str, fg="black", bg="pink", styles={"bold"}}
+  table.insert(widgets_ps1_line1, time_utc)
+
+  local zki_str = env["MELBY_ZSH_KEYMAP_INDICATOR"] or "I"
+  local zki = {str=" <" .. zki_str .. "> ", fg="white", styles={"bold"}}
+  if zki_str == "N" then
+    zki.fg = "black"
+    zki.bg = "lightskyblue"
+  end
+  table.insert(widgets_ps1_line1, zki)
+
+  local last_command_exit_status_str = env["MELBY_LAST_CMD_EXIT_STATUS"] or ""
+  local last_command_exit_status = {str=" " .. last_command_exit_status_str .. " ",
+                                    fg="black", bg="red", styles={"bold"}}
+  if #last_command_exit_status_str > 0 and last_command_exit_status_str ~= "0" then
+    table.insert(widgets_ps1_line1, last_command_exit_status)
+  end
+
+  -- Create a one-shot message for testing (when we want to publish an ad-hoc
+  -- message).
+  --
+  --local message = {topic="srs_Git", from="/home/l/prog/melby", payload={level="info", text="Hello world"}}
+  --
+  --melbyd.broadcast("srs_Git", message)
+
+  user = env["USER"] or "user"
+  host = env["HOST"] or "host"
+  user_host = {str=(user .. "@" .. host)}
+  table.insert(widgets_ps1_line1, user_host)
+
+  pwd_pretty = {str=pwd_pretty_str, fg="cyan", styles={"bold"}}
+  table.insert(widgets_ps1_line1, pwd_pretty)
+
+  -- FIXME: Run Kube.read() for every Kubernetes context found in the set of
+  -- MELBY_KUBE_CONTEXTS.
+  --
+  -- get_kube_contexts(env["MELBY_KUBE_CONTEXTS"])
+  -- example: "ctx1,ctx2,ctx3"
+  --
+  -- FIXME: Need to loop this around multiple context:namespace combos, probably
+  -- encoded in MELBY_KUBE_CONTEXTS
+  --
+  --local kube_standard_resource = Kube:read("kind-kind-prow-integration",
+  --"default", env["MELBY_DIR"])
+  --
+  --local kube_widgets = Kube.view(kube_standard_resource)
+  --for _, w in ipairs(kube_widgets) do
+  --  table.insert(widgets_ps1_line2, w)
+  --end
+
+  local kubecurrent_standard_resource = KubeCurrent:read(env,
+                                                         {"KUBECONFIG", "HOME"})
+  local health_resource = {}
+  local health_resource_status = ""
+  local health_widgets = {}
+  local health_str = ""
+  if kubecurrent_standard_resource.status ==
+       "STANDARD_RESOURCE_STATUS_LOADED" then
+    health_resource = Kube:read(kubecurrent_standard_resource.kvs.context,
+                                kubecurrent_standard_resource.kvs.namespace,
+                                env["MELBY_DIR"])
+    health_resource_status = health_resource.status
+    health_widgets = Kube.view(health_resource)
+    health_str = melbyd.render(health_widgets, {str=" "})
+  end
+
+  local kubecurrent_widgets = KubeCurrent.view(kubecurrent_standard_resource,
+                                               health_resource.status,
+                                               health_str)
+  for _, w in ipairs(kubecurrent_widgets) do
+    table.insert(widgets_ps1_line2, w)
+  end
+
+  -- Note that because Git:read() returns very quickly (we designed the backend
+  -- to be asynchronous), we don't need to worry about parallelism at the Lua
+  -- configuration level.
+  --
+  -- Get git information for PWD, if any. We use "MELBY_DIR" so that we can use
+  -- it in the Git.readers() function for calling custom scripts at custom
+  -- locations (wherever MELBY_DIR points to).
+  local git_standard_resource = Git:read(env, {"PWD", "MELBY_DIR"})
+  -- Use the standard widgets that come with the "Git.lua" module.
+  local git_widgets = Git.view(git_standard_resource)
+  for _, w in ipairs(git_widgets) do
+    table.insert(widgets_ps1_line2, w)
+  end
+
+  -- Render widgets. Some go into line 1, others into line 2.
+  local ps1_line1 = melbyd.render(widgets_ps1_line1, {str=" "})
+  local ps1_line2 = melbyd.render(widgets_ps1_line2, {str=" "})
+
+  -- We need to get messages first because we need to subscribe first. Otherwise
+  -- Git SRS will start first and we'll miss its first broadcast (how long the
+  -- initial read took).
+  local messages = melbyd.get_shell_messages(shell_pid,
+                                            {Git, KubeCurrent},
+                                            {PWD=env["PWD"],
+                                             KUBECONFIG=(env["KUBECONFIG"] or "")})
+  local message_strs = {}
+  for _, message in ipairs(messages) do
+    if message["topic"] == "srs_Git" then
+      message_str = Git.message_to_string(message, pwd_pretty_options)
+    elseif message["topic"] == "srs_KubeCurrent" then
+      message_str = KubeCurrent.message_to_string(message)
+    end
+    table.insert(message_strs, message_str .. "\n")
+  end
+
+  -- Create a dictionary of shell variables to create.
+  export = {}
+  table.insert(export, {name="MELBY_PS1_LINE1", val=ps1_line1, type="string"})
+  table.insert(export, {name="MELBY_PS1_LINE2", val=ps1_line2, type="string"})
+  table.insert(export, {name="MELBY_SHELL_MESSAGES", val=message_strs,
+                        type="array"})
+
+  -- Create a shell script that instantiates the exported variables.
+  script = melbyd.to_shell_script(export)
+  return script
+end
+
+-- This line is to force evaluation of these loaded modules by Luerl, such that
+-- they show up in the loaded vm state.
+return {g = Git, kc = KubeCurrent, k = Kube}
+#+end_src
+
+** Git resource
+
+FIXME: break this up into multiple chunks for smaller bits of explanation
+(prefer to maximize prose comments here instead of comments in the Lua code).
+
+#+begin_src lua :tangle daemon/test/sample/Git.lua
+-- Git Lua module for melby.
+local Git = {}
+Git["type"] = "Git"
+Git["history_size"] = 10
+Git["parser"] = {}
+Git["fake"] = require "GitFake"
+
+-- Read the state of the world for this Git repo. Relies on Git.model.readers to
+-- get the job done.
+function Git.read (self, env, var_names)
+  local resource_opts = {}
+  for _, var_name in ipairs(var_names) do
+    resource_opts[var_name] = env[var_name]
+  end
+  -- Gets the current state of the SRS GenServer's latest "head" of this
+  -- resource. This is because this resource can have a number of states stored
+  -- in its history (and here we retrieve the first one). Also note that this
+  -- call is very cheap because sometimes we will just read the already-stored
+  -- history item (that is, calling this function may or may not result in
+  -- running the Git.model.readers() commands).
+  return melbyd.read_standard_resource(self, resource_opts)
+end
+
+-- Used to generate a unique resource_id. E.g., for Git, this is the absolute
+-- folder path of the git root folder. This is because for Git, clients can
+-- legitimately ask questions about the Git repo as long as they are in a child
+-- folder under the root. Other resources that are filesystem-based will likely
+-- be the same (e.g., direnv).
+function Git.resource_id_command (resource_opts)
+  local pwd = resource_opts["PWD"]
+  return {cd=pwd, invocation={"git", "rev-parse", "--show-toplevel"}}
+end
+
+function Git.readers (resource_opts)
+  local pwd = resource_opts["PWD"]
+  -- Each reader needs an associated parser. The parser function is just the
+  -- string name of a Git.parser.* function name. So parser="diff" refers to
+  -- Git.parser.diff().
+  --
+  -- FIXME: Move the invocation definition to a function, and put this function
+  -- next to each parser function.
+  local readers = {
+    {cd=pwd, invocation={"git", "diff", "--shortstat"},
+     parser="diff"},
+
+    {cd=pwd, invocation={"git", "diff", "--shortstat", "--cached"},
+     parser="diff_cached"},
+
+    {cd=pwd, invocation={"git", "diff", "--numstat"},
+     parser="diff_binary"},
+
+    {cd=pwd, invocation={"git", "diff", "--numstat", "--cached"},
+     parser="diff_cached_binary"},
+
+    {cd=pwd, invocation={(resource_opts["MELBY_DIR"] or "") ..
+         "/git_staged_bytes.sh", "quiet"},
+     parser="staged_bytes"},
+
+    {cd=pwd, invocation={"git", "log", "--no-walk",
+                         "--format=head_author_date,%at%n" ..
+                           "head_author_name,%an%n" ..
+                           "head_committer_date,%ct%n" ..
+                           "head_committer_name,%cn",
+                         "HEAD"},
+     parser="head_metadata"},
+
+    {cd=pwd, invocation={"git", "ls-files", "--others", "--exclude-standard"},
+     parser="untracked_files"},
+
+    {cd=pwd, invocation={"git", "ls-files", "-v"},
+     parser="assume_unchanged_files"},
+
+    {cd=pwd, invocation={"git", "rev-list", "--left-right", "--count",
+                         "HEAD...@{upstream}"},
+     parser="count_head_vs_upstream"},
+
+    {cd=pwd, invocation={"git", "rev-parse", "--abbrev-ref", "HEAD"},
+     parser="head_branch"},
+
+    {cd=pwd, invocation={"git", "rev-parse", "HEAD"},
+     parser="head_sha"},
+
+    {cd=pwd, invocation={"git", "rev-parse", "--is-bare-repository"},
+     parser="bare"},
+
+    {cd=pwd, invocation={"git", "stash", "list"},
+     parser="stash_size"},
+
+    {cd=pwd, invocation={"git", "submodule", "status"},
+     parser="submodule_status"},
+  }
+  return readers
+end
+
+-- Staleness flaggers are objects that mark staleness. A stale resource is
+-- refreshed (by re-reading the state of the world). Here we define a
+-- filesystem-based staleness flagger which marks the model as stale, based on a
+-- simple algorithm that ignores changes to Git index files (these files are
+-- modified by the "git" binary).
+function Git.staleness_flaggers (resource_id)
+  local repo_root = resource_id
+  local filesystem = {}
+  filesystem["type"] = "filesystem"
+  filesystem["watch_paths"] = {repo_root}
+
+  -- Custom logic to check how to detect cache invalidation, and whether to also
+  -- invalidate all parent SRS GenServers up along the path (if any).
+  filesystem["fs_event_handler"] = function (path, events)
+    -- For index files (".git/**/index.lock"), ignore all events except just
+    -- ":modified".
+    --
+    -- When we do get a :modified event, this can happen
+    -- if HEAD moves, which is important when we (for example) modify the
+    -- HEAD of submodules.
+    if string.find(path, "/.git/") and string.find(path, "/index.lock$") then
+      -- FIXME note: Looks like
+      -- https://github.com/rvirding/luerl/blob/5e61c1838d08430af67fb870995b05a41d64aeee/src/luerl.erl#L340
+      -- converts an atom into a "binary" (string). This just drops the initial
+      -- ":" and makes the rest a string as is.
+      if #events == 1 and events[1] == "modified" then
+        return true
+      else
+        -- For index files, ignore all other events such as [:modified, :closed]
+        -- which can also happen with [:created] and [:deleted] whenever we
+        -- invoke certain Git read-only operations (e.g., git status).
+        return false
+      end
+    end
+    -- NOTE: Conceivably, if we're using jj, we could also ignore any changes
+    -- going into the "/.jj/" folder.
+    return true
+  end
+
+  -- We can technically have multiple staleness flaggers, although there can be
+  -- only 1 filesystem one (because all filesystem events are fed to the
+  -- fs_event_handler above).
+  return {filesystem}
+end
+
+function Git.parser.diff (s)
+  local ret = {}
+  -- Example input strings:
+  -- " 1 file changed, 32 insertions(+), 2 deletions(-)"
+  -- " 1 file changed, 35 insertions(+)"
+  -- " 1 file changed, 8 deletions(-)"
+  --
+  -- Note that the "unstaged_files" here does include changed binary files.
+  ret["unstaged_files"] = melbyd.get_int_group(s, "(\\d+) fil")
+  ret["unstaged_insertions"] = melbyd.get_int_group(s, "(\\d+) ins")
+  ret["unstaged_deletions"] = melbyd.get_int_group(s, "(\\d+) del")
+
+  return ret
+end
+
+-- Same as Git.parser.diff, but with slightly different keys.
+function Git.parser.diff_cached (s)
+  local ret = {}
+  ret["staged_files"] = melbyd.get_int_group(s, "(\\d+) fil")
+  ret["staged_insertions"] = melbyd.get_int_group(s, "(\\d+) ins")
+  ret["staged_deletions"] = melbyd.get_int_group(s, "(\\d+) del")
+
+  return ret
+end
+
+-- Only count binary files that have changed. Simply count the number of lines
+-- that start with "-".
+function Git.parser.diff_binary (s)
+  local ret = {}
+  -- Example input:
+  --    5   1   doc/build-literate.org
+  --    -   -   doc/melby.html
+
+  ret["unstaged_files_binary"] = melbyd.get_lines_matching_count(s, "-")
+
+  return melbyd.cast_values(ret, {unstaged_files_binary="int"})
+end
+
+-- Same as Git.parser.diff, but with slightly different keys.
+function Git.parser.diff_cached_binary (s)
+  local ret = {}
+  ret["staged_files_binary"] = melbyd.get_lines_matching_count(s, "-")
+
+  return melbyd.cast_values(ret, {staged_files_binary="int"})
+end
+
+function Git.parser.untracked_files (s)
+  local ret = {}
+
+  local lines = melbyd.get_lines_trimmed_nonempty(s)
+  ret["untracked_files"] = #lines
+
+  return ret
+end
+
+function Git.parser.submodule_status (s)
+  local ret = {}
+
+  local lines = melbyd.get_lines_trimmed_nonempty(s)
+
+  local uninitialzed = 0
+  local out_of_sync = 0
+  local merge_conflicts = 0
+
+  for i=1,#lines do
+    local c = string.sub(lines[i], 1, 1)
+    if c == "-" then
+      uninitialzed = uninitialzed + 1
+    elseif c == "+" then
+      out_of_sync = out_of_sync + 1
+    elseif c == "U" then
+      merge_conflicts = merge_conflicts + 1
+    end
+  end
+
+  ret["submodule_uninitialized"] = uninitialzed
+  ret["submodule_out_of_sync"] = out_of_sync
+  ret["submodule_merge_conflicts"] = merge_conflicts
+
+  return ret
+end
+
+function Git.parser.head_branch (s)
+  local ret = {}
+
+  -- This is "HEAD" if we are in detached HEAD state.
+  ret["head_branch"] = melbyd.get_trimmed(s)
+
+  return ret
+end
+
+function Git.parser.head_sha (s)
+  local ret = {}
+
+  ret["head_sha"] = melbyd.get_trimmed(s)
+
+  return ret
+end
+
+function Git.parser.bare (s)
+  local ret = {}
+
+  ret["bare"] = melbyd.get_trimmed(s)
+
+  return melbyd.cast_values(ret, {bare="bool"})
+end
+
+-- This function can fail even inside a normal Git repo (with "fatal: no
+-- upstream configured for branch 'BRANCH_NAME").
+function Git.parser.count_head_vs_upstream (s)
+  if #s == 0 then
+    return {count_upstream_to_head=0, count_head_to_upstream=0}
+  end
+
+  ret = melbyd.get_columnar_fields_zipped(s,
+                                         {"count_upstream_to_head",
+                                          "count_head_to_upstream"})
+
+  return melbyd.cast_values(ret, {count_upstream_to_head="int",
+                                 count_head_to_upstream="int"})
+end
+
+function Git.parser.stash_size (s)
+  local ret = {}
+
+  local lines = melbyd.get_lines_trimmed_nonempty(s)
+  ret["stash_size"] = #lines
+
+  return ret
+end
+
+function Git.parser.staged_bytes (s)
+  local ret = {}
+
+  if #s > 0 then
+    ret["staged_bytes"] = tonumber(s)
+  else
+    -- This can happen if the command failed (generated an empty string).
+    ret["staged_bytes"] = 0
+  end
+
+  return melbyd.cast_values(ret, {staged_bytes="int"})
+end
+
+function Git.parser.assume_unchanged_files (s)
+  local ret = {}
+
+  local lines = melbyd.get_lines_trimmed_nonempty(s)
+
+  local count = 0
+
+  for i=1,#lines do
+    local ascii_num = string.byte(string.sub(lines[i], 1, 1))
+    -- According to git-ls-files(1), the "-v" flag marks assume-unchanged files
+    -- with a leading lowercase letter.
+    if 0x61 <= ascii_num and ascii_num <= 0x7a then
+      count = count + 1
+    end
+  end
+
+  ret["assume_unchanged_files"] = count
+
+  return ret
+end
+
+function Git.parser.head_metadata (s)
+  local ret = {}
+  ret = melbyd.get_kv_lines_as_map(s)
+  return melbyd.cast_values(ret, {head_author_date="int",
+                                 head_committer_date="int"})
+end
+
+function Git.notify (resource_id, old, new)
+  local repo_root = resource_id
+  local message = {}
+  -- Look at overall state of the old resource versus the new resource. Generate
+  -- messages for interesting state changes.
+  --
+  -- This is where we need to warn users about linting errors and such.
+  --
+  -- FIXME: If this is a "Rust" codebase, we could have a "Rust" model that
+  -- performs linter and formatter checks.
+
+  -- If we stage or unstage something, show tentative "commit size".
+  local old_staged_bytes = old.kvs.staged_bytes
+  local new_staged_bytes = new.kvs.staged_bytes
+  melbyd.log("old_staged_bytes: " .. old_staged_bytes)
+  melbyd.log("new_staged_bytes: " .. new_staged_bytes)
+  if new_staged_bytes ~= old_staged_bytes then
+    local size_rating = ""
+
+    -- The sizes here are taken from the following geometric series:
+    --
+    -- ghci> map (\x -> round $ 2.718281828^x) [1..10]
+    -- [3,7,20,55,148,403,1097,2981,8103,22026]
+
+    if new_staged_bytes < 55 then
+      size_rating = "XS"
+    elseif new_staged_bytes < 148 then
+      size_rating = "S"
+    elseif new_staged_bytes < 403 then
+      size_rating = "M"
+    elseif new_staged_bytes < 1097 then
+      size_rating = "L"
+    elseif new_staged_bytes < 2981 then
+      size_rating = "XL"
+    else
+      size_rating = "XXL"
+    end
+    message["topic"]="srs_Git"
+    message["from"]=repo_root
+
+    if new_staged_bytes == 0 then
+      message["payload"]={level="info",
+                          text="Staging area is now empty (nothing to commit)."}
+    else
+      message["payload"]={level="info",
+                          text="Staged size is now " .. size_rating ..
+                            " (" .. new_staged_bytes .. " bytes)."}
+    end
+    melbyd.broadcast("srs_Git", message)
+  end
+
+  return nil
+end
+
+-- For a ShellProcess that is receiving a message from us (Git resource), only
+-- keep messages where the repo path is a prefix of the shell's pwd. To keep the
+-- message, return true.
+function Git.should_keep_message (message, env_vars)
+  local pwd = env_vars["PWD"]
+  local i
+  local repo_path = message["from"]
+
+  -- Discard message if the message was malformed and we could not determine the
+  -- "repo path".
+  if repo_path == nil then
+    melbyd.log("repo_path is nil --- dropping")
+    return false
+  end
+
+  if pwd == repo_path then
+    return true
+  end
+
+  i, _ = string.find(pwd, repo_path)
+  local repo_path_in_pwd_hierarchy = i == 1
+  if repo_path_in_pwd_hierarchy then
+    melbyd.log("repo_path " .. repo_path ..
+               " is in pwd hierarchy (pwd is " .. pwd .. "); KEEPING")
+  else
+    melbyd.log("repo_path " .. repo_path ..
+               " is NOT in pwd hierarchy (pwd is " .. pwd .. "); dropping")
+  end
+  return repo_path_in_pwd_hierarchy
+end
+
+function Git.message_to_string (message, pwd_pretty_options)
+  -- Example:
+  --
+  --   [22:33:37] [info] [ Git ] ~/prog/melby: Staging area is now empty (nothing to commit).
+  local widgets = {}
+  local repo_path_pretty = melbyd.get_path_pretty(message["from"],
+                                                  pwd_pretty_options)
+  table.insert(widgets, {str="  [" .. message["payload"]["time"] .. "]"})
+  table.insert(widgets, {str="[" .. message["payload"]["level"] .. "]"})
+  table.insert(widgets, {str="[ Git ]", fg="lime", styles={"bold"}})
+  table.insert(widgets, {str=repo_path_pretty, fg="yellow", styles={"bold"},
+                         drop_delim_right=true})
+  table.insert(widgets, {str=": " .. message["payload"]["text"]})
+
+  return melbyd.render(widgets, {str=" "})
+end
+
+-- Function for rendering a Git model. Generates a list of widgets.
+function Git.view (standard_resource)
+  local widgets = {}
+  local git = standard_resource["kvs"]
+
+  -- If this is an initial inquiry into a brand new, uncached Git repo path
+  -- (uncached as in Melby has not started tracking it yet), return a special "[
+  -- Git... ]" string.
+  --
+  -- We do "next(table) == nil" to check if a table is truly empty, as per
+  -- https://stackoverflow.com/a/1252776/437583.
+  if standard_resource.status == "STANDARD_RESOURCE_STATUS_LOADING" and
+    (next(git) == nil) then
+    table.insert(widgets, {str="[ Git... ]"})
+  elseif (not git.bare) and git.head_sha then
+    table.insert(widgets, {str="[", drop_delim_right=true})
+    colored_sha = melbyd.get_colorized_sha(git.head_sha, 8, 1, 1)
+    table.insert(widgets, {str=colored_sha})
+
+    if git.head_branch ~= "" then
+      table.insert(widgets, {str=git.head_branch, fg="white", styles={"bold"}})
+    end
+
+    table.insert(widgets, {str=melbyd.get_relative_age_short(
+                             git.head_committer_date),
+                           fg="deepskyblue"})
+
+    table.insert(widgets, {str=melbyd.get_truncated_personal_moniker(
+                             git.head_author_name, 6),
+                           fg="lime"})
+
+    if git.count_upstream_to_head > 0 then
+      -- Unfortunately, luerl does not appear to support "\u{...}" Lua 5.3
+      -- syntax for encoding Unicode codepoints. So we have to use the
+      -- utf8.char() function instead.
+      --
+      -- For completeness, "▲" is codepoint 0x25b2.
+      table.insert(widgets, {str=utf8.char(0x25b2), drop_delim_right=true,
+                             fg="lime"})
+      table.insert(widgets, {str=tostring(git.count_upstream_to_head)})
+    end
+
+    if git.count_head_to_upstream > 0 then
+      -- For completeness, "▼" is codepoint 0x25bc.
+      table.insert(widgets, {str=utf8.char(0x25bc), drop_delim_right=true,
+                             fg="red"})
+      table.insert(widgets, {str=tostring(git.count_head_to_upstream)})
+    end
+
+    if (git.unstaged_files + git.unstaged_files_binary +
+        git.unstaged_insertions + git.unstaged_deletions) > 0 then
+      table.insert(widgets, {str="U", fg="cyan", styles={"bold"},
+                             drop_delim_right=true})
+      if git.unstaged_files > 0 then
+        table.insert(widgets, {str=tostring(git.unstaged_files)})
+      end
+      if git.unstaged_files_binary > 0 then
+        -- For completeness, "▝" is codepoint 0x259d.
+        table.insert(widgets, {str=utf8.char(0x259d), fg="greenyellow",
+                               styles={"bold"},
+                               drop_delim_left=true, drop_delim_right=true})
+        table.insert(widgets, {str=tostring(git.unstaged_files_binary)})
+      end
+      if git.unstaged_insertions > 0 then
+        table.insert(widgets, {str="+", fg="lime",
+                               drop_delim_left=true, drop_delim_right=true})
+        table.insert(widgets, {str=tostring(git.unstaged_insertions),
+                               fg="lime"})
+      end
+      if git.unstaged_deletions > 0 then
+        table.insert(widgets, {str="-", fg="tomato", drop_delim_left=true,
+                               drop_delim_right=true})
+        table.insert(widgets, {str=tostring(git.unstaged_deletions),
+                               fg="tomato"})
+      end
+    end
+
+    if (git.staged_files + git.staged_files_binary +
+        git.staged_insertions + git.staged_deletions) > 0 then
+      table.insert(widgets, {str="S", fg="pink", styles={"bold"},
+                             drop_delim_right=true})
+      if git.staged_files > 0 then
+        table.insert(widgets, {str=tostring(git.staged_files)})
+      end
+      if git.staged_files_binary > 0 then
+        table.insert(widgets, {str=utf8.char(0x259d), fg="greenyellow",
+                               styles={"bold"},
+                               drop_delim_left=true, drop_delim_right=true})
+        table.insert(widgets, {str=tostring(git.staged_files_binary)})
+      end
+      if git.staged_insertions > 0 then
+        table.insert(widgets, {str="+", fg="lime", drop_delim_left=true,
+                               drop_delim_right=true})
+        table.insert(widgets, {str=tostring(git.staged_insertions), fg="lime"})
+      end
+      if git.staged_deletions > 0 then
+        table.insert(widgets, {str="-", fg="tomato", drop_delim_left=true,
+                               drop_delim_right=true})
+        table.insert(widgets, {str=tostring(git.staged_deletions), fg="tomato"})
+      end
+    end
+
+    if git.untracked_files > 0 then
+      table.insert(widgets, {str="N", drop_delim_right=true, fg="gold",
+                             styles={"bold"}})
+      table.insert(widgets, {str=tostring(git.untracked_files)})
+    end
+
+    if git.stash_size > 0 then
+      table.insert(widgets, {str="T", drop_delim_right=true, fg="purple",
+                             styles={"bold"}})
+      table.insert(widgets, {str=tostring(git.stash_size)})
+    end
+
+    if git.assume_unchanged_files > 0 then
+      table.insert(widgets, {str="A", drop_delim_right=true, fg="red",
+                             styles={"bold"}})
+      table.insert(widgets, {str=tostring(git.assume_unchanged_files)})
+    end
+
+    if (git.submodule_uninitialized + git.submodule_out_of_sync +
+        git.submodule_merge_conflicts) > 0 then
+      table.insert(widgets, {str="M", drop_delim_right=true, fg="skyblue",
+                             styles={"bold"}})
+      table.insert(widgets, {str="{", drop_delim_right=true})
+      if git.submodule_uninitialized > 0 then
+        table.insert(widgets, {str="not_init=", drop_delim_right=true})
+        table.insert(widgets, {str=tostring(git.submodule_uninitialized)})
+      end
+
+      if git.submodule_out_of_sync > 0 then
+        table.insert(widgets, {str="need_sync=", drop_delim_right=true})
+        table.insert(widgets, {str=tostring(git.submodule_out_of_sync)})
+      end
+
+      if git.submodule_merge_conflicts > 0 then
+        table.insert(widgets, {str="conflict=", drop_delim_right=true})
+        table.insert(widgets, {str=tostring(git.submodule_merge_conflicts)})
+      end
+      table.insert(widgets, {str="}", drop_delim_left=true})
+    end
+
+    -- Append asterisk if Melby is serving stale data.
+    if standard_resource.status == "STANDARD_RESOURCE_STATUS_LOADING" then
+      table.insert(widgets, {str="]*", drop_delim_left=true})
+    else
+      table.insert(widgets, {str="]", drop_delim_left=true})
+    end
+  end
+
+  return widgets
+end
+
+return Git
+#+end_src
+
+Below is a script for determining the absolute size of staged contents (where
+both additions and deletions are treated as positive numbers).
+
+#+begin_src sh :shebang #!/usr/bin/env bash :tangle daemon/test/sample/git_staged_bytes.sh
+set -euo pipefail
+
+# Example output from "git diff-index HEAD --cached" (the "..." is not literally
+# there and is used to truncate these outputs to reasonable width):
+#
+# :100644 100644 1c458f... 32db82... M      doc/melbyd-model.org
+# :100644 000000 9c4640... 000000... D      melbyd/test/sample/.melby.lua
+# :000000 100755 000000... bdfb82... A      melbyd/test/sample/staged_size.sh
+
+__bytes()
+{
+  2>/dev/null git cat-file -s "${1}" || echo 0
+}
+
+__log()
+{
+  [[ "${log_level}" == "quiet" ]] && return
+  echo >&2 "$@"
+}
+
+main()
+{
+  log_level="${1:-normal}"
+
+  GIT_ROOT="$(git rev-parse --show-toplevel)"
+  cd "${GIT_ROOT}"
+
+  bare="$(git rev-parse --is-bare-repository)"
+  if [[ "${bare}" == true ]]; then
+      echo 0
+      exit
+  fi
+
+  mapfile -t array < <(git diff-index HEAD --cached)
+
+  total=0
+  for line in "${array[@]}"; do
+    parts=($line)
+    path=${parts[5]}
+
+    # If the path is not to be counted because it is treated as binary in
+    # .gitattributes, skip it.
+    if git check-attr diff -- "${path}" | grep -q "diff: unset"; then
+      continue
+    fi
+
+    mode=${parts[4]}
+    old=$(__bytes ${parts[2]})
+    new=$(__bytes ${parts[3]})
+    __log "path=${path}"
+    __log "mode=${mode}"
+    __log "old=${old}"
+    __log "new=${new}"
+    delta=0
+    case "${mode}" in
+      A) delta="${new}" ;;
+      M) delta=$(( new - old )) ;;
+      D) delta="${old}" ;;
+    esac
+    delta="${delta#-}"
+    __log "delta=${delta}"
+    __log
+    total=$(( total + delta ))
+  done
+
+  echo "${total}"
+}
+
+main "$@"
+#+end_src
+
+**** Fake
+
+#+begin_src lua :tangle daemon/test/sample/GitFake.lua
+local GitFake = {}
+
+-- The return format is a list of tables where each element is a {input="..."",
+-- output={...kvs...}}.
+function diff_fake(pwd, time_idx)
+  local input = ""
+  local output = {}
+
+  if pwd == "/repo/a" then
+    if time_idx == 0 then
+      -- Some file changed.
+      input = " 1 file changed, 35 insertions(+)"
+      output["unstaged_files"] = 1
+      output["unstaged_insertions"] = 35
+      output["unstaged_deletions"] = 0
+    elseif time_idx == 1 then
+      -- Some file was changed again.
+      input = " 1 file changed, 32 insertions(+), 2 deletions(-)"
+      output["unstaged_files"] = 1
+      output["unstaged_insertions"] = 32
+      output["unstaged_deletions"] = 2
+    end
+  end
+
+  return {input=input, output=output}
+end
+
+function diff_cached_fake(pwd, time_idx)
+  local input = ""
+  local output = {}
+
+  if pwd == "/repo/a" then
+    if time_idx == 0 then
+      -- Some file changed.
+      input = " 2 files changed, 4 insertions(+)"
+      output["staged_files"] = 2
+      output["staged_insertions"] = 4
+      output["staged_deletions"] = 0
+    elseif time_idx == 1 then
+      -- Some file was changed again.
+      input = " 2 files changed, 4 insertions(+), 8 deletions(-)"
+      output["staged_files"] = 2
+      output["staged_insertions"] = 4
+      output["staged_deletions"] = 8
+    else
+      output["staged_files"] = 0
+      output["staged_insertions"] = 0
+      output["staged_deletions"] = 0
+    end
+  end
+
+  return {input=input, output=output}
+end
+
+function diff_binary_fake(pwd, time_idx)
+  local input = ""
+  local output = {}
+
+  if pwd == "/repo/a" then
+    if time_idx == 0 then
+      -- No binary files changed.
+      input = [[
+5   1   doc/build-literate.org
+]]
+      output["unstaged_files_binary"] = 0
+    elseif time_idx == 1 then
+      -- One binary file changed.
+      input = [[
+5   1   doc/build-literate.org
+-   -   doc/melby.html
+]]
+      output["unstaged_files_binary"] = 1
+    else
+      -- Two binary files changed.
+      input = [[
+5   1   doc/build-literate.org
+-   -   doc/melby.html
+-   -   foo
+]]
+      output["unstaged_files_binary"] = 2
+    end
+  end
+
+  return {input=input, output=output}
+end
+
+function diff_cached_binary_fake(pwd, time_idx)
+  local input = ""
+  local output = {}
+
+  if pwd == "/repo/a" then
+    if time_idx == 0 then
+      -- One binary file changed.
+      input = [[
+5   1   apple
+-   -   foo
+]]
+      output["staged_files_binary"] = 1
+    elseif time_idx == 1 then
+      -- No binary files changed.
+      input = [[
+5   1   apple
+]]
+      output["staged_files_binary"] = 0
+    else
+      -- Three binary files changed.
+      input = [[
+5   1   apple
+-   -   foo
+-   -   bar
+-   -   baz
+]]
+      output["staged_files_binary"] = 3
+    end
+  end
+
+  return {input=input, output=output}
+end
+
+function staged_bytes_fake(pwd, time_idx)
+  local input = ""
+  local output = {}
+
+  if pwd == "/repo/a" then
+    if time_idx == 0 then
+      -- No staged bytes.
+      input = "0"
+      output["staged_bytes"] = 0
+    elseif time_idx == 1 then
+      input = "12"
+      output["staged_bytes"] = 12
+    else
+      input = "500"
+      output["staged_bytes"] = 500
+    end
+  end
+
+  return {input=input, output=output}
+end
+
+function head_metadata_fake(pwd, time_idx)
+  local input = ""
+  local output = {}
+
+  if pwd == "/repo/a" then
+    input = [[
+head_author_date,1678169218
+head_author_name,Foo Bar
+head_committer_date,1678169218
+head_committer_name,Foo Bar
+]]
+    output["head_author_date"] = 1678169218
+    output["head_author_name"] = "Foo Bar"
+    output["head_committer_date"] = 1678169218
+    output["head_committer_name"] = "Foo Bar"
+  end
+
+  return {input=input, output=output}
+end
+
+function untracked_files_fake(pwd, time_idx)
+  local input = ""
+  local output = {}
+
+  if pwd == "/repo/a" then
+    input = [[
+file1
+]]
+    output["untracked_files"] = 1
+  end
+
+  return {input=input, output=output}
+end
+
+function assume_unchanged_files_fake(pwd, time_idx)
+  local input = ""
+  local output = {}
+
+  if pwd == "/repo/a" then
+    if time_idx == 0 then
+      input = [[
+H apple
+h carrot
+]]
+      output["assume_unchanged_files"] = 1
+    else
+      input = [[
+H apple
+H carrot
+]]
+      output["assume_unchanged_files"] = 0
+    end
+  else
+    input = [[
+H f1
+]]
+    output["assume_unchanged_files"] = 0
+  end
+
+  return {input=input, output=output}
+end
+
+function count_head_vs_upstream_fake(pwd, time_idx)
+  local input = ""
+  local output = {}
+
+  if pwd == "/repo/a" then
+    if time_idx == 0 then
+      input = [[
+0   0
+]]
+      output["count_upstream_to_head"] = 0
+      output["count_head_to_upstream"] = 0
+    elseif time_idx == 1 then
+      -- We created a commit.
+      input = [[
+1   0
+]]
+      output["count_upstream_to_head"] = 1
+      output["count_head_to_upstream"] = 0
+    else
+      -- Upstream has moved on (our local branch has diverged).
+      input = [[
+1   1
+]]
+      output["count_upstream_to_head"] = 1
+      output["count_head_to_upstream"] = 1
+    end
+  end
+
+  return {input=input, output=output}
+end
+
+function head_branch_fake(pwd, time_idx)
+  local input = ""
+  local output = {}
+
+  if pwd == "/repo/a" then
+    input = "main"
+    output["head_branch"] = "main"
+  else
+    input = "dev"
+    output["head_branch"] = "dev"
+  end
+
+  return {input=input, output=output}
+end
+
+function head_sha_fake(pwd, time_idx)
+  local input = ""
+  local output = {}
+
+  if pwd == "/repo/a" then
+    input = "2bf048d6364fff6f80d0f96f11447a80859f0df7"
+    output["head_sha"] = "2bf048d6364fff6f80d0f96f11447a80859f0df7"
+  else
+    input = "6ef4740cfe770f68af432fa27e0dc693dab8fce5"
+    output["head_sha"] = "6ef4740cfe770f68af432fa27e0dc693dab8fce5"
+  end
+
+  return {input=input, output=output}
+end
+
+function bare_fake(pwd, time_idx)
+  local input = ""
+  local output = {}
+
+  input = "false"
+  output["bare"] = false
+
+  return {input=input, output=output}
+end
+
+function stash_size_fake(pwd, time_idx)
+  local input = ""
+  local output = {}
+
+  if pwd == "/repo/a" then
+    if time_idx == 0 then
+      output["stash_size"] = 0
+    elseif time_idx == 1 then
+      output["stash_size"] = 0
+    else
+      -- Stashed some changes.
+      input = [[
+stash@{0}: WIP on main: 6ef4740 update
+]]
+      output["stash_size"] = 1
+    end
+  end
+
+  return {input=input, output=output}
+end
+
+function submodule_status_fake(pwd, time_idx)
+  local input = ""
+  local output = {}
+
+  if pwd == "/repo/a" then
+    if time_idx == 0 then
+      -- Nothing initialized.
+      input = [[
+-e827a9f3e2ba585de8b07cd246534a15ec414a8b deps/elisp/compat.el (28.1.2.2-7-ge827a9f)
+-0ac1ecf6b56eb67bb81a3cf70f8d4354b5782341 deps/elisp/dash.el (2.19.1-20-g0ac1ecf)
+-d495ed87a9c507f5939a51c740f119950c83e2ff deps/elisp/emacs-elixir (v2.3.1-135-gd495ed8)
+-dd27bc3f26efd728f2b1f01f9e4ac4f61f2ffbf9 deps/elisp/emacs-htmlize (release/1.56-1-gdd27bc3)
+-90503413f4cdb0ed26871e39c4e6e2552b57f7db deps/elisp/haskell-mode (v13.14-1398-g9050341)
+-d17a00ca50aee197cd017d573b83367eb241cc44 deps/elisp/lua-mode (v20210802-4-gd17a00c)
+-8158b484ae32d334c9db60b265759d22547ea952 deps/elisp/magit (v3.3.0-462-g8158b484)
+-34d51e2731408b5b615f785a83faa3d6dc2a92a1 deps/elisp/nix-mode (v1.4.1-194-g34d51e2)
+-061cfc002ff6ea41c622447bec22f49d618c36de deps/elisp/org-html-themify (heads/master)
+-f6e284f8e5dd557fde52241546a916c2e50f0d23 deps/elisp/protobuf (v3.21.6-629-gf6e284f8e)
+-b4537b6f5fa65626c1bab944681b35769cab9b5c deps/elisp/rust-mode (1.0.5-18-gb4537b6)
+-e957dcb0677da18b2bb60ad867db5df5c35b5616 deps/elisp/s.el (1.12.0-71-ge957dcb)
+-535800fd6ca7f5af56f7aa3d0e8f46fef8b7999b deps/elisp/themes (v2.3.0-8-g535800f)
+-3fcb36d6039bef57e2a0f6e24c51f623c0bf5fb7 deps/elisp/yaml-mode (release-0.0.6-132-g3fcb36d)
+-d8cf56bb1fa0280fe5b1a2b335dd6637f1964851 deps/misc/org-html-themes (v1.0.2-88-gd8cf56b)
+]]
+      output["submodule_uninitialized"] = 15
+      output["submodule_out_of_sync"] = 0
+      output["submodule_merge_conflicts"] = 0
+    else
+      -- Everything has initialized.
+      input = [[
+ e827a9f3e2ba585de8b07cd246534a15ec414a8b deps/elisp/compat.el (28.1.2.2-7-ge827a9f)
+ 0ac1ecf6b56eb67bb81a3cf70f8d4354b5782341 deps/elisp/dash.el (2.19.1-20-g0ac1ecf)
+ d495ed87a9c507f5939a51c740f119950c83e2ff deps/elisp/emacs-elixir (v2.3.1-135-gd495ed8)
+ dd27bc3f26efd728f2b1f01f9e4ac4f61f2ffbf9 deps/elisp/emacs-htmlize (release/1.56-1-gdd27bc3)
+ 90503413f4cdb0ed26871e39c4e6e2552b57f7db deps/elisp/haskell-mode (v13.14-1398-g9050341)
+ d17a00ca50aee197cd017d573b83367eb241cc44 deps/elisp/lua-mode (v20210802-4-gd17a00c)
+ 8158b484ae32d334c9db60b265759d22547ea952 deps/elisp/magit (v3.3.0-462-g8158b484)
+ 34d51e2731408b5b615f785a83faa3d6dc2a92a1 deps/elisp/nix-mode (v1.4.1-194-g34d51e2)
+ 061cfc002ff6ea41c622447bec22f49d618c36de deps/elisp/org-html-themify (heads/master)
+ f6e284f8e5dd557fde52241546a916c2e50f0d23 deps/elisp/protobuf (v3.21.6-629-gf6e284f8e)
+ b4537b6f5fa65626c1bab944681b35769cab9b5c deps/elisp/rust-mode (1.0.5-18-gb4537b6)
+ e957dcb0677da18b2bb60ad867db5df5c35b5616 deps/elisp/s.el (1.12.0-71-ge957dcb)
+ 535800fd6ca7f5af56f7aa3d0e8f46fef8b7999b deps/elisp/themes (v2.3.0-8-g535800f)
+ 3fcb36d6039bef57e2a0f6e24c51f623c0bf5fb7 deps/elisp/yaml-mode (release-0.0.6-132-g3fcb36d)
+ d8cf56bb1fa0280fe5b1a2b335dd6637f1964851 deps/misc/org-html-themes (v1.0.2-88-gd8cf56b)
+]]
+      output["submodule_uninitialized"] = 0
+      output["submodule_out_of_sync"] = 0
+      output["submodule_merge_conflicts"] = 0
+    end
+  end
+
+  return {input=input, output=output}
+end
+
+-- Note that this invokes the fake readers when it is called, so the values in
+-- the table are already the generated {input=..., output=...} tables. This is
+-- slightly different than the real readers where the caller still needs to run
+-- System.cmd to generate the read results by shelling out.
+function GitFake.readers (resource_opts, time_idx)
+  local pwd = resource_opts["PWD"]
+  return {
+    diff = diff_fake(pwd, time_idx),
+    diff_cached = diff_cached_fake(pwd, time_idx),
+    diff_binary = diff_binary_fake(pwd, time_idx),
+    diff_cached_binary = diff_cached_binary_fake(pwd, time_idx),
+    staged_bytes = staged_bytes_fake(pwd, time_idx),
+    head_metadata = head_metadata_fake(pwd, time_idx),
+    untracked_files = untracked_files_fake(pwd, time_idx),
+    assume_unchanged_files = assume_unchanged_files_fake(pwd, time_idx),
+    count_head_vs_upstream = count_head_vs_upstream_fake(pwd, time_idx),
+    head_branch = head_branch_fake(pwd, time_idx),
+    head_sha = head_sha_fake(pwd, time_idx),
+    bare = bare_fake(pwd, time_idx),
+    stash_size = stash_size_fake(pwd, time_idx),
+    submodule_status = submodule_status_fake(pwd, time_idx),
+  }
+end
+
+function GitFake.resource_id_func (resource_opts)
+  local pwd = resource_opts["PWD"]
+
+  if string.find(pwd, "/repo/a") then
+    return "/repo/a"
+  end
+
+  return ""
+end
+
+return GitFake
+#+end_src
+
+** Kubernetes (=kubectl=)
+
+This standard resource model is based on the Git one. Like Git, it uses an
+underlying CLI program (=kubectl=) to read information.
+
+However, there are some differences with Git. Every local Git repo is tied to
+the path on the filesystem, and we display Git information whenever the shell
+visits the path (or a subpath) of the repo. But for Kubernetes, the current path
+of the shell doesn't mean anything because we are talking about connections over
+the network. Instead, the current =KUBECONFIG= environment variable determines
+any special precedence rules for looking up Kubernetes contexts (similar to how
+=PATH= is used for looking up a binary). Different shell processes may override
+this =KUBECONFIG= variable.
+
+In a sense, =KUBECONFIG= is like =PWD= because if it changes (or if the files
+that the =KUBECONFIG= point to changes), it affects how =kubectl= will behave by
+default. For example, =kubectl config get-contexts= will only consider those
+contexts discoverable from =KUBECONFIG=. If =KUBECONFIG= is not set, =kubectl=
+will pretend that it is set to =$HOME/.kube/config=.
+
+There are 2 types of information we want to retrieve:
+
+1. The current Kubernetes context (and namespace) via =kubectl config
+   current-context= (to get the current context) and =kubectl config
+   get-contexts= (to get the associated non-default namespace for this context,
+   if any).
+2. Cluster health information for those contexts described in
+   =MELBY_KUBE_CONTEXTS=.
+
+We assume that =MELBY_KUBE_CONTEXTS= only points to contexts that could be
+reached by looking at =KUBECONFIG= (that these environment variables move in
+lockstep).
+
+We use a dedicated =KubeCurrent.lua= for getting the current context and
+namespace, and a separate =Kube.lua= for reading cluster health for
+=MELBY_KUBE_CONTEXTS=.
+
+For =KubeCurrent.lua=, we use =KUBECONFIG= as our =resource_id= (for purposes of
+=resource_id_command=). Any time any of the files pointed by =KUBECONFIG=
+changes (filesystem watch), we mark the resource as stale and refresh our
+current context/namespace information. FIXME: Test this by changing the config
+file with vim on disk to point to a different namespace (and see it reflected in
+our prompt).
+
+For =Kube.lua=, we just read per-cluster information (pod availability, uptime,
+etc) for /a single context/. The =resource_id= is the context name (IMPORTANT:
+users should use globally unique context names). Then the user will loop through
+each of the contexts found in =MELBY_KUBE_CONTEXTS= and run =Kube.read()= to get
+this per-cluster information.
+
+*** Things we have to implement
+**** IN-PROGRESS SRS: create time-based staleness flagger (easy)
+**** TODO SRS: create a command timeout for shell commands that take too long or error out
+We should let users configure each command with an optional timeout and/or error
+reponse detector, such that:
+
+- if a command times out (still is running after waiting N seconds), we cancel
+  it and generate a message for SPS telling the user that a command timed out
+  - this should catch cases where kubectl or gcloud return nothing due to either
+    network connectivity issues (wifi missing) or missing authentication (didn't
+    run =gcloud auth print-access-token= yet)
+  - when the user sees the message about the command(s) misbehaving, they can
+    run something that will (e.g.) reset their auth credentials so that the
+    commands can work again
+- if a command errors out (and we expect it to succeed), we mark a subset of the
+  entire data we read as "stale" ... ?
+
+*** Implementation for =KubeCurrent.lua= (get current context/namespace)
+
+#+begin_src lua :tangle daemon/test/sample/KubeCurrent.lua
+local KubeCurrent = {}
+KubeCurrent["type"] = "KubeCurrent"
+KubeCurrent["history_size"] = 10
+KubeCurrent["parser"] = {}
+KubeCurrent["fake"] = require "KubeCurrentFake"
+
+-- We need KUBECONFIG and HOME.
+function KubeCurrent.read (self, env, var_names)
+  local resource_opts = {}
+  for _, var_name in ipairs(var_names) do
+    resource_opts[var_name] = env[var_name]
+  end
+
+  return melbyd.read_standard_resource(self, resource_opts)
+end
+
+-- We treat the KUBECONFIG value (after we've done any expansions of variables
+-- such as HOME) as the resource_id.
+function KubeCurrent.resource_id_func (resource_opts)
+  local s = resource_opts["KUBECONFIG"]
+  -- If it's, empty, use "$HOME/.kube/config" as the default.
+  if s == nil or s == "" then
+    s = resource_opts["HOME"] .. "/.kube/config"
+  end
+
+  return s
+end
+
+function KubeCurrent.readers (resource_opts)
+  return {{invocation={"kubectl", "config", "get-contexts"},
+           parser="current_context_and_namespace",
+           env={KUBECONFIG=resource_opts["KUBECONFIG"]}}}
+end
+
+function KubeCurrent.staleness_flaggers (resource_id)
+  local kubeconfig = resource_id
+  local filesystem = {}
+  filesystem["type"] = "filesystem"
+  filesystem["watch_paths"] = melbyd.split(kubeconfig, ":")
+
+  -- Unilke for Git, we watch file paths directly (those specified in
+  -- KUBECONFIG). We treat all events as "staleness flagging", and thus
+  -- unconditionally return "true" here.
+  filesystem["fs_event_handler"] = function (path, events)
+    return true
+  end
+
+  -- We can technically have multiple staleness flaggers.
+  return {filesystem}
+end
+
+-- Split by newline, then for each line: split by whitespace to get all words.
+-- then check that the first word is a "*" and use the 2nd word for the context
+-- and 5th word for the namespace (if empty, use 'default')
+function KubeCurrent.parser.current_context_and_namespace (s)
+  local ret = {}
+
+  local words = {}
+  local lines = melbyd.get_lines_trimmed_nonempty(s)
+  for _, line in ipairs(lines) do
+
+    -- NOTE: gmatch is not implemented in luerl; see
+    -- https://github.com/rvirding/luerl/issues/150. So instead we have to call
+    -- out to Elixir again.
+    words = melbyd.split(line, " ")
+
+    if (words[1] or "") == "*" then
+      local context = words[2]
+      local namespace = words[5]
+      if context == nil or context == "" then
+        break
+      end
+      -- Technically the `namespace` here will never be the empty string because
+      -- we only matched (of at least 1 character) some number of non-whitespace
+      -- characters, or we didn't and namespace (words[5]) is simply nil.
+      if namespace == nil or namespace == "" then
+        namespace = "default"
+      end
+      -- Happy path.
+      ret["context"] = context
+      ret["namespace"] = namespace
+      return ret
+    end
+  end
+
+  -- Write safe defaults to make comparisons less painful in the main Lua config.
+  melbyd.log("KubeCurrent returned empty string; using empty strings as defaults")
+  ret["context"] = ""
+  ret["namespace"] = ""
+  return ret
+end
+
+function KubeCurrent.notify (resource_id, old, new)
+  local kubeconfig = resource_id
+  local message = {}
+  -- Generate a new message if we change the current context or namespace.
+  local old_context = old.kvs.context
+  local new_context = new.kvs.context
+
+  local old_namespace = old.kvs.namespace
+  local new_namespace = new.kvs.namespace
+
+  if new_context ~= old_context then
+    message["topic"]="srs_KubeCurrent"
+    message["from"]=kubeconfig
+    message["payload"]={level="info",
+                        text="Context changed from '" ..
+                          old_context .. "' to '" ..
+                          new_context .. "'."}
+    melbyd.broadcast("srs_KubeCurrent", message)
+  end
+
+  if new_namespace ~= old_namespace then
+    message["topic"]="srs_KubeCurrent"
+    message["from"]=kubeconfig
+    message["payload"]={level="info",
+                        text="Namespace changed from '" ..
+                          old_namespace .. "' to '" ..
+                          new_namespace .. "'."}
+    melbyd.broadcast("srs_KubeCurrent", message)
+  end
+
+  return nil
+end
+
+-- Only keep messages if the KUBECONFIG of the message "from" matches the
+-- KUBECONFIG env var used by the current shell.
+function KubeCurrent.should_keep_message (message, env_vars)
+  local shell_kubeconfig = env_vars["KUBECONFIG"] or ""
+  local kubeconfig = message["from"]
+
+  return shell_kubeconfig == kubeconfig
+end
+
+function KubeCurrent.message_to_string (message)
+  local widgets = {}
+  local kubeconfig = message["from"]
+  table.insert(widgets, {str="  [" .. message["payload"]["time"] .. "]"})
+  table.insert(widgets, {str="[" .. message["payload"]["level"] .. "]"})
+  table.insert(widgets, {str="[ K8s ]", fg="lightskyblue", styles={"bold"}})
+  table.insert(widgets, {str=kubeconfig, fg="yellow", styles={"bold"},
+                         drop_delim_right=true})
+  table.insert(widgets, {str=": " .. message["payload"]["text"]})
+
+  return melbyd.render(widgets, {str=" "})
+end
+
+-- FIXME: Allow a "substrs" argument here to pull in the already-rendered
+-- cluster health info, so that it is inside the closing brace at the end (also
+-- adjust asterisk accordingly to be there if we're loading either the
+-- KubeCurrent OR Kube standard resource statuses)
+function KubeCurrent.view (standard_resource, health_resource_status, health_str)
+  local widgets = {}
+  local kubecurrent = standard_resource["kvs"]
+
+  if standard_resource.status == "STANDARD_RESOURCE_STATUS_LOADING" and
+    (next(kubecurrent) == nil) then
+    table.insert(widgets, {str="[ K8s... ]"})
+  elseif kubecurrent.context ~= "" and kubecurrent.namespace ~= "" then
+    table.insert(widgets, {str="[", drop_delim_right=true})
+    -- utf8.char(9096) is "⎈"
+    table.insert(widgets, {str=utf8.char(9096), fg="lightskyblue",
+                           styles={"bold"}})
+    table.insert(widgets, {str=kubecurrent.context, fg="lightskyblue",
+                           styles={"bold"}, drop_delim_right=true})
+    table.insert(widgets, {str=":", drop_delim_right=true})
+    table.insert(widgets, {str=kubecurrent.namespace, fg="lightsalmon"})
+    table.insert(widgets, {str=health_str, drop_delim_right=true})
+    -- Append asterisk if Melby is serving stale data.
+    if standard_resource.status == "STANDARD_RESOURCE_STATUS_LOADING" or
+      health_resource_status == "STANDARD_RESOURCE_STATUS_LOADING" then
+      table.insert(widgets, {str="]*", drop_delim_left=true})
+    else
+      table.insert(widgets, {str="]", drop_delim_left=true})
+    end
+  end
+
+  return widgets
+end
+
+return KubeCurrent
+#+end_src
+
+**** Fake
+
+#+begin_src lua :tangle daemon/test/sample/KubeCurrentFake.lua
+local KubeCurrentFake = {}
+
+-- We really only use the time_idx because it's simpler here.
+function current_context_and_namespace_fake(time_idx)
+  local input = ""
+  local output = {}
+
+  if time_idx == 0 then
+    -- Set to context "one".
+    input = [[
+CURRENT   NAME          CLUSTER          AUTHINFO              NAMESPACE
+,*         one           local            cluster-admin         foo
+          two           two              two                   default
+]]
+    output["context"] = "one"
+    output["namespace"] = "foo"
+  elseif time_idx == 1 then
+    -- Change to context "two".
+    input = [[
+CURRENT   NAME          CLUSTER          AUTHINFO              NAMESPACE
+          one           local            cluster-admin         default
+,*         two           two              two                   bar
+]]
+    output["context"] = "two"
+    output["namespace"] = "bar"
+  else
+    -- Change to namespace "default".
+    input = [[
+CURRENT   NAME          CLUSTER          AUTHINFO              NAMESPACE
+          one           local            cluster-admin         default
+,*         two           two              two                   default
+]]
+    output["context"] = "two"
+    output["namespace"] = "default"
+  end
+
+  return {input=input, output=output}
+end
+
+function KubeCurrentFake.readers (resource_opts, time_idx)
+  -- FIXME: The reader is supposed to be auto-invoked whenever the file(s)
+  -- pointed by KUBECONFIG env var from the client changes (filesystem watch).
+  -- So we need to send fake filesystem events as part of the validation
+  -- strategy. Sending a filesystem event is as simple as sending the
+  -- correctly-formed tuple to the SRS process.
+  return {
+    current_context_and_namespace =
+      current_context_and_namespace_fake(kubeconfig, time_idx)
+  }
+
+end
+
+function KubeCurrentFake.resource_id_func (resource_opts)
+  return resource_opts["KUBECONFIG"]
+end
+
+return KubeCurrentFake
+#+end_src
+
+*** Fake =kubectl= for the test environment
+
+We use a fake =kubectl= script and put it in our PATH for our development shell.
+This way, we can test how our =kubectl=-aware Lua configuration will behave
+without actually having to deal with real Kubernetes clusters.
+
+The asterisks in the script have to be escaped with a comma like =,*= because of
+Org mode.
+
+#+begin_src sh :shebang #!/usr/bin/env bash :tangle daemon/test/kubectl
+set -euo pipefail
+
+if [[ -n "${MELBY_WANT_KUBECTL_ERROR:-}" ]]; then
+    sleep 5
+    exit 1
+fi
+
+SCRIPT_ROOT="$(dirname "$(realpath "$0")")"
+
+usage()
+{
+	>&2 cat <<-EOF
+	usage:   $0 args...
+EOF
+}
+
+main()
+{
+	if (( $# == 0 )); then
+		usage
+		return 1
+	fi
+
+	local kubeconfig
+
+	if [[ -f "${KUBECONFIG}" ]]; then
+		kubeconfig="${KUBECONFIG}"
+	else
+		kubeconfig="${SCRIPT_ROOT}/fake_kube_config"
+	fi
+
+	# kubectl config get-contexts
+	#
+	# We use the following format for fake_kube_config:
+	#
+	#   current-context=one
+	#   current-namespace=foo
+	#
+	if [[ "${1:-}" == config ]] && [[ "${2:-}" == get-contexts ]]; then
+		if grep -q "current-context=one" "${kubeconfig}"; then
+			if grep -q "current-namespace=foo" "${kubeconfig}"; then
+				cat <<-EOF
+CURRENT   NAME          CLUSTER          AUTHINFO              NAMESPACE
+,*         one           local            cluster-admin         foo
+            two           two              two                   default
+EOF
+			else
+				cat <<-EOF
+CURRENT   NAME          CLUSTER          AUTHINFO              NAMESPACE
+,*         one           local            cluster-admin         default
+            two           two              two                   default
+EOF
+			fi
+		else
+			if grep -q "current-namespace=bar" "${kubeconfig}"; then
+				cat <<-EOF
+CURRENT   NAME          CLUSTER          AUTHINFO              NAMESPACE
+            one           local            cluster-admin         default
+,*         two           two              two                   bar
+EOF
+			else
+				cat <<-EOF
+CURRENT   NAME          CLUSTER          AUTHINFO              NAMESPACE
+            one           local            cluster-admin         default
+,*         two           two              two                   default
+EOF
+			fi
+		fi
+	fi
+
+	# We are lazy and don't even bother checking that the 3rd and 4th arguments
+	# are of the form "-o" and "go-template-file=...", which this part is
+	# simulating.
+	if [[ "${1:-}" == get ]] && [[ "${2:-}" == pods ]] ; then
+		shift 4
+		local context
+		local namespace
+		context="${1#*=}"
+		namespace="${2#*=}"
+		if [[ "${context}" == one ]]; then
+			# FIXME: Move these stdout contents to a file, and switch between
+			# them based on a separate "state" file, just like fake_kube_config.
+			cat <<-EOF
+			Pending
+			Pending
+			Pending
+			Pending
+			Pending
+			Running
+			Running
+			Unknown
+			EOF
+		else
+			cat <<-EOF
+			Pending
+			Failed
+			Failed
+			Succeeded
+			EOF
+		fi
+	fi
+}
+
+main "$@"
+#+end_src
+
+*** Implementation for =Kube.lua= (get per-cluster information)
+
+#+begin_src lua :tangle daemon/test/sample/Kube.lua
+local Kube = {}
+Kube["type"] = "Kube"
+Kube["history_size"] = 10
+Kube["parser"] = {}
+Kube["fake"] = require "KubeFake"
+
+function Kube.read (self, context, namespace, melby_dir)
+  local resource_opts = {}
+  resource_opts["context"] = context
+  resource_opts["namespace"] = namespace or "default"
+  resource_opts["MELBY_DIR"] = melby_dir
+
+  return melbyd.read_standard_resource(self, resource_opts)
+end
+
+function Kube.resource_id_func (resource_opts)
+  return resource_opts["context"] .. ":" .. resource_opts["namespace"]
+end
+
+function Kube.readers (resource_opts)
+  local context = resource_opts["context"]
+  local namespace = resource_opts["namespace"]
+
+  local readers = {
+    {invocation={"kubectl", "get", "pods", "-o",
+                 "go-template-file=" ..
+                   resource_opts["MELBY_DIR"] ..
+                   "/get_pods.gotemplate",
+                 "--context=" .. context,
+                 "--namespace=" .. namespace},
+     parser="get_pods"},
+  }
+  return readers
+end
+
+-- We use a time-based staleness flagger which marks the model as stale every 2
+-- seconds, just like the default setting of the `watch` UNIX command.
+function Kube.staleness_flaggers (repo_root)
+  local duration = {}
+  duration["type"] = "duration"
+  -- Mark as stale every 2 seconds (ISO 8601 format).
+  duration["duration"] = "PT2S"
+
+  return {duration}
+end
+
+-- This is from the go template.
+function Kube.parser.get_pods (s)
+  local ret = {}
+  -- Example input strings (format is "PHASE"):
+  --    Running
+  --    Pending
+
+  local phases = melbyd.get_lines_trimmed_nonempty(s)
+
+  -- How many pods are listed?
+  ret["pods"] = #phases
+
+  local count = 0
+
+  -- Construct mapping of pod phases and the number of pods in that phase.
+  -- See https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-phase.
+  --
+  -- The 5 possible phase values are: Pending, Running, Succeeded, Failed, Unknown.
+  ret["pods_in_phase_Pending"] = 0
+  ret["pods_in_phase_Running"] = 0
+  ret["pods_in_phase_Succeeded"] = 0
+  ret["pods_in_phase_Failed"] = 0
+  ret["pods_in_phase_Unknown"] = 0
+  for _, phase in ipairs(phases) do
+    -- The "or 0" here only takes effect if we see an unknown phase. Basically
+    -- it should never happen.
+    count = ret["pods_in_phase_" .. phase] or 0
+    ret["pods_in_phase_" .. phase] = count + 1
+  end
+
+  -- FIXME: Move this to the View section, because we shouldn't store redundant
+  -- data.
+  --
+  -- Of the listed pods, how many are in a healthy "Running" phase? This is
+  -- useful for service clusters where the pods are long-lived services that are
+  -- expected to always be in a "Running" state (being available).
+  --
+  -- string.format("%.1f%%", p*100) -> "50.0%" for 1/2
+-- if #phases == 0 then
+--   ret["pods_percent_in_phase_Pending"]   = 0.0
+--   ret["pods_percent_in_phase_Running"]   = 0.0
+--   ret["pods_percent_in_phase_Succeeded"] = 0.0
+--   ret["pods_percent_in_phase_Failed"]    = 0.0
+--   ret["pods_percent_in_phase_Unknown"]   = 0.0
+-- else
+--   ret["pods_percent_in_phase_Pending"]   = ret["pods_in_phase_Pending"]   / #phases
+--   ret["pods_percent_in_phase_Running"]   = ret["pods_in_phase_Running"]   / #phases
+--   ret["pods_percent_in_phase_Succeeded"] = ret["pods_in_phase_Succeeded"] / #phases
+--   ret["pods_percent_in_phase_Failed"]    = ret["pods_in_phase_Failed"]    / #phases
+--   ret["pods_percent_in_phase_Unknown"]   = ret["pods_in_phase_Unknown"]   / #phases
+-- end
+
+  return ret
+end
+
+function Kube.notify (resource_id, old, new)
+  local context_and_namespace = resource_id
+  local message = {}
+  -- Show a diff of all phase buckets. Also output a number of all running pods
+  -- (as a basic sanity check that N pods are running for some service cluster).
+  --
+  -- Something like:
+  --
+  --    Pods: Total 6 (-3), Pending 4 (+1), Running 2 (-4), Succeeded 0, Failed 0, Unknown 0
+  --
+  -- Where we display the totals and the difference (vs old state in totals but
+  -- also as a percentage) in parentheses.
+
+  local diff_found = false
+  local delta = {}
+  local delta_with_sign = function (n)
+    if n < 0 then
+      return melbyd.render(
+        {{str=tostring(n), fg="red", styles={"bold"}}},
+        {str=" "})
+    end
+
+    return melbyd.render(
+      {{str="+" .. n, fg="lime", styles={"bold"}}},
+      {str=" "})
+  end
+
+  local keys = {
+    "pods",
+    "pods_in_phase_Pending",
+    "pods_in_phase_Running",
+    "pods_in_phase_Succeeded",
+    "pods_in_phase_Failed",
+    "pods_in_phase_Unknown",
+  }
+  local key_display_name = {}
+  key_display_name["pods"] = "Total"
+  key_display_name["pods_in_phase_Pending"] = "Pending"
+  key_display_name["pods_in_phase_Running"] = "Running"
+  key_display_name["pods_in_phase_Succeeded"] = "Succeeded"
+  key_display_name["pods_in_phase_Failed"] = "Failed"
+  key_display_name["pods_in_phase_Unknown"] = "Unknown"
+
+  for _, key in ipairs(keys) do
+    local old_val = old.kvs[key]
+    local new_val = new.kvs[key]
+    delta[key] = new_val - old_val
+    diff_found = diff_found or (old_val ~= new_val)
+  end
+
+  if diff_found then
+    local text = "Pods:"
+    for i, key in ipairs(keys) do
+      local sep = ", "
+      if i == 1 then
+        sep = " "
+      end
+      text = text .. sep ..
+        string.format("%s %d", key_display_name[key], new.kvs[key])
+      if delta[key] ~= 0 then
+        text = text .. string.format(" (%s)", delta_with_sign(delta[key]))
+      end
+    end
+    message["topic"]="srs_Kube"
+    message["from"]=context_and_namespace
+    message["payload"]={level="info", text=text}
+    melbyd.broadcast("srs_Kube", message)
+  end
+
+  return nil
+end
+
+-- This resource is generally meant for detecting cluster health (pod stats), so
+-- it's conceivable that all shells would like to know about this. So we just
+-- always return "true".
+-- FIXME: Is there a better default for this?
+function Kube.should_keep_message (message, env_vars)
+  return true
+end
+
+function Kube.message_to_string (message, pwd_pretty_options)
+  local widgets = {}
+  local context_and_namespace_array = melbyd.split(message["from"], ":")
+  local context = context_and_namespace_array[1]
+  local namespace = context_and_namespace_array[2]
+  table.insert(widgets, {str="  [" .. message["payload"]["time"] .. "]"})
+  table.insert(widgets, {str="[" .. message["payload"]["level"] .. "]"})
+  table.insert(widgets, {str="[ K8s (Cluster Health) ]", fg="lightskyblue",
+                         styles={"bold"}})
+  table.insert(widgets, {str=context, drop_delim_right=true, fg="lightskyblue",
+                         styles={"bold"}})
+  table.insert(widgets, {str=":", drop_delim_right=true})
+  table.insert(widgets, {str=namespace, drop_delim_right=true, fg="lightsalmon"})
+  table.insert(widgets, {str=": " .. message["payload"]["text"]})
+
+  return melbyd.render(widgets, {str=" "})
+end
+
+function Kube.view (standard_resource)
+  local widgets = {}
+  local kube = standard_resource["kvs"]
+
+  -- Display pod information in a compact way.
+  --
+  -- Example:
+  --
+  --    10T 1p 5r 1s 2f 0u
+  --
+  -- for 10 total pods, 1 pending, 5 running, 1 succeeded, 2 failed, 0 unknown.
+  --
+  -- FIXME: Display percentages instead of raw pod counts. We already get raw
+  -- pod counts in the messaging part.
+  if standard_resource.status == "STANDARD_RESOURCE_STATUS_LOADING" and
+    (next(kube) == nil) then
+    table.insert(widgets, {str="(pods...)"})
+  elseif kube.pods ~= nil then
+    table.insert(widgets, {str=kube.pods .. "T"})
+    table.insert(widgets, {str=kube.pods_in_phase_Pending .. "p"})
+    table.insert(widgets, {str=kube.pods_in_phase_Running .. "r"})
+    table.insert(widgets, {str=kube.pods_in_phase_Succeeded .. "s"})
+    table.insert(widgets, {str=kube.pods_in_phase_Failed .. "f"})
+    table.insert(widgets, {str=kube.pods_in_phase_Unknown .. "u"})
+    -- Unlike for Git, we don't append an asterisk if we are serving "stale"
+    -- data because technically the data is always stale and it is constantly
+    -- refreshed.
+  end
+
+  return widgets
+end
+
+return Kube
+#+end_src
+
+This is the template for the "get_pods" reader. Format is just "<STATUS>".
+
+#+begin_src text :tangle daemon/test/sample/get_pods.gotemplate
+{{- range .items -}}
+{{.status.phase}}{{"\n"}}
+{{- end -}}
+#+end_src
+
+**** Fake
+
+#+begin_src lua :tangle daemon/test/sample/KubeFake.lua
+local KubeFake = {}
+
+-- time_idx is a point in time. It captures the idea of running this function
+-- multiple times. If we want to always return the same result, we can ignore
+-- the time_idx. But if we want to return certain values in a particular order,
+-- we can use this time_idx, where 0 means the first time this function is
+-- called, 1 is the next time, and so on. The time_idx will always wrap back to
+-- 0 after reaching FIXME (max time_idx value).
+function get_pods_fake(context, namespace, time_idx)
+  local input = ""
+  local output = {}
+
+  if context == "one" then
+    if time_idx == 0 then
+      input = [[
+Pending
+Pending
+Pending
+Pending
+Pending
+Running
+Running
+Unknown
+]]
+      output["pods"] = 8
+      output["pods_in_phase_Pending"] = 5
+      output["pods_in_phase_Running"] = 2
+      output["pods_in_phase_Succeeded"] = 0
+      output["pods_in_phase_Failed"] = 0
+      output["pods_in_phase_Unknown"] = 1
+    elseif time_idx == 1 then
+      -- More things have started running.
+      input = [[
+Running
+Running
+Running
+Running
+Running
+Running
+Running
+Unknown
+]]
+      output["pods"] = 8
+      output["pods_in_phase_Pending"] = 0
+      output["pods_in_phase_Running"] = 7
+      output["pods_in_phase_Succeeded"] = 0
+      output["pods_in_phase_Failed"] = 0
+      output["pods_in_phase_Unknown"] = 1
+    else
+      -- Everything is running OK (including the previously unknown one)!
+      input = [[
+Running
+Running
+Running
+Running
+Running
+Running
+Running
+Running
+]]
+      output["pods"] = 8
+      output["pods_in_phase_Pending"] = 0
+      output["pods_in_phase_Running"] = 8
+      output["pods_in_phase_Succeeded"] = 0
+      output["pods_in_phase_Failed"] = 0
+      output["pods_in_phase_Unknown"] = 0
+    end
+  else
+    if time_idx == 0 then
+      input = [[
+Pending
+Failed
+Failed
+Succeeded
+]]
+      output["pods"] = 4
+      output["pods_in_phase_Pending"] = 1
+      output["pods_in_phase_Running"] = 0
+      output["pods_in_phase_Succeeded"] = 1
+      output["pods_in_phase_Failed"] = 2
+      output["pods_in_phase_Unknown"] = 0
+    elseif time_idx == 1 then
+      -- The pending pod succeeded.
+      input = [[
+Succeeded
+Failed
+Failed
+Succeeded
+]]
+      output["pods"] = 4
+      output["pods_in_phase_Pending"] = 0
+      output["pods_in_phase_Running"] = 0
+      output["pods_in_phase_Succeeded"] = 2
+      output["pods_in_phase_Failed"] = 2
+      output["pods_in_phase_Unknown"] = 0
+    else
+      -- The older pods were deleted.
+      input = [[
+Succeeded
+]]
+      output["pods"] = 1
+      output["pods_in_phase_Pending"] = 0
+      output["pods_in_phase_Running"] = 0
+      output["pods_in_phase_Succeeded"] = 1
+      output["pods_in_phase_Failed"] = 0
+      output["pods_in_phase_Unknown"] = 0
+    end
+  end
+
+  return {input=input, output=output}
+end
+
+-- This "readers" function mirrors the regular "readers" function, except that
+-- it requires an additional "time_idx".
+function KubeFake.readers (resource_opts, time_idx)
+  local context = resource_opts["context"]
+  local namespace = resource_opts["namespace"]
+
+  return {
+    -- For the "get_pods" parser, use the get_pods_fake function.
+    get_pods = get_pods_fake(context, namespace, time_idx)
+  }
+
+end
+
+function KubeFake.resource_id_func (resource_opts)
+  return resource_opts["context"] .. ":" .. resource_opts["namespace"]
+end
+
+return KubeFake
+#+end_src
+
+** On correctness
+
+FIXME: The sample above is actually part of a test case we use in Melby. You can
+be confident that the above example will always work.
+
+FIXME: Maybe create some "standard configuration library" of pre-configured Lua
+modules for users. For example, we could promote the above "Git" module (and
+maybe another Kubernetes one) into a standard folder that ships with Melby.
+
+Below is a sample shell script that calls =melbyc= as a real example. You can use
+something similar to set your own shell prompt --- as =melbyc= here just outputs
+a shell script, you just need to source it and use the variables, just like in
+the =main()= function.
+
+#+begin_src sh :shebang #!/usr/bin/env bash :tangle daemon/test/preview.sh
+set -euo pipefail
+
+SCRIPT_ROOT="$(dirname "$(realpath "$0")")"
+
+export HOST="somehost"
+export MELBY_ZSH_KEYMAP_INDICATOR="${1}"
+export MELBY_LAST_CMD_EXIT_STATUS="${2}"
+export MELBY_PATH_ALIASES_FILE="${SCRIPT_ROOT}/sample/path-aliases"
+export MELBY_WANT_KUBECTL_ERROR
+MELBY_DIR="${SCRIPT_ROOT}/sample"
+LUA_PATH="${SCRIPT_ROOT}/sample/?.lua"
+MELBYC_PATH="${SCRIPT_ROOT}/../../client/melbyc"
+
+# 50052 is the port used for the development environment (run_dev).
+MELBYD_PORT="${MELBYD_PORT:-50052}"
+
+usage()
+{
+	>&2 cat <<-EOF
+	usage:   $0 ZSH_KEYMAP_INDICATOR LAST_CMD_EXIT_STATUS SHELL_PID
+	example: $0 I 128 \$\$
+EOF
+}
+
+get_view()
+{
+	"${MELBYC_PATH}" \
+        --melbyd-port "${MELBYD_PORT}" \
+        view "${SCRIPT_ROOT}/sample/melby.lua" \
+        --shell-pid "${3}"
+}
+
+main()
+{
+	if (( $# != 3 )); then
+		usage
+		return 1
+	fi
+
+	source <(get_view "$@")
+
+	echo "GOT MELBY_PS1_LINE1: $MELBY_PS1_LINE1"
+	echo "GOT MELBY_PS1_LINE2: $MELBY_PS1_LINE2"
+
+	for m in "${MELBY_SHELL_MESSAGES[@]}"; do
+		echo -e "GOT MESSAGE: ${m}"
+	done
+}
+
+main "$@"
+#+end_src
+
+#+begin_src sh :tangle daemon/test/sample/path-aliases
+# Kubernetes main repo.
+hash -d   kk=${HOME}/go/src/k8s.io/kubernetes
+#+end_src

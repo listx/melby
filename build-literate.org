@@ -1,0 +1,908 @@
+# Copyright 2024 Linus Arver
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#+title: Build System for Literate Programming
+#+PROPERTY: header-args :noweb no-export
+
+* Overview of how LP is used in this project
+
+Melby uses [[https://github.com/listx/lilac][Lilac]], a literate programming tool.
+
+* Weaving (generating the docs)
+
+Weaving is conceptually simpler than tangling because there is no extra step ---
+the output is an HTML page and that is something that we can use directly
+(unlike program source code, which may require additional compilation into a
+binary, depending on the language). We also limit ourselves to only HTML for
+simplicity (in particular, we don't have to worry about page breaks).
+
+Weaving for requires the following dependencies:
+
+| Dependency    | Why                              | How to install it |
+| GNU Make      |                                  | ?                 |
+| emacs         |                                  |                   |
+| texlive       | Diagrams                         |                   |
+| pdf2svg       | Diagrams                         |                   |
+| inkscape      | Diagrams                         |                   |
+| html-beautify | Format HTML with indentation     |                   |
+
+For Melby, we have a top-level =Makefile= so that we can run some =make= commands
+on the command line (instead of needing to invoke emacs directly).
+
+#+name: Makefile
+#+caption: =Makefile=
+#+begin_src makefile :tangle Makefile :eval no
+PROJ_ROOT := $(shell git rev-parse --show-toplevel)
+LILAC_ROOT := $(PROJ_ROOT)/deps/elisp/lilac
+PROCS := $(shell nproc)
+define run_emacs
+	LILAC_ROOT=$(LILAC_ROOT) PROJ_ROOT=$(PROJ_ROOT) emacs $(2) \
+		--quick --batch --kill \
+		--load $(LILAC_ROOT)/lilac.el \
+		--load $(PROJ_ROOT)/melby.el \
+		--eval="$(1)"
+endef
+
+all: tangle weave
+
+all-build-tools: tangle-build-tools weave
+
+fresh-repl:
+	make -C $(PROJ_ROOT) -j$(PROCS) tangle
+	make -C $(PROJ_ROOT)/daemon repl
+
+__NREF__Makefile-tangle
+
+weave: build-html build-images
+
+weave-quick:
+	MELBY_LP_QUICK=1 make -C ${PROJ_ROOT} -j$(PROCS) build-html build-images
+.PHONY: weave-quick
+
+weave-profile:
+	$(call run_emacs,(lilac-publish-profile),main.org)
+.PHONY: weave-profile
+
+weave-profile-inspect:
+	emacs -Q --load $(LILAC_ROOT)/lilac.el \
+		--eval="(profiler-find-profile \"emacs-profile-weave.txt\"))"
+.PHONY: weave-profile-inspect
+
+build-images:
+	$(call run_emacs,(org-babel-execute-buffer),image.org)
+	$(MAKE) -C image -B
+
+build-html: main.html image.html developer-manual.html user-manual.html
+
+main.html: developer-manual.html image.html main.org
+	#$(call run_emacs,(lilac-gen-css-and-exit),main.org)
+	$(call run_emacs,(lilac-publish),main.org)
+
+developer-manual.html: developer-manual.org daemon.org model.org view.org controller.org build-literate.org build-packaging.org
+	$(call run_emacs,(lilac-publish),developer-manual.org)
+
+user-manual.html: user-manual.org developer-manual.html
+	$(call run_emacs,(lilac-publish),user-manual.org)
+
+image.html: image.org
+	$(call run_emacs,(lilac-publish),image.org)
+
+.PHONY: all all-build-tools weave
+
+# Enter development environment.
+shell:
+	nix-shell --pure
+#+end_src
+
+** Emacs customizations
+
+Because Lilac does not come with built-in support for syntax highlighting for
+all of the different programming languages we use, we have to import them here
+manually. That way, when we run =(lilac-publish)= we'll get all of the syntax
+highlighting that we need.
+
+#+name: melby.el
+#+begin_src emacs-lisp :tangle melby.el
+;; Built-in packages (distributed with Emacs).
+(require 'tex-mode)
+(require 'elisp-mode)
+
+(defun melby-load (path)
+    (add-to-list 'load-path (concat
+                             (getenv "PROJ_ROOT")
+                             (concat "/deps/elisp/"
+                                     path))))
+
+;; Third-party packages (checked in as Git submodules)
+(melby-load "dash.el")
+(require 'dash) ; required by magit
+
+(melby-load "compat.el")
+(require 'compat) ; required by magit
+
+(melby-load "haskell-mode")
+(require 'haskell-mode)
+(require 'haskell-cabal)
+
+(melby-load "magit/lisp")
+(require 'magit-section) ; required by nix-mode
+
+(melby-load "nix-mode")
+(require 'nix-mode)
+
+(melby-load "rust-mode")
+(require 'rust-mode)
+
+(melby-load "emacs-elixir")
+(require 'elixir-mode)
+
+(melby-load "lua-mode")
+(require 'lua-mode)
+
+(melby-load "protobuf/editors")
+(require 'protobuf-mode)
+
+(melby-load "yaml-mode")
+(require 'yaml-mode)
+#+end_src
+
+** Diagrams
+
+The code used to generate the diagrams used in this doc is [[file:image.html][here]]. We don't
+discuss that code in this doc because it would make this doc even more verbose.
+
+** Ignore woven HTML from =git diff=
+
+Typically we only need to look at the rendered HTML output in a web browser as
+the raw HTML diff output is extremely difficult to parse as a human. So by
+default we ask Git to exclude it from =git diff= by treating them as binary
+data.
+
+#+caption: =.gitattributes=
+#+begin_src gitattributes :tangle .gitattributes :eval no
+,* -diff
+,**/*.json diff
+,**/*.org diff
+,**/.gitattributes diff
+,**/.gitmodules diff
+,**/.gitignore diff
+#+end_src
+
+In order to still show the HTML textual diff, we can run =git diff --text=.
+
+*** =git add -p=
+
+Note that the above setting to treat HTML files as binary data prevents them
+from being considered for =git add -p=. In order to add them, use =git add -u=
+instead.
+
+* Tangling (generating the source code)
+
+Tangling is simply the act of collecting the =#+begin_src ... #+end_src= blocks
+and arranging them into the various target (source code) files. Every source
+code block is given a unique name.
+
+We simply tangle all major =*.org= files in the toplevel Makefile.
+
+#+name: __NREF__Makefile-tangle
+#+begin_src makefile
+tangle-build-tools: build-tools tangle-sources tangle-generated
+	# Prepend copyright headers.
+	#
+	# FIXME: Use something like "The Melby Authors" or something like that? See
+	# https://opensource.google/documentation/reference/releasing/authors
+	#
+	# FIXME: Before tangling, run this utility to check what copyright years
+	# were used for a file (and write this information to disk somewhere). Then
+	# after tangling (when all such copyrights are stripped), when we run
+	# "add-legal", check if the file we're prepending the copyright to has an
+	# entry in the file written to disk. If so, use the year in that entry.
+	# Otherwise, use the current year. This is so that we only use the year when
+	# the file is first "published" (came into existence).
+	./ptu add-legal $(shell git rev-parse --show-toplevel) "Linus Arver"
+	# Duplicate some files. This way we avoid symlinking, because symlinks can
+	# break when we section off parts of the codebase into separate sandboxes
+	# for building things, such as when building Haskell packages.
+	cp -f LICENSE client/LICENSE
+	cp -f melby_client.proto client/lib/MelbyClient/melby_client.proto
+	cp -f melby_renderer.proto daemon/lib/melbyd/renderer/lib/MelbyRenderer/melby_renderer.proto
+.PHONY: tangle-build-tools
+
+# Same as tangle-build-tools, but does not rebuild build tools (ptu).
+do-tangle: tangle-sources tangle-generated
+	./ptu add-legal $(shell git rev-parse --show-toplevel) "Linus Arver"
+	cp -f LICENSE client/LICENSE
+	cp -f melby_client.proto client/lib/MelbyClient/melby_client.proto
+	cp -f melby_renderer.proto daemon/lib/melbyd/renderer/lib/MelbyRenderer/melby_renderer.proto
+.PHONY: do-tangle
+
+# Currently we don't have any optimizations for tangling, but we still set
+# MELBY_LP_QUICK=1 anyway to align with what we do for weave-quick.
+tangle:
+	MELBY_LP_QUICK=1 make -C $(PROJ_ROOT) -j$(PROCS) do-tangle
+.PHONY: tangle
+
+tangle-profile:
+	$(call run_emacs,(melby-tangle-profile),build-literate.org)
+.PHONY: tangle-profile
+
+tangle-profile-inspect:
+	emacs -Q --load $(LILAC_ROOT)/lilac.el --eval="(profiler-find-profile \"emacs-profile-tangle.txt\"))"
+.PHONY: tangle-profile-inspect
+
+tangle-generated:
+	# Generate generated source code.
+	$(MAKE) -C daemon all
+.PHONY: tangle-generated
+
+build-literate-org:
+	# Generate the toplevel Makefile (this file) and image/Makefile (overwriting
+	# them if necessary). In a way this bootstraps the whole
+	# literate-programming pipeline. Note that these files are different than
+	# the ones used to compile the tangled source code.
+	$(call run_emacs,(org-babel-tangle),build-literate.org)
+
+# Generate source code.
+tangle-sources: client-org \
+		daemon-org \
+		controller-org \
+		model-org \
+		view-org \
+		user-manual-org \
+		image-org \
+		build-packaging-org
+
+# Sadly, orgmode does not support including files for tangling. This means we
+# have to tangle each org file separately, even though they all come together
+# into main.org.
+build-packaging-org: build-literate-org
+	$(call run_emacs,(org-babel-tangle),build-packaging.org)
+image-org: build-literate-org
+	$(call run_emacs,(org-babel-tangle),image.org)
+client-org: build-literate-org
+	$(call run_emacs,(org-babel-tangle),client.org)
+daemon-org: build-literate-org
+	$(call run_emacs,(org-babel-tangle),daemon.org)
+controller-org: build-literate-org
+	$(call run_emacs,(org-babel-tangle),controller.org)
+model-org: build-literate-org
+	$(call run_emacs,(org-babel-tangle),model.org)
+view-org: build-literate-org
+	$(call run_emacs,(org-babel-tangle),view.org)
+user-manual-org: build-literate-org
+	$(call run_emacs,(org-babel-tangle),user-manual.org)
+
+.PHONY: build-literate-org
+.PHONY: build-packaging-org
+.PHONY: tangle-sources
+.PHONY: client-org
+.PHONY: daemon-org
+.PHONY: controller-org
+.PHONY: model-org
+.PHONY: view-org
+.PHONY: user-manual-org
+.PHONY: image-org
+
+build-tools: ptu
+
+# FIXME: NOTE: This stack invocation is for environments without Nix. But also,
+# it's useful during development because invoking stack directly like this
+# results in populating the build cache. In our (FIXME: link to build-melby-ptu
+# rule), when we invoke that we don't get any caching.
+UNAME := $(shell uname)
+C_INCLUDE_PATH := ""
+ifeq ($(UNAME), Darwin)
+	# The `xcrun...` stuff here is from
+	# https://gitlab.haskell.org/ghc/ghc/-/issues/20592#note_391266.
+	C_INCLUDE_PATH := C_INCLUDE_PATH=$(shell xcrun --show-sdk-path)/usr/include/ffi
+endif
+ptu: ptu.cabal ptu.hs stack.yaml lib/PostTangleUtil/GitVersion.hs
+	$(C_INCLUDE_PATH) \
+	PROJECT_GIT_ROOT=$(PWD) stack build \
+		--copy-bins \
+		--local-bin-path $(PWD) \
+		--no-nix-pure \
+		--extra-lib-dirs=$(ZLIB_SO_DIR:-L%=%) \
+		--extra-include-dirs=$(ZLIB_H_DIR:-I%=%)
+.PHONY: ptu
+#+end_src
+
+** Copyright headers
+
+We want to prepend copyright headers to every single tangled source code file in
+this project. There are two problems to solve:
+
+1. construct a definitive list of all source code files this project owns,
+2. prepend the actual copyright notice tailored to the comment syntax of each
+   source code file.
+
+We can also skip files that already have a copyright notice, but this is
+thankfully a non-issue because all tangled source code files won't have the
+headers in them.
+
+For the first problem, we don't want to hand-tune a list of files because that
+can become tedious and error-prone. Instad we can ask Git what files we own, and
+then filter them based on the file extension. The specific query is just:
+
+#+begin_src shell :eval no
+git -C <REPO_PATH> ls-tree -r --name-only --full-tree HEAD
+#+end_src
+
+And then it's just a matter of checking each line if it ends in a known extension.
+
+For the second problem, we just need to know which comment syntax the source
+code language is using, and prefix each line of the copyright notice with it.
+This is trivial with a basic hashtable lookup (where the key is the file
+extension and the value is the comment prefix).
+
+The last remaining problem is figuring out what the Git repository path is on
+the local filesystem, but this too is something Git provides with
+
+#+begin_src shell :eval no
+git rev-parse --show-toplevel
+#+end_src
+
+And then when we invoke =make=, the shell session we are in has to do it from
+within the repository path. There are probably many ways to remove even this
+constraint but it's not worth addressing.
+
+Here is the overall program structure:
+
+#+name: ptu.hs
+#+caption: =ptu.hs=
+#+begin_src haskell :tangle ptu.hs
+__NREF__ptu_pragmas
+
+module Main where
+
+__NREF__ptu_imports
+__NREF__ptu_business_logic
+__NREF__ptu_option_handling
+__NREF__ptu_main
+#+end_src
+
+The name =ptu= stands for "post-tangle utility".
+
+*** Business logic
+
+#+name: __NREF__ptu_business_logic
+#+begin_src haskell
+__NREF__ptu_get_source_code_files
+__NREF__ptu_prepend_copyright_headers
+#+end_src
+
+We need to first get all source code files in the project. This is basically 2
+steps:
+
+1. ask Git to list all tracked files (=getAllTrackedFiles=)
+2. filter out any unrecognized (non-source-code) files (=getSourceCodeFiles=)
+
+#+name: __NREF__ptu_get_source_code_files
+#+begin_src haskell
+getSourceCodeFiles :: FilePath -> IO [(FilePath, T.Text)]
+getSourceCodeFiles projRoot = do
+  allFiles <- getAllTrackedFiles projRoot
+  contents <- mapM (\path -> T.readFile path) allFiles
+  pure
+    . filter (\(path, content) ->
+                 hasExtension' path extensions || hasShebang content)
+    $ zip allFiles contents
+  where
+  extensions = map fst supportedExtensions
+
+getAllTrackedFiles :: FilePath -> IO [FilePath]
+getAllTrackedFiles projRoot = do
+  (_, Just hout, _, _) <- createProcess
+    (proc "git"
+      [ "-C"
+      , projRoot
+      , "ls-tree"
+      , "-r"
+      , "--name-only"
+      , "--full-tree"
+      , "HEAD"])
+    { std_out = CreatePipe
+    }
+  relativePaths <- lines <$> hGetContents hout
+  let absolutePaths = map (\p -> projRoot </> p) relativePaths
+  filterM doesFileExist absolutePaths
+
+hasExtension' :: FilePath -> [String] -> Bool
+hasExtension' path exts = any (flip isSuffixOf path) exts
+
+hasShebang :: T.Text -> Bool
+hasShebang text = case (take 1 $ T.lines text) of
+  [firstLine] -> T.isPrefixOf "#!/" firstLine
+  _ -> False
+
+supportedExtensions :: [(String, T.Text)]
+supportedExtensions =
+  [ (".cabal", "--")
+  , (".el", ";;")
+  , (".ex", "#")
+  , (".exs", "#")
+  , (".ghci", "--")
+  , (".hs", "--")
+  , (".lua", "--")
+  , (".nix", "#")
+  , (".proto", "//")
+  , (".org", "#")
+  , (".service", "#") -- systemd unit files
+  , (".sh", "#")
+  , (".toml", "#")
+  , (".yaml", "#")
+  , ("Makefile", "#")
+  ]
+#+end_src
+
+Now we need to prepend copyright headers to each one of these files. The main
+difficulty here is figuring out how to generate the copyright text such that the
+copyright text is commented out with the commenting syntax of the underlying
+source code language. This is done in =mkCopyrightHeader=.
+
+The rest is just appyling the =prependCopyrightHeader= function across all
+source code files. We use a basic heuristic that checks if the word "Copyright"
+(in its many different possible commented forms) is present at the beginning of
+the file, and if so, skips processing that file. This way, if we run this code
+multiple times on the same file, we will add the copyright header only once.
+
+We also see if the beginning of the file has a shebang (=#!/...=) line, and if
+so, make sure to preserve that line and add the copyright notice *underneath*
+that line.
+
+#+name: __NREF__ptu_prepend_copyright_headers
+#+begin_src haskell
+prependCopyrightHeaders :: FilePath -> T.Text -> IO ()
+prependCopyrightHeaders projRoot author = do
+  sourceCodeFiles <- getSourceCodeFiles projRoot
+  mapM_ (prependCopyrightHeader author) sourceCodeFiles
+
+prependCopyrightHeader :: T.Text -> (FilePath, T.Text) -> IO ()
+prependCopyrightHeader author (path, content) = do
+  putStrLn $ "ptu: processing " <> path
+  -- Skip processing if the file has copyright text in it already.
+  when (isNothing $ copyrightLocation content) $ do
+    (year, _, _) <- toGregorian . utctDay <$> getCurrentTime
+    let ext = takeExtension path
+        boilerplate = copyrightApache (T.pack $ show year) author
+        copyrightHeader = mkCopyrightHeader ext boilerplate underShebang
+        (shebang, underShebang) = extractShebang content
+    if underShebang
+       then T.writeFile path (shebang <> "\n" <> copyrightHeader <> rest content)
+       else T.writeFile path (copyrightHeader <> "\n" <> content)
+  where
+  extractShebang text = case (take 1 $ T.lines text) of
+    [firstLine] -> (firstLine, T.isPrefixOf "#!/" firstLine)
+    _ -> ("", False)
+  rest text = T.unlines . drop 1 $ T.lines text
+
+data CopyrightLocation
+  = CopyrightLocationBeginning
+  | CopyrightLocationAfterShebang
+  deriving (Enum, Eq, Ord, Show)
+
+copyrightLocation :: T.Text -> Maybe CopyrightLocation
+copyrightLocation text
+  | existsAtBeginnig = Just CopyrightLocationBeginning
+  | existsAfterShebang = Just CopyrightLocationAfterShebang
+  | otherwise = Nothing
+  where
+  commentStrsToCheck = nub $ map snd supportedExtensions
+  existsAtBeginnig
+    = any (\commentStr -> hasCopyrightLine commentStr text) commentStrsToCheck
+  existsAfterShebang = case (take 3 $ asLines) of
+    [a,b,c] -> all (==True)
+      [ hasShebangLine a
+      , any (\commentStr -> commentStr == b && hasCopyrightLine commentStr c)
+            commentStrsToCheck
+      ]
+    _ -> False
+  asLines = T.lines text
+  hasShebangLine s = T.isPrefixOf "#!/" s
+  hasCopyrightLine p s = T.isPrefixOf (p <> " Copyright") s
+
+mkCopyrightHeader :: String -> T.Text -> Bool -> T.Text
+mkCopyrightHeader ext boilerplate underShebang
+  | underShebang = "#\n" <> copyrightBlock <> "\n"
+  | otherwise = copyrightBlock
+  where
+  prependPrefix prefix' line
+    | T.null line = prefix'
+    | otherwise = T.append (prefix' <> " ") line
+  prefix = case (lookup ext supportedExtensions) of
+    Just p -> p
+    Nothing -> "#"
+  copyrightBlock = T.unlines . map (prependPrefix prefix) $ T.lines boilerplate
+
+__NREF__ptu_copyright_template
+#+end_src
+
+As for the actual copyright notice itself, we parameterize it so that we include
+the current year and author field. We could additionally even parameterize the
+copyright license itself (GPL, MIT, etc.) but we don't bother because we don't
+need to.
+
+#+name: __NREF__ptu_copyright_template
+#+begin_src haskell
+copyrightApache :: T.Text -> T.Text -> T.Text
+copyrightApache year author =
+  [trimming|
+    Copyright $year $author
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+  |]
+#+end_src
+
+*** Main
+
+#+name: __NREF__ptu_main
+#+begin_src haskell
+main :: IO ()
+main = do
+  opts <- customExecParser (prefs showHelpOnEmpty) optsP
+  optsHandler opts
+  where
+  optsP = info parserProgramOptions infoMod
+  parserProgramOptions = helper
+    <*> versionOption
+    <*> optionsP
+  infoMod = fullDesc
+    <> header "ptu - post-tangle utility"
+  versionOption = infoOption
+    (concat [showVersion version, "-g", $(gitVersion)])
+    (long "version" <> short 'v' <> help "Show version")
+#+end_src
+
+*** Boilerplate
+
+**** Option handling
+
+#+name: __NREF__ptu_option_handling
+#+begin_src haskell
+__NREF__ptu_option_handling_types
+__NREF__ptu_option_handling_parsers
+__NREF__ptu_option_handling_dispatcher
+#+end_src
+
+The types here are what we read in from the command line.
+
+#+name: __NREF__ptu_option_handling_types
+#+begin_src haskell
+newtype Opts = Opts
+  { subcommand :: Subcommand }
+
+data Subcommand
+  = AddLegal AddLegalOpts
+
+data AddLegalOpts = AddLegalOpts
+  { oProjRoot :: FilePath
+  , oAuthor :: T.Text
+  }
+#+end_src
+
+The parsers here determine how the types we defined above are accepted on the
+command line. For the user, this is the help message they see so that they know
+how to provide the right arguments to ensure that we get the correct types.
+
+#+name: __NREF__ptu_option_handling_parsers
+#+begin_src haskell
+optionsP :: Parser Opts
+optionsP = Opts <$> subcommandP
+
+subcommandP :: Parser Subcommand
+subcommandP = hsubparser
+  ( command "add-legal"
+    (info (AddLegal <$> addLegalOptsP)
+          (progDesc "set copyright headers in source files for a project"))
+  <> metavar "SUBCOMMAND"
+  )
+
+addLegalOptsP :: Parser AddLegalOpts
+addLegalOptsP
+  = AddLegalOpts
+  <$> (argument str (metavar "PROJECT_ROOT"))
+  <*> (argument str (metavar "AUTHOR"))
+#+end_src
+
+Lastly, =optsHandler= is where we send the types that we've constructed (after a
+successful parse of command line arguments) to the business logic.
+
+#+name: __NREF__ptu_option_handling_dispatcher
+#+begin_src haskell
+optsHandler :: Opts -> IO ()
+optsHandler (Opts subcommand') = do
+  case subcommand' of
+    AddLegal o -> do
+      putStrLn "ptu: Prepending copyright headers."
+      prependCopyrightHeaders (oProjRoot o) (oAuthor o)
+      putStrLn "ptu: Done."
+#+end_src
+
+**** Pragmas
+
+#+name: __NREF__ptu_pragmas
+#+begin_src haskell
+{-# language DataKinds #-}
+{-# language OverloadedLabels #-}
+{-# language OverloadedStrings #-}
+{-# language QuasiQuotes #-}
+{-# language ScopedTypeVariables #-}
+{-# language TemplateHaskell #-}
+{-# language TypeApplications #-}
+#+end_src
+
+**** Imports
+
+#+name: __NREF__ptu_imports
+#+begin_src haskell
+import Control.Monad (filterM, when)
+import Data.List (isSuffixOf, nub)
+import Data.Maybe (isNothing)
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
+import Data.Time.Calendar
+import Data.Time.Clock
+import GHC.IO.Handle
+import NeatInterpolation hiding (text)
+import Options.Applicative
+import System.Directory (doesFileExist)
+import System.FilePath
+import System.Process
+
+import Data.Version (showVersion)
+import Paths_ptu (version)
+import PostTangleUtil.GitVersion
+#+end_src
+
+**** Git versioning
+
+#+name: __NREF__ptu_git_version
+#+begin_src haskell :tangle lib/PostTangleUtil/GitVersion.hs
+module PostTangleUtil.GitVersion
+  ( gitVersion
+  ) where
+
+import Data.Time.LocalTime
+import Language.Haskell.TH
+import System.Environment
+import System.Process
+
+gitVersion :: Q Exp
+gitVersion = stringE =<< runIO getCombinedInfo
+
+getCombinedInfo :: IO String
+getCombinedInfo = do
+  gi <- getGitInfo
+  ti <- getTimeInfo
+  pure $ concat [gi, "  (", ti, ")"]
+
+getGitInfo :: IO String
+getGitInfo = do
+  maybeProjectRoot <- lookupEnv "MELBY_PROJECT_ROOT"
+  case maybeProjectRoot of
+    Just projectRoot -> readProcess "git"
+      [ "-C"
+      , projectRoot
+      , "describe"
+      , "--abbrev=10"
+      , "--always"
+      , "--dirty"
+      ]
+      ""
+    Nothing -> pure "-unknown"
+
+getTimeInfo :: IO String
+getTimeInfo = show <$> getZonedTime
+#+end_src
+
+*** Build environment
+
+**** Cabal
+
+#+name: __NREF__ptu_cabal
+#+begin_src haskell-cabal :tangle ptu.cabal
+name: ptu
+version: 1.0.0.0
+author: Linus Arver
+maintainer: linusa@google.com
+category: Utility
+build-type: Simple
+cabal-version: >=1.10
+license: Apache-2.0
+license-file: LICENSE
+
+executable ptu
+  main-is: ptu.hs
+  default-language: Haskell2010
+  other-modules:
+    Paths_ptu
+  default-extensions:
+    DisambiguateRecordFields
+    DuplicateRecordFields
+    ImportQualifiedPost
+    LambdaCase
+    MultiWayIf
+    NoDoAndIfThenElse
+    NoNondecreasingIndentation
+    OverloadedStrings
+  ghc-options:
+    -O2 -Werror -threaded -fno-warn-tabs
+    -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints
+    -fhide-source-paths -Wpartial-fields -fforce-recomp
+  build-depends:
+      base >= 4.8
+    , ptu
+    , aeson
+    , bytestring
+    , directory
+    , filepath
+    , process
+    , neat-interpolation
+    , optparse-applicative >= 0.16.1.0
+    , text >=2.0.2 && <3
+    , template-haskell
+    , time
+    , unordered-containers >= 0.2.16.0
+
+library
+  default-language: Haskell2010
+  exposed-modules:
+    PostTangleUtil.GitVersion
+  hs-source-dirs:
+    lib
+  default-extensions:
+    DisambiguateRecordFields
+    DuplicateRecordFields
+    ImportQualifiedPost
+    LambdaCase
+    MultiWayIf
+    NoDoAndIfThenElse
+    NoNondecreasingIndentation
+    OverloadedStrings
+  ghc-options:
+    -O2 -Werror -fno-warn-tabs
+    -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints
+    -fhide-source-paths -Wpartial-fields -fforce-recomp
+  build-depends:
+      base >= 4.8
+    , bytestring
+    , directory
+    , process
+    , template-haskell
+    , text >=2.0.2 && <3
+    , time
+#+end_src
+
+#+name: =cabal.project=
+#+begin_src haskell-cabal :tangle cabal.project
+executable-stripping: True
+packages:
+  ./ptu.cabal
+#+end_src
+
+**** Stack
+
+#+name: __NREF__ptu_stack
+#+begin_src yaml :tangle stack.yaml
+resolver: lts-22.6 # GHC 9.6.3
+allow-newer: true
+
+packages:
+- .
+
+# For ptu, use the system ghc because it's faster. And we don't care too much
+# about packaging it as much as the other components, because ptu is only used
+# during development.
+nix:
+  enable: true
+#+end_src
+
+**** Nix
+
+#+begin_src nix :tangle ptu.nix
+let
+  sources = import package/nix/sources.nix;
+  pkgs = import sources.nixpkgs { };
+  fakeGit = pkgs.writeShellScriptBin "git"
+  ''
+    echo -unknown
+  '';
+  files = [
+    ./LICENSE
+    ./cabal.project
+    ./lib
+    ./lib/PostTangleUtil
+    ./lib/PostTangleUtil/GitVersion.hs
+    ./ptu.cabal
+    ./ptu.hs
+    ./ptu.nix
+    ./stack.yaml
+    ./stack.yaml.lock
+  ];
+  macOS-security =
+    # Make `/usr/bin/security` available in `PATH`, which is needed for stack
+    # on darwin which calls this binary to find certificates. See
+    # https://github.com/tweag/rules_haskell/commit/31171a520f49f263895112678ac93c7ed958ead1.
+    pkgs.writeScriptBin "security" ''exec /usr/bin/security "$@"'';
+in
+
+{ ghc }:
+
+pkgs.haskell.lib.buildStackProject {
+  inherit ghc;
+  name = "melby-ptu";
+  # We use this builtin because we want to use our own name for the folder.
+  # Otherwise, the surrounding folder name "doc" gets used, which is bad.
+  src = builtins.path {
+    name = "melby-ptu";
+    path = ./.;
+    filter = path: type: builtins.elem (/. + path) files;
+  };
+  buildInputs = [
+    pkgs.zlib
+    fakeGit
+  ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [pkgs.llvm_10 macOS-security];
+}
+#+end_src
+
+**** .gitignore
+
+#+begin_src text :tangle .gitignore
+.stack-work
+deps/
+dist-newstyle/
+image/*.pdf
+image/*uncropped*
+ptu
+#+end_src
+
+** Post-tangled phase
+
+Here we discuss the various programming languages and their required build
+environments.
+
+*** Elixir
+
+We use Elixir 1.13.4+.
+
+*** Rust
+
+*** Haskell
+
+We use stack for reproducibility, although we should probably also think of
+moving to Nix.
+
+We're stuck on GHC 8.10.7 because of mu-haskell which currently does not build
+with GHC 9+.
+
+*** Lua
+
+We use luerl (add link), which uses Lua 5.2 with some 5.3 support.
+
+* Glossary
+
+- *Melby component*: a modular piece of software used to deliver the Melby user
+  experience.

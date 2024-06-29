@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+#
+# Copyright 2024 Linus Arver
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -euo pipefail
+
+if [[ -n "${MELBY_WANT_KUBECTL_ERROR:-}" ]]; then
+    sleep 5
+    exit 1
+fi
+
+SCRIPT_ROOT="$(dirname "$(realpath "$0")")"
+
+usage()
+{
+	>&2 cat <<-EOF
+	usage:   $0 args...
+EOF
+}
+
+main()
+{
+	if (( $# == 0 )); then
+		usage
+		return 1
+	fi
+
+	local kubeconfig
+
+	if [[ -f "${KUBECONFIG}" ]]; then
+		kubeconfig="${KUBECONFIG}"
+	else
+		kubeconfig="${SCRIPT_ROOT}/fake_kube_config"
+	fi
+
+	# kubectl config get-contexts
+	#
+	# We use the following format for fake_kube_config:
+	#
+	#   current-context=one
+	#   current-namespace=foo
+	#
+	if [[ "${1:-}" == config ]] && [[ "${2:-}" == get-contexts ]]; then
+		if grep -q "current-context=one" "${kubeconfig}"; then
+			if grep -q "current-namespace=foo" "${kubeconfig}"; then
+				cat <<-EOF
+CURRENT   NAME          CLUSTER          AUTHINFO              NAMESPACE
+*         one           local            cluster-admin         foo
+            two           two              two                   default
+EOF
+			else
+				cat <<-EOF
+CURRENT   NAME          CLUSTER          AUTHINFO              NAMESPACE
+*         one           local            cluster-admin         default
+            two           two              two                   default
+EOF
+			fi
+		else
+			if grep -q "current-namespace=bar" "${kubeconfig}"; then
+				cat <<-EOF
+CURRENT   NAME          CLUSTER          AUTHINFO              NAMESPACE
+            one           local            cluster-admin         default
+*         two           two              two                   bar
+EOF
+			else
+				cat <<-EOF
+CURRENT   NAME          CLUSTER          AUTHINFO              NAMESPACE
+            one           local            cluster-admin         default
+*         two           two              two                   default
+EOF
+			fi
+		fi
+	fi
+
+	# We are lazy and don't even bother checking that the 3rd and 4th arguments
+	# are of the form "-o" and "go-template-file=...", which this part is
+	# simulating.
+	if [[ "${1:-}" == get ]] && [[ "${2:-}" == pods ]] ; then
+		shift 4
+		local context
+		local namespace
+		context="${1#*=}"
+		namespace="${2#*=}"
+		if [[ "${context}" == one ]]; then
+			# FIXME: Move these stdout contents to a file, and switch between
+			# them based on a separate "state" file, just like fake_kube_config.
+			cat <<-EOF
+			Pending
+			Pending
+			Pending
+			Pending
+			Pending
+			Running
+			Running
+			Unknown
+			EOF
+		else
+			cat <<-EOF
+			Pending
+			Failed
+			Failed
+			Succeeded
+			EOF
+		fi
+	fi
+}
+
+main "$@"

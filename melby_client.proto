@@ -1,0 +1,55 @@
+// Copyright 2024 Linus Arver
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package melby_client;
+
+// melbyc <-> melbyd communication
+service View {
+  rpc GetView (ViewRequest) returns (ViewResponse);
+}
+
+message ViewRequest {
+  // Path to Lua configuration. Delegates reading the config to the server.
+  string config_path = 1;
+
+  // Lua configuration that is given directly. Overrides config_path if not
+  // empty.
+  string config = 2;
+
+  // Environment variables ((name, value) pairs) of interest.
+  map<string, string> env_vars = 3;
+
+  // Process ID number of the running (interactive) shell program. (FIXME: move
+  // this to env var)
+  string shell_pid = 4;
+}
+
+message ViewResponse {
+  // Status of this response message.
+  ViewStatus status = 1;
+
+  // String result of running Lua script.
+  string view = 2;
+
+  // Error message from melbyd, if any.
+  string error = 3;
+}
+
+enum ViewStatus {
+  VIEW_STATUS_UNSPECIFIED = 0;
+  VIEW_STATUS_ERROR = 1;
+  VIEW_STATUS_OK = 2;
+}

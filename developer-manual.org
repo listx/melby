@@ -1,0 +1,162 @@
+# Copyright 2023 Linus Arver
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#+title: Developer Manual
+#+SETUPFILE: lilac.theme
+#+PROPERTY: header-args :noweb no-export
+#+OPTIONS: ^:{}
+#+OPTIONS: H:5
+
+* Overview
+
+The developer manual consists of multiple parts for the following areas:
+
+- The build system for Literate Programming (LP), which explains how LP is used
+  in this project as well as how each Melby component is used. You may skip this
+  section if you are only interested in Melby's business logic.
+- The build system for packaging Melby, which explains how Melby can be packaged
+  up using the Nix Package Manager. This is useful for developing Melby locally
+  (setting up a development environment).
+- melbyc: an overview of the client program that queries =melbyd= for information,
+  to be displayed in a shell prompt (or anywhere else).
+- melbyd: an overview of the Elixir service that accepts requests from =melbyc=
+  (the client). This is where most of the "meat" of Melby business logic resides,
+  and is perhaps the most interesting. One key area here is the use of [[https://github.com/rvirding/luerl][Luerl]] to
+  enable Melby configuration using the Lua programming language. This also
+  includes an overview of the Haskell =melbyr= service that performs string/data
+  transformation and manipulation.
+
+Each of these parts are included separately under their own top-level heading
+below and prefixed with =Developer Manual: ...=.
+
+* Build System for Literate Programming
+
+#+include: "build-literate.org" :lines "16-"
+
+* Build System for Packaging Melby
+
+#+include: "build-packaging.org" :lines "16-"
+
+* How to hack on this project
+
+First realize that this project uses literate programming. Because of this, you
+must ensure that you can edit the Org files and make sure that those changes (to
+the source code) can get tangled into source code locations for the various
+compilers (=ghc=, =elixir=, etc) can consume.
+
+The next most important thing is making sure that the =shell.nix= file at the
+project root works (such that running =make shell= works). Run =make shell= to
+enter the development environment.
+
+You then need to stand up each individual Melby component.
+
+** Building each component
+
+*** =melbyr= (renderer; required by daemon)
+
+#+begin_example
+cd daemon/lib/melbyd/renderer; make
+#+end_example
+
+*** =melbyd= (daemon)
+
+#+begin_example
+cd daemon && make
+#+end_example
+
+And then to run the daemon, do
+
+#+begin_example
+cd daemon && make run_dev
+#+end_example
+
+There is also a =run_prod= rule but this won't work if you are already running a
+packaged version of =melbyd= in your system, because they will both try to use
+the same TCP port. So in that case you have to first stop the packaged version
+you are running.
+
+** =melbyc= (client)
+
+#+begin_example
+cd client; make
+#+end_example
+
+For invoking =melbyc= after building it, the simplest thing to do is to use the
+provided =preview.sh= script in [[file:daemon/test/preview.sh][=daemon/test/preview.sh=]]. This script sets up
+all necessary environment variables.
+
+Note that currently the script uses a fake =kubectl=, because we don't want to
+bother standing up a real Kubernetes instance in order to just test how
+the real =kubectl= would behave. The script hardcodes the path to =melbyc= so
+that it refers to the one that has been compiled inside the development
+environment.
+
+** Testing local changes
+
+FIXME: How to do testing? What about integration tests? How to invoke tests? =mix test=?
+
+** Common scenarios
+
+*** Hacking on the Lua config
+
+Make sure to use fakes, and to add validation tests. FIXME show examples.
+
+* melbyc
+
+We first examine the client to get a sense of how things work from the
+perspective of the human user, who is expected to invoke =melbyc= somewhere in
+their shell prompt generation logic. We then look at the pieces in the daemon to
+see how it all works.
+
+# We skip the first line with ":lines ..." because otherwise the "#+title: ..."
+# of that document interferes our own title.
+#+include: "client.org" :lines "16-"
+
+* melbyd
+
+# We skip the first line with ":lines ..." because otherwise the "#+title: ..."
+# of that document interferes our own title.
+#+include: "daemon.org" :lines "16-"
+
+* Contributing to Melby
+
+Thank you for showing interest in contributing back to this project!
+
+But before we can accept your contributions, there are some things we have to
+sort out.
+
+** Code of conduct
+
+You must adhere to the Code of Conduct (FIXME insert link).
+
+** Where to make changes
+
+Remember that the source of truth is in the =*.org= files. /Everything else is
+generated code./ Editing the source code directly will not work at all because
+tangling the =*.org= files will overwrite those changes.
+
+** Focus on prose, not code
+
+Remember that this project uses LP. LP requires /literate/ programs, and as
+such, require everything to be explained in prose. If you make substantial
+changes in code only without touching any of the surrounding prose, chances are
+you are doing it wrong and your changes will not be accepted without extensive
+revisions.
+
+You must explain your changes in prose. Please try to explain things with simple
+language, with simple words. And be as direct as possible. Avoid theatrics. Try
+to explain things so that even inexperienced developers can understand.
+
+It is completely normal for a Pull Request to go through /multiple rounds of
+review/ before it is accepted.

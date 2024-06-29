@@ -1,0 +1,2 @@
+# Kubernetes main repo.
+hash -d   kk=${HOME}/go/src/k8s.io/kubernetes

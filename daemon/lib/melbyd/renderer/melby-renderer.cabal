@@ -1,0 +1,125 @@
+-- Copyright 2024 Linus Arver
+--
+-- Licensed under the Apache License, Version 2.0 (the "License");
+-- you may not use this file except in compliance with the License.
+-- You may obtain a copy of the License at
+--
+--      http://www.apache.org/licenses/LICENSE-2.0
+--
+-- Unless required by applicable law or agreed to in writing, software
+-- distributed under the License is distributed on an "AS IS" BASIS,
+-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-- See the License for the specific language governing permissions and
+-- limitations under the License.
+
+name: melby-renderer
+version: 1.0.0.0
+author: Linus Arver
+maintainer: linusa@google.com
+category: Utility
+build-type: Simple
+cabal-version: >=1.10
+license: Apache-2.0
+license-file: LICENSE
+data-files: lib/MelbyRenderer/melby_renderer.proto
+
+executable melbyr
+  main-is: melby-renderer.hs
+  default-language: Haskell2010
+  other-modules:
+    Paths_melby_renderer
+  default-extensions:
+    DisambiguateRecordFields
+    DuplicateRecordFields
+    ImportQualifiedPost
+    LambdaCase
+    MultiWayIf
+    NoDoAndIfThenElse
+    NoNondecreasingIndentation
+    OverloadedStrings
+  ghc-options:
+    -O2 -Werror -threaded -fno-warn-tabs
+    -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints
+    -fhide-source-paths -Wpartial-fields -fforce-recomp
+  build-depends:
+      base >= 4.8
+    , melby-renderer
+    , monad-logger >= 0.3 && <0.4
+    , mu-grpc-server >=0.3.0.0
+    , mu-rpc >= 0.4.0
+    , optparse-applicative >= 0.16.1.0
+
+library
+  default-language: Haskell2010
+  exposed-modules:
+    MelbyRenderer.Colorizer
+    MelbyRenderer.GitVersion
+    MelbyRenderer.Log
+    MelbyRenderer.PathAliases
+    MelbyRenderer.Schema
+    MelbyRenderer.Widgets
+  hs-source-dirs:
+    lib
+  default-extensions:
+    DisambiguateRecordFields
+    DuplicateRecordFields
+    ImportQualifiedPost
+    LambdaCase
+    MultiWayIf
+    NoDoAndIfThenElse
+    NoNondecreasingIndentation
+    OverloadedStrings
+  ghc-options:
+    -O2 -Werror -fno-warn-tabs
+    -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints
+    -fhide-source-paths -Wpartial-fields -fforce-recomp
+  build-depends:
+      base >= 4.8
+    , aeson
+    , ansi-terminal
+    , base16-bytestring
+    , bytestring
+    , colour
+    , containers >= 0.6.5.1
+    , megaparsec >= 9.0.1
+    , monad-logger >= 0.3 && <0.4
+    , monad-logger-prefix >= 0.1.12 && <0.2
+    , mu-protobuf >= 0.4.0
+    , mu-grpc-server >=0.3.0.0
+    , mu-rpc >= 0.4.0
+    , mu-schema >= 0.3.0
+    , process
+    , template-haskell
+    , text >=1.2 && <2
+    , time
+
+test-suite test
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test
+  main-is: Main.hs
+  default-language: Haskell2010
+  default-extensions:
+    DisambiguateRecordFields
+    DuplicateRecordFields
+    ImportQualifiedPost
+    LambdaCase
+    MultiWayIf
+    NoDoAndIfThenElse
+    NoNondecreasingIndentation
+    OverloadedStrings
+  ghc-options:
+    -O2 -Werror -threaded -fno-warn-tabs
+    -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints
+    -fhide-source-paths -Wpartial-fields -fforce-recomp
+  build-depends:
+      base >= 4.8
+    , containers >= 0.6.5.1
+    , melby-renderer
+    , hspec >=2.0 && <3.0
+    , hspec-expectations >=0.8 && <0.9
+    , hspec-megaparsec
+    , megaparsec >= 9.0.1
+    , neat-interpolation

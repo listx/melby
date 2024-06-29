@@ -1,0 +1,150 @@
+// Copyright 2024 Linus Arver
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package melby_renderer;
+
+// melby <-> melby-renderer communication
+service Renderer {
+  // For other Git Repo stats, each of those stats can be inserted into the
+  // layout with Lua so that the user can configure the order/orientation of
+  // each bit (they should also be able to decide how much of the 40-char sha
+  // they want to expose --- so we need a way to colorize all 40 chars by using
+  // all 160 bits of data).
+  rpc GetColorizedGitSha (ColorizedGitShaRequest) returns (ColorizedGitShaResponse);
+  rpc RenderWidgets (RenderWidgetsRequest) returns (RenderWidgetsResponse);
+  // This is not a method for rendering, but because
+  // https://github.com/higherkindness/mu-haskell/pull/309 isn't released yet,
+  // we cannot use a separate service for this, because doing so would require
+  // us to use a second TCP port. Once mu-grpc-server gets a new release that
+  // includes the above PR, we can use a separate service and multiplex it on
+  // the same port for better code organization.
+  rpc ParsePathAliases (ParsePathAliasesRequest) returns (ParsePathAliasesResponse);
+}
+
+message ColorizedGitShaRequest {
+  string sha = 1;
+  // How many SHA hex chars to colorize (and output). Typically this will be
+  // less than 40 because in practice people rarely want the full 40-char SHA in
+  // their shell prompt.
+  uint32 sha_length = 2;
+  // How many space characters to add to the left/right of the final (colorized)
+  // output. These space characters will take on the background color of their
+  // adjacent colorized hex chars in the SHA string. This is purely for
+  // aesthetic reasons.
+  uint32 pad_left = 3;
+  uint32 pad_right = 4;
+  RenderOptions render_options = 5;
+}
+
+message ColorizedGitShaResponse {
+  string sha_colorized = 1;
+}
+
+message RenderOptions {
+  RenderFormat format = 1;
+  RenderColorDepth color_depth = 2;
+}
+
+enum RenderFormat {
+  RENDER_FORMAT_UNSPECIFIED = 0;
+  RENDER_FORMAT_UNIX_TERMINAL = 1;
+}
+
+enum RenderColorDepth {
+  // "Unspecified" just means to refrain from doing any special colorizations.
+  RENDER_COLOR_DEPTH_UNSPECIFIED = 0;
+  RENDER_COLOR_DEPTH_256 = 1;
+  RENDER_COLOR_DEPTH_24_BIT = 2;
+}
+
+message RenderWidgetsRequest {
+  repeated Widget widgets = 1;
+  // By default, this is a single space character (without any colors) and acts
+  // as a separater between all widgets.
+  Widget delimiter = 2;
+  RenderOptions render_options = 3;
+}
+
+message RenderWidgetsResponse {
+  string widgets_rendered = 1;
+}
+
+message Widget {
+  string str = 1;
+  TextProperty prop = 2;
+  bool drop_delim_left = 3;
+  bool drop_delim_right = 4;
+}
+
+message TextProperty {
+  Color fg = 1;
+  Color bg = 2;
+  repeated TextStyle styles = 3;
+  // FIXME: It is possible to have underlines in a different color than the
+  // current foreground color. This field captures that possibility. BUT the
+  // ansi-terminal library does not appear to support this. So don't bother.
+  // Color line_color = 4;
+}
+
+message Color {
+  oneof color_oneof {
+    Color24Bit color_24_bit = 1;
+    // The well-known "256" colors as used in ANSI escade codes. The first 16
+    // colors (0 through 15) are the traditional 16 colors used before 256
+    // colors became a thing. The colors 232-255 represent a grayscale gradient
+    // (dark to light), and finally the middle 216 colors (16-231) represent
+    // additional colors in 6 squares, each with 36 colors. See FIXME table
+    // here: https://en.wikipedia.org/wiki/ANSI_escape_code
+    uint32 color_256 = 2;
+  }
+}
+
+message Color24Bit {
+  // Ideally each of these should be a "uint8" but protobuf does not have this
+  // scalar type. So target applications have to convert to a uint8 (mask the
+  // lower 8 bits) of each color channel.
+  uint32 red = 1;
+  uint32 green = 2;
+  uint32 blue = 3;
+}
+
+enum TextStyle {
+  TEXT_STYLE_UNSPECIFIED = 0;
+  TEXT_STYLE_BOLD = 1;
+  TEXT_STYLE_ITALIC = 2;
+  TEXT_STYLE_UNDERLINE = 3;
+  TEXT_STYLE_UNDERLINE_DOUBLE = 4;
+  TEXT_STYLE_BLINK = 5;
+  TEXT_STYLE_BLINK_RAPID = 6;
+}
+
+message ParsePathAliasesRequest {
+  string path_aliases_raw = 1;
+}
+
+message ParsePathAliasesResponse {
+  ParseStatus status = 1;
+  // Happy path.
+  map<string, string> path_aliases = 2;
+  // Error message from melbyr, if any.
+  string error = 3;
+}
+
+enum ParseStatus {
+  PARSE_STATUS_UNSPECIFIED = 0;
+  PARSE_STATUS_ERROR = 1;
+  PARSE_STATUS_OK = 2;
+}

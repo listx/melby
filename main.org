@@ -1,0 +1,157 @@
+# Copyright 2023 Linus Arver
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#+title: Melby
+
+#+SETUPFILE: lilac.theme
+
+# Set default header argument for all source code blocks. The "no-export" means
+# that we do not expand noweb references when exporting (weaving) --- the fact
+# that this is not the default option is odd.
+#+PROPERTY: header-args :noweb no-export
+
+# Prevent _ and ^ from being interpreted as subscript and superscript operators.
+#+OPTIONS: ^:{}
+
+# Number the top 5 levels of headings; since h1 is the tile, this means headings
+# up to 4 numbers --- e.g., "1.2.3.4".
+#+OPTIONS: H:5
+
+# Note that this is a comment and is not woven (exported) to HTML, nor visible
+# from any tangled (generate) source code file. Below is a block comment:
+#+begin_comment
+This is a sample multi-line comment.
+Also see https://orgmode.org/manual/Comment-Lines.html.
+#+end_comment
+
+* Introduction
+
+#+begin_sidenote
+The name /melby/ comes from "물", a Korean word meaning "water".
+#+end_sidenote
+
+Melby is a configurable *shell prompt generation system*. Typically, users
+customize their shell prompt by making it run a collection of useful shell
+commands, such as =git= for Git status information, and piecing this output
+together into the =PS1= shell variable found in most shells. This is problematic
+when those commands can take a long time (more than a few seconds) to run,
+because it introduces a delay between each shell prompt generation. Nobody likes
+to wait a few seconds for the shell prompt to finish rendering.
+
+Users are then forced to strip down the commands used for the shell prompt to
+only those commands that run very quickly. Melby was written to generate a shell
+prompt string in under 1 second, even if the commands used for gathering
+information to be used by the shell prompt take much longer. Melby achieves this
+by running things asynchronously and caching results.
+
+If you are a newcomer to this project, you should start out with the [[*User Manual][User Manual]]
+to get started actually using Melby on your own shell prompt configuration.
+
+** Project principles
+
+This project has several principles, listed below in order of importance.
+
+1. Documentation
+2. Tests
+3. Reliability
+4. Performance
+
+Documentation is the most important of all, because it helps add value for the
+remaining ones.
+
+** Polyglot stack
+
+We use several programming languages: Elixir, Lua, Rust, and Haskell.
+
+- *Elixir*: Elixir is the main language used in this project because of it
+  leverages the famed Erlang runtime, known for its world-class reliability.
+  Elixir is used for programming the base system, as well as testing all of the
+  components together.
+- *Lua*: Lua is used as our configuration language, because of its power and
+  flexibility. Users must create a Lua configuration file in order to use Melby.
+- *Rust*: Rust is used in some places where static typing and performance might
+  come in handy. Typically it's used for smaller, pure (lacking side effects)
+  functions.
+- *Haskell*: Haskell is used for the Melby client binary =melbyc=, and also the
+  =melbyr= rendering service. Haskell maximizes code maintainability and
+  stability, and so it is the preferred language for building smaller
+  independent components outside of the base (Elixir) system.
+
+We also use [[https://en.wikipedia.org/wiki/Literate_programming][Literate Programming]] (LP). To this end, we use Emacs Org mode
+(=*.org= files) as the source of truth. These files are /tangled/ into the above
+languages for the application binaries. These same files are /woven/ to produce
+HTML files for documentation (what you are reading now). We use several
+languages for weaving:
+
+- *Emacs Lisp*: We use Emacs Lisp to tame Emacs Org mode for LP. Emacs Org mode
+  is used for LP in this project because it is probably the most flexible and
+  widely-used LP system out there. LaTeX + Noweb is another possibility, but it
+  was not chosen because Org mode by default looks reasonable in plaintext.
+- *TikZ*: [[https://en.wikipedia.org/wiki/PGF/TikZ][PGF/TikZ]] is used for writing all of the diagrams and figures used for
+  documentation. This is because TikZ is extremely stable, powerful, and
+  flexible for creating diagrams of all sorts. It is also able to produce SVG
+  files, which are required to generate diagrams of the highest quality.
+- *HTML/CSS*: HTML and CSS power the documentation. Although PDF output can be
+  very beautiful, HTML is simply more accessible and also does not require code
+  listings to be broken across multiple pages.
+
+If you are interested in helping to contribute back to Melby, see [[file:developer-manual.html#h-Contributing-to-Melby]["Contributing
+to Melby" in the Developer Manual]].
+
+** Lay of the land
+
+[[./image/architecture-overall.svg]]
+
+Melby uses a client/server architecture. There are two main parts:
+
+1. =melbyd=: The server, which itself is composed of two smaller pieces:
+   a. The controller written in Elixir and Rust.
+   b. The viewer written in Haskell. This is a separate server in its own right
+      (a microservice).
+2. =melbyc=: The client, written in Haskell. The client sends a request and
+   receives a "view".
+
+You may notice that the two parts of =melbyd= are the controller and viewer.
+These parts are named this way to refer to the common [[https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller][Model-View-Controller]]
+(MVC) pattern. One unusual deviation from the MVC pattern is that the client is
+fully responsible for sending in the "template" for the view, as well as asking
+the server what kind of data (Model) it would like to work with. The client does
+this by sending in a Lua script.
+
+So the entire flow is:
+
+1. User writes a Lua script to specify what pieces of information it wants, and
+   how it should be presented.
+2. =melbyc= sends this script to =melbyd= for processing.
+3. The =melbyd= controller gathers the necessary data (e.g., Git status) and
+   sends it to the =melbyd= viewer (Haskell service) for generating the final
+   view.
+4. The view is sent back to =melbyc=, which then prints it to STDOUT.
+
+** How the rest of the documentation is organized
+
+There are two manuals in this project:
+
+1. [[file:developer-manual.html][Developer Manual]]
+2. [[*User Manual][User Manual]]
+
+The [[file:developer-manual.html][*Developer Manual*]] is written to help other programmers understand how
+everything works, while the *User Manual* is written for end-users.
+
+The User Manual should probably be read first, as it shows you how to install
+Melby and use it.
+
+* User Manual
+
+#+include: "user-manual.org" :lines "19-"

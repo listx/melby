@@ -1,0 +1,375 @@
+# Copyright 2023 Linus Arver
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#+title: Build System for Packaging Melby
+#+PROPERTY: header-args :noweb no-export
+
+* Introduction
+
+We use Nix for the build system. Nix allows us to package up Melby into an
+installabe software unit, or package, as well as provide us a development
+environment capable of building Melby from scratch.
+
+** What we must build
+
+There are several pieces of software we need to build (compile from source):
+
+1. melbyc (Haskell)
+2. melbyr (Haskell)
+3. ptu (Haskell)
+4. melbyd (Elixir)
+5. melbyd Nifs (Rust)
+
+The =ptu= binary is only used for weaving, and thus, is not required for
+packaging up Melby for end users.
+
+* Development environment
+
+Developing is intimately tied to releasing. And of course, development must come
+first before we can release. And so we discuss the development environment here.
+
+We use Nix to set up the environment.
+
+** Nix shell
+
+This is taken from [[https://github.com/tweag/haskell-stack-nix-example/blob/b9383e35416a2b0e21fbc97ed079538f9f395b6a/shell.nix#L1][here]].
+
+Note that we first have to do =nix-shell --pure= in Melby's toplevel directory,
+then =cd= into =melbyc= and only from here we are able to do =stack exec -- ghci=
+to see the right version of GHC.
+
+This is the main development shell and brings in all of our dependencies to
+build all of our code. It's great for development and testing things out (e.g.,
+running unit tests) for all of the various languages we use.
+
+#+caption: shell.nix (toplevel dev environment)
+#+begin_src nix :tangle shell.nix :eval no
+let
+  # Nixpkgs snapshot.
+  sources = import ./package/nix/sources.nix;
+  # Overlays
+  oxalica-rust-overlay = import sources.rust-overlay;
+  # Build rust crates.
+  naersk = final: prev: {
+    naersk = pkgs.callPackage sources.naersk
+      {
+        inherit sources;
+      };
+    };
+  # The final "pkgs" attribute with all the bells and whistles of our overlays.
+  pkgs = import sources.nixpkgs {
+    overlays = [
+      oxalica-rust-overlay
+      naersk
+    ];
+  };
+
+  # Wrap Stack to configure Nix integration and target the correct Stack-Nix
+  # file
+  #
+  # - nix: Enable Nix support (use Stack's built-in Nix integration; this makes
+  #   Stack populate the "ghc" variable in our nix/stack.nix file with the GHC
+  #   version found in the stack.yaml file; this way we don't have to specify a
+  #   GHC version in Nix (when we already define it transitively through
+  #   specifying Stack's LTS version in stack.yaml)). This also makes it so that
+  #   ghci is not available in the nix-shell; rather it can only be accessed
+  #   through "stack exec -- ghci".
+  #
+  # - nix-pure: Do not pass environment variables, like `NIX_PATH`
+  #
+  # - nix-shell-file: Specify the Nix file to use (otherwise it uses `shell.nix`
+  #   by default)
+  #
+  # Vanilla (unwrapped) stack is available as `.stack-wrapped`, courtesy of
+  # pkgs.symlinkJoin.
+  stack-wrapped = pkgs.symlinkJoin {
+    name = "stack";
+    paths = [ pkgs.stack ];
+    buildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/stack \
+        --add-flags "\
+          --nix \
+          --nix-pure \
+          --system-ghc \
+          --no-install-ghc \
+          --nix-shell-file=./stack.nix \
+        "
+    '';
+  };
+
+  protoc-gen-elixir = pkgs.callPackage ./package/protoc-gen-elixir.nix {};
+  darwin-cargo-build-rustflags = pkgs.lib.attrsets.optionalAttrs pkgs.stdenv.isDarwin {
+    CARGO_BUILD_RUSTFLAGS = "-C link-arg=-undefined -C link-arg=dynamic_lookup";
+  };
+  macOS-security =
+    # Make `/usr/bin/security` available in `PATH`, which is needed for stack
+    # on darwin which calls this binary to find certificates. See
+    # https://github.com/tweag/rules_haskell/commit/31171a520f49f263895112678ac93c7ed958ead1.
+    pkgs.writeScriptBin "security" ''exec /usr/bin/security "$@"'';
+in
+
+# This is our development shell.
+pkgs.mkShell ({
+  buildInputs = [
+    # Haskell
+    stack-wrapped
+    # Let stack use Nix with the Nix we version here.
+    pkgs.nix
+
+    # Rust
+    pkgs.rust-bin.stable.latest.default
+    pkgs.rust-analyzer
+
+    # Elixir
+    pkgs.beam.packages.erlangR26.elixir
+    pkgs.beam.packages.erlangR26.erlang # erl, escript
+    pkgs.mix2nix
+
+    # gRPC and Protocol Buffers
+    pkgs.protobuf
+    # Needed for running Elixir plugin for protoc. E.g., "protoc
+    # --elixir_out=plugins=grpc:. foo.proto". We need to install
+    # protoc-gen-elixir.
+    protoc-gen-elixir
+
+    # Tangling and weaving for Literate Programming.
+    pkgs.emacs29-nox
+    pkgs.inkscape
+    pkgs.pdf2svg
+
+    # For updating Nix dependencies.
+    pkgs.niv
+
+    # Misc
+    pkgs.git
+    pkgs.less
+  ]
+  # For file_system on Linux.
+  ++ pkgs.lib.optional pkgs.stdenv.isLinux pkgs.inotify-tools
+  # For file_system on macOS. See
+  # https://elixirforum.com/t/could-not-compile-file-system-watcher-for-mac/17432/10
+  # for a discussion about getting a file system watcher working on Mac.
+  ++ pkgs.lib.optionals pkgs.stdenv.isDarwin (with pkgs.darwin.apple_sdk.frameworks; [
+    CoreFoundation
+    CoreServices
+    Security
+  ])
+  ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+    # This allows mix2nix to be able to download hex packages using HTTPS, in a
+    # `nix-shell --pure` environment. See
+    # https://github.com/NixOS/nixpkgs/issues/66716#issuecomment-883399373.
+    pkgs.cacert
+    macOS-security
+  ];
+
+  # FIXME: how to get the git version into the environment...???? The setting below for MELBY_PROJECT_ROOT only works for the dev env, not the release env
+  shellHook = ''
+    # Prefer to use melbyr and melbyc from the local development tree path.
+    export PATH=$PWD/daemon/test:$PWD/daemon/lib/melbyd/renderer:$PWD/client:$PATH
+    export KUBECONFIG=$PWD/daemon/test/fake_kube_config
+    export MELBY_DIR=$PWD/daemon/test/sample
+    export MELBY_PROJECT_ROOT=$PWD
+    export MELBYR_PATH=$PWD/daemon/lib/melbyd/renderer/melbyr
+    export LUA_PATH="$PWD/daemon/test/sample/?.lua"
+  '';
+
+  # Configure the Nix path to our own `pkgs`, to ensure Stack-with-Nix uses the
+  # correct one rather than the global <nixpkgs> when looking for the right
+  # `ghc` argument to pass in `nix/stack.nix`
+  #
+  # See https://nixos.org/nixos/nix-pills/nix-search-paths.html for more
+  # information.
+  NIX_PATH = "nixpkgs=" + pkgs.path;
+
+  # Make Elixir not complain about using "latin1" encoding.
+  LANG = "C.UTF-8";
+  LOCALE_ARCHIVE = pkgs.lib.optional pkgs.stdenv.isLinux
+    "${pkgs.glibcLocales}/lib/locale/locale-archive";
+} // darwin-cargo-build-rustflags)
+#+end_src
+
+*** Make Stack understand Nix
+
+#+caption: package/nix/stack.nix
+#+begin_src nix :tangle package/nix/stack.nix :eval no
+let
+  sources = import ./sources.nix;
+  pkgs = import sources.nixpkgs { };
+in
+
+# See https://docs.haskellstack.org/en/stable/nix_integration/#using-a-custom-shellnix-file
+#
+# But basically this tells stack to figure out the GHC version by looking at
+# stack.yaml (we have to have this file in $PWD from the current nix-shell
+# session).
+#
+# This is really great because this means we can technically have different
+# tools use different versions of GHC. So maybe one of the smaller, simpler
+# tools can use the latest GHC with useful features and have that as a role
+# model for the other Haskell binaries that are lagging behind on older GHC
+# versions due to dependencies that have not yet upgraded to the newer version.
+{ ghc }:
+
+pkgs.haskell.lib.buildStackProject {
+  inherit ghc;
+  name = "melby";
+  # System dependencies needed at compilation time
+  buildInputs = [
+    pkgs.zlib
+  ];
+}
+#+end_src
+
+* Packaging
+
+** Releasing
+
+We use Nix to package everything up. The main thing to note here is that we
+reuse the shell environment's sources (in =nix/sources.nix=) to make sure that
+the development environment's dependencies exactly match what we'll end up
+shipping.
+
+#+caption: package/build.nix
+#+begin_src nix :tangle package/build.nix :eval no
+let
+  sources = import ./nix/sources.nix;
+  pkgs = import sources.nixpkgs {};
+  # We have to explicitly choose GHC 8.10.7 because 9.0.2 is the default for
+  # nixos-22.11 (which we don't want because the Stack version we use, LTS
+  # 18.28, uses 8.10.7).
+  hpg8107 = pkgs.haskell.packages.ghc8107;
+  hpg96 = pkgs.haskell.packages.ghc96;
+  melby-client = hpg8107.callPackage ../client/melby-client.nix {};
+  # FIXME: We need to pass in a "version" attribute to all Haskell packages
+  # because the default buildStackProject helper does not provide a version.
+  # This means we need to start creating version strings, probably in the format
+  # "YY.MM.DD-<sha>" to make it incremental.
+  #melby-client-2 = (import melby-client-1) {};
+  #melby-client-3 = pkgs.haskell.lib.addBuildTool melby-client-2 fakeGit;
+  melby-renderer = hpg8107.callPackage ../daemon/lib/melbyd/renderer/melby-renderer.nix {};
+  ptu = hpg96.callPackage ../ptu.nix {};
+  melby-daemon = pkgs.callPackage ../daemon/melby-daemon.nix {};
+  melby-nifs = pkgs.callPackage ../daemon/lib/melbyd/nifs/melby-nifs.nix {};
+in
+  { melby-ptu = ptu;
+    inherit melby-client melby-renderer melby-daemon melby-nifs;
+  }
+#+end_src
+
+We can now install everything above with =nix-env -if ./release.nix=. Be sure to
+run =systemctl --user daemon-reload= to load the =systemd= definition that comes
+with =melby.service=, and run =systemctl --user start melby.service= to actually
+start it.
+
+#+caption: package/release.nix
+#+begin_src nix :tangle package/release.nix :eval no
+let
+  sources = import ./nix/sources.nix;
+  pkgs = import sources.nixpkgs {};
+  melby = import ./build.nix;
+in
+  pkgs.symlinkJoin {
+    name = "melby";
+    paths = with melby; [
+      melby-client
+      melby-renderer
+      melby-daemon
+    ];
+    # If users have already installed individual packages already, make the ones
+    # we bundle here act as a fallback. Default priority is 5, and so by setting
+    # it to 10, makes Nix treat the files of this derivation as a fallback if
+    # there is a conflict.
+    meta.priority = 10;
+  }
+#+end_src
+
+Additional steps:
+
+Create a =~/.melby/systemd/env= file with the contents
+
+FIXME: Add in "prod" settings here for MELBYR_PATH, MELBYR_PORT, and so on so as
+to not conflict with the dev environment. Even better, add these settings in our
+Elixir code so that the user does not (normally) have to configure them.
+
+#+begin_example
+RELEASE_COOKIE=path/to/cookie
+#+end_example
+
+Then populate =path/to/cookie= with a random text string like this:
+
+#+begin_example
+$ cd ~/.melby
+$ openssl rand -base64 48 > cookie
+$ chmod 600 cookie
+#+end_example
+
+** Makefile
+
+FIXME: reduce repetition by using a build rule (akin to run_emacs)
+
+#+caption: package/Makefile
+#+begin_src makefile :tangle package/Makefile
+
+define run_build
+	nix-build build.nix --option sandbox relaxed --show-trace \
+		-A $(1) --out-link $(1)
+endef
+
+build:
+	nix-build build.nix --option sandbox relaxed --show-trace
+
+build-melby-ptu:
+	$(call run_build,melby-ptu)
+
+build-melby-client:
+	$(call run_build,melby-client)
+
+build-melby-daemon:
+	$(call run_build,melby-daemon)
+
+build-melby-nifs:
+	$(call run_build,melby-nifs)
+
+build-melby-renderer:
+	$(call run_build,melby-renderer)
+
+shell:
+	nix-shell --pure
+
+# Update nix/ folder to pin dependencies to nixos-23.11.
+update-nix:
+	niv update nixpkgs --branch nixos-23.11
+
+.PHONY: build
+.PHONY: build-melby-ptu
+.PHONY: build-melby-client
+.PHONY: build-melby-renderer
+.PHONY: build-melby-daemon
+.PHONY: build-melby-nifs
+.PHONY: shell
+.PHONY: update-nix
+#+end_src
+
+** .gitignore
+
+#+caption: package/.gitignore
+#+begin_src text :tangle package/.gitignore
+melby-client
+melby-nifs
+melby-ptu
+melby-renderer
+melby-daemon
+result*
+#+end_src

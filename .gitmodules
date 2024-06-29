@@ -1,0 +1,33 @@
+[submodule "deps/elisp/haskell-mode"]
+	path = deps/elisp/haskell-mode
+	url = https://github.com/haskell/haskell-mode
+[submodule "deps/elisp/rust-mode"]
+	path = deps/elisp/rust-mode
+	url = https://github.com/rust-lang/rust-mode
+[submodule "deps/elisp/lua-mode"]
+	path = deps/elisp/lua-mode
+	url = https://github.com/immerrr/lua-mode
+[submodule "deps/elisp/emacs-elixir"]
+	path = deps/elisp/emacs-elixir
+	url = https://github.com/elixir-editors/emacs-elixir
+[submodule "deps/elisp/protobuf"]
+	path = deps/elisp/protobuf
+	url = https://github.com/protocolbuffers/protobuf
+[submodule "deps/elisp/nix-mode"]
+	path = deps/elisp/nix-mode
+	url = https://github.com/NixOS/nix-mode
+[submodule "deps/elisp/yaml-mode"]
+	path = deps/elisp/yaml-mode
+	url = https://github.com/yoshiki/yaml-mode
+[submodule "deps/elisp/lilac"]
+	path = deps/elisp/lilac
+	url = https://github.com/listx/lilac
+[submodule "deps/elisp/magit"]
+	path = deps/elisp/magit
+	url = https://github.com/magit/magit
+[submodule "deps/elisp/compat.el"]
+	path = deps/elisp/compat.el
+	url = https://github.com/phikal/compat.el
+[submodule "deps/elisp/dash.el"]
+	path = deps/elisp/dash.el
+	url = https://github.com/magnars/dash.el

@@ -1,0 +1,3 @@
+{{- range .items -}}
+{{.status.phase}}{{"\n"}}
+{{- end -}}
