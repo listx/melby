@@ -129,8 +129,13 @@ use grpc_generated::melby_client::ViewRequest;
 // Global options.
 struct Cli {
     // Config file path.
-    #[arg(short, long, value_name = "FILE", default_value = "~/.melby/melby.lua")]
+    #[arg(short, long,
+          value_name = "LUA_CONFIG_FILE", default_value = "~/.melby/melby.lua")]
     config: PathBuf,
+
+    #[arg(short = 'r', long,
+          value_name = "RAW_INLINE_LUA_CONFIG", default_value = "")]
+    config_raw: String,
 
     // Port of melbyd (presumed to be running on localhost).
     #[arg(short, long, default_value_t = 50051)]
@@ -181,7 +186,7 @@ async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
 
     let req = ViewRequest {
         config_path: cli.config.display().to_string(),
-        config: "".to_string(),
+        config: cli.config_raw.to_string(),
         env_vars: env_vars,
         shell_pid: shell_pid.to_string(),
     };
