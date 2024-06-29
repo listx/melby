@@ -95,10 +95,10 @@ subcommandP = hsubparser
                      (View <$> viewOptsP)
                      (progDesc "get prompt information with Lua"))
   <> command "ping" (info
-                     (pure Ping) (progDesc "Check lh server connectivity"))
+                     (pure Ping) (progDesc "Check melbyd connectivity"))
   <> command "shutdown" (info
                          (pure Shutdown)
-                         (progDesc "Shut down lh server instance"))
+                         (progDesc "Shut down melbyd instance"))
   <> metavar "SUBCOMMAND"
   )
 
