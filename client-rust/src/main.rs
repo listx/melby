@@ -2,11 +2,9 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::path::PathBuf;
 use clap::{Parser, Subcommand};
-
 pub mod grpc_generated;
 use grpc_generated::melby_client::view_client::ViewClient;
 use grpc_generated::melby_client::ViewRequest;
-
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 /// Global options (applies to all subcommands).
@@ -30,7 +28,6 @@ struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
 }
-
 /// Subcommands and their options.
 #[derive(Subcommand)]
 enum Commands {
@@ -39,7 +36,6 @@ enum Commands {
         shell_pid: u32,
     },
 }
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
@@ -55,7 +51,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
-
 async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
     let url = format!("http://127.0.0.1:{0}", cli.melbyd_port);
     let mut client = ViewClient::connect(url).await?;

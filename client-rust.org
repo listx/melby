@@ -115,15 +115,35 @@ pub mod melby_client;
 #+name: rust-client-main.rs
 #+caption: main.rs for client-rust
 #+begin_src rust :tangle client-rust/src/main.rs
+__NREF__client-rust--imports
+__NREF__client-rust--option-handling
+__NREF__client-rust--main
+__NREF__client-rust--business-logic
+#+end_src
+
+Basic imports.
+
+#+header: :noweb-ref __NREF__client-rust--imports
+#+begin_src rust
 use std::collections::HashMap;
 use std::error::Error;
 use std::path::PathBuf;
 use clap::{Parser, Subcommand};
+#+end_src
 
+Import generated gRPC code. These are built by =build.rs=.
+
+#+header: :noweb-ref __NREF__client-rust--imports
+#+begin_src rust
 pub mod grpc_generated;
 use grpc_generated::melby_client::view_client::ViewClient;
 use grpc_generated::melby_client::ViewRequest;
+#+end_src
 
+Global options.
+
+#+header: :noweb-ref __NREF__client-rust--option-handling
+#+begin_src rust
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 /// Global options (applies to all subcommands).
@@ -147,7 +167,12 @@ struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
 }
+#+end_src
 
+Subcommands. There's only 1 right now, but we'll have more in the future.
+
+#+header: :noweb-ref __NREF__client-rust--option-handling
+#+begin_src rust
 /// Subcommands and their options.
 #[derive(Subcommand)]
 enum Commands {
@@ -156,7 +181,12 @@ enum Commands {
         shell_pid: u32,
     },
 }
+#+end_src
 
+Entrypoint.
+
+#+header: :noweb-ref __NREF__client-rust--main
+#+begin_src rust
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
@@ -172,7 +202,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+#+end_src
 
+View the output of running the Lua configuration inside melbyd.
+
+#+header: :noweb-ref __NREF__client-rust--business-logic
+#+begin_src rust
 async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
     let url = format!("http://127.0.0.1:{0}", cli.melbyd_port);
     let mut client = ViewClient::connect(url).await?;

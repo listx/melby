@@ -399,7 +399,11 @@
 </li>
 <li><a href="#h-Rust-client">5.8. Rust client</a>
 <ul>
-<li><a href="#h-Code-overview-1">5.8.1. Code overview</a></li>
+<li><a href="#h-Code-overview-1">5.8.1. Code overview</a>
+<ul>
+<li><a href="#h-Main-function">5.8.1.1. Main function</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -2554,10 +2558,10 @@ how to provide the right arguments to ensure that we get the correct types.
                      (<span class="org-haskell-constructor">View</span> <span class="org-haskell-operator">&lt;$&gt;</span> viewOptsP)
                      (progDesc <span class="org-string">"get prompt information with Lua"</span>))
   <span class="org-haskell-operator">&lt;&gt;</span> command <span class="org-string">"ping"</span> (info
-                     (pure <span class="org-haskell-constructor">Ping</span>) (progDesc <span class="org-string">"Check lh server connectivity"</span>))
+                     (pure <span class="org-haskell-constructor">Ping</span>) (progDesc <span class="org-string">"Check melbyd connectivity"</span>))
   <span class="org-haskell-operator">&lt;&gt;</span> command <span class="org-string">"shutdown"</span> (info
                          (pure <span class="org-haskell-constructor">Shutdown</span>)
-                         (progDesc <span class="org-string">"Shut down lh server instance"</span>))
+                         (progDesc <span class="org-string">"Shut down melbyd instance"</span>))
   <span class="org-haskell-operator">&lt;&gt;</span> metavar <span class="org-string">"SUBCOMMAND"</span>
   )
 
@@ -3088,20 +3092,33 @@ Here we use Rust to build an equivalent client. We start with <code>Cargo.toml</
 defining dependencies.
 </p>
 
+<p>
+See more keys and their definitions at <a href="https://doc.rust-lang.org/cargo/reference/manifest.html">https://doc.rust-lang.org/cargo/reference/manifest.html</a>.
+</p>
+
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">Cargo.toml for client-rust</label><span class="lilac-caption-link-symbol"><a href="#Cargo-toml-for-client-rust">&#x1f517;</a></span></div><pre class="src src-toml" id="Cargo-toml-for-client-rust">[<span class="org-type">package</span>]
-<span class="org-variable-name">name</span> = <span class="org-string">"client-rust"</span>
+<span class="org-variable-name">name</span> = <span class="org-string">"melbyc-rust"</span>
+<span class="org-variable-name">description</span> = <span class="org-string">"melby client, written in Rust"</span>
 <span class="org-variable-name">version</span> = <span class="org-string">"0.1.0"</span>
 <span class="org-variable-name">edition</span> = <span class="org-string">"2021"</span>
 
-<span class="org-comment-delimiter"># </span><span class="org-comment">See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html</span>
-
-[<span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type">dependencies</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>]
+[<span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type">dependencies</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>]
 <span class="org-variable-name">tonic</span> = <span class="org-string">"0.11"</span>
-<span class="org-variable-name">tokio</span> = { version = <span class="org-string">"1"</span>, features = [<span class="org-string">"full"</span>] }
+<span class="org-variable-name">tokio</span> = { version = <span class="org-string">"1.0"</span>, features = [<span class="org-string">"macros"</span>, <span class="org-string">"rt-multi-thread"</span>] }
 <span class="org-variable-name">prost</span> = <span class="org-string">"0.12"</span>
+<span class="org-variable-name">clap</span> = { version = <span class="org-string">"4.5.4"</span>, features = [<span class="org-string">"derive"</span>]}
+<span class="org-variable-name">config</span> = { version = <span class="org-string">"0.14"</span>, features = [<span class="org-string">"yaml"</span>]}
 
-[<span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type">build-dependencies</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>]
+[<span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type">build-dependencies</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>]
 <span class="org-variable-name">tonic-build</span> = <span class="org-string">"0.11"</span>
+
+[[<span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type">bin</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>]]
+<span class="org-variable-name">name</span> = <span class="org-string">"melbyc-rust"</span>
+<span class="org-variable-name">path</span> = <span class="org-string">"src/main.rs"</span>
+
+[<span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type"><span class="org-type">profile.release</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span>]
+<span class="org-comment-delimiter"># </span><span class="org-comment">Strip all symbols.</span>
+<span class="org-variable-name">strip</span> = <span class="org-keyword">true</span>
 </pre></div></div><p>
 And here's the <code>.gitignore</code> for this client.
 </p>
@@ -3124,10 +3141,149 @@ Here's the <code>Makefile</code> for building and testing.
 <span class="org-makefile-targets">test</span>:
     cargo test
 <span class="org-makefile-targets">.PHONY</span>: test
-</pre></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">main.rs for client-rust</label><span class="lilac-caption-link-symbol"><a href="#main-rs-for-client-rust">&#x1f517;</a></span></div><pre class="src src-rust" id="main-rs-for-client-rust"><span class="org-keyword">fn</span> <span class="org-function-name">main</span>() {
-    <span class="org-rust-builtin-formatting-macro">println!</span>(<span class="org-string">"Hello, world!"</span>);
+</pre></div><p>
+Here's the file for protobuf code generation. The <code>build.rs</code> name is a special
+name that Cargo recognizes automatically.
+</p>
+
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">build.rs for client-rust</label><span class="lilac-caption-link-symbol"><a href="#build-rs-for-client-rust">&#x1f517;</a></span></div><pre class="src src-rust" id="build-rs-for-client-rust"><span class="org-keyword">use</span> <span class="org-constant">std</span>::<span class="org-constant">error</span>::<span class="org-type">Error</span>;
+
+<span class="org-keyword">fn</span> <span class="org-function-name">main</span>() -&gt; <span class="org-type">Result</span>&lt;(), <span class="org-type">Box</span>&lt;<span class="org-keyword">dyn</span> <span class="org-type">Error</span>&gt;&gt; {
+    <span class="org-constant">tonic_build</span>::compile_protos(<span class="org-string">"proto/melby_client.proto"</span>)<span class="org-rust-question-mark">?</span>;
+    <span class="org-constant">tonic_build</span>::configure()
+    .build_server(<span class="org-keyword">false</span>)
+    .out_dir(<span class="org-string">"src/grpc_generated"</span>)  <span class="org-comment-delimiter">// </span><span class="org-comment">you can change the generated code's location</span>
+    .compile(
+        <span class="org-rust-ampersand">&amp;</span>[<span class="org-string">"proto/melby_client.proto"</span>],
+        <span class="org-rust-ampersand">&amp;</span>[<span class="org-string">"proto"</span>], <span class="org-comment-delimiter">// </span><span class="org-comment">specify the root location to search proto dependencies</span>
+    ).unwrap();
+
+    <span class="org-type">Ok</span>(())
+}
+</pre></div></div><p>
+The code above generates <code>src/grpc_generated/melby_client.rs</code>. In order to
+import it as a module, we have to export it as part of the <code>grpc_generated</code>
+package. We do that below.
+</p>
+
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">mod.rs for generated code</label><span class="lilac-caption-link-symbol"><a href="#mod-rs-for-generated-code">&#x1f517;</a></span></div><pre class="src src-rust" id="mod-rs-for-generated-code"><span class="org-keyword">pub</span> <span class="org-keyword">mod</span> <span class="org-constant">melby_client</span>;
+</pre></div></div>
+</div>
+
+<div id="outline-container-h-Main-function" class="outline-5">
+<h5 id="h-Main-function"><span class="section-number-5">5.8.1.1.</span> Main function</h5>
+<div class="outline-text-5" id="text-h-Main-function">
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">main.rs for client-rust</label><span class="lilac-caption-link-symbol"><a href="#main-rs-for-client-rust">&#x1f517;</a></span></div><pre class="src src-rust" id="main-rs-for-client-rust"><span class="lilac-child-link-from-parent"><a href="#__NREF__client-rust--imports-1">client-rust--imports</a></span>
+<span class="lilac-child-link-from-parent"><a href="#__NREF__client-rust--option-handling-1">client-rust--option-handling</a></span>
+<span class="lilac-child-link-from-parent"><a href="#__NREF__client-rust--main">client-rust--main</a></span>
+<span class="lilac-child-link-from-parent"><a href="#__NREF__client-rust--business-logic">client-rust--business-logic</a></span>
+</pre></div></div><p>
+Basic imports.
+</p>
+
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#main-rs-for-client-rust">client-rust--imports</a></span>(1/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__client-rust--imports-1">&#x1f517;</a></span></div><pre class="src src-rust" id="__NREF__client-rust--imports-1"><span class="org-keyword">use</span> <span class="org-constant">std</span>::<span class="org-constant">collections</span>::<span class="org-type">HashMap</span>;
+<span class="org-keyword">use</span> <span class="org-constant">std</span>::<span class="org-constant">error</span>::<span class="org-type">Error</span>;
+<span class="org-keyword">use</span> <span class="org-constant">std</span>::<span class="org-constant">path</span>::<span class="org-type">PathBuf</span>;
+<span class="org-keyword">use</span> <span class="org-constant">clap</span>::{<span class="org-type">Parser</span>, <span class="org-type">Subcommand</span>};
+</pre></div></div><p>
+Import generated gRPC code. These are built by <code>build.rs</code>.
+</p>
+
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#main-rs-for-client-rust">client-rust--imports</a></span>(2/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__client-rust--imports-2">&#x1f517;</a></span></div><pre class="src src-rust" id="__NREF__client-rust--imports-2"><span class="org-keyword">pub</span> <span class="org-keyword">mod</span> <span class="org-constant">grpc_generated</span>;
+<span class="org-keyword">use</span> <span class="org-constant">grpc_generated</span>::<span class="org-constant">melby_client</span>::<span class="org-constant">view_client</span>::<span class="org-type">ViewClient</span>;
+<span class="org-keyword">use</span> <span class="org-constant">grpc_generated</span>::<span class="org-constant">melby_client</span>::<span class="org-type">ViewRequest</span>;
+</pre></div></div><p>
+Global options.
+</p>
+
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#main-rs-for-client-rust">client-rust--option-handling</a></span>(1/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__client-rust--option-handling-1">&#x1f517;</a></span></div><pre class="src src-rust" id="__NREF__client-rust--option-handling-1"><span class="org-preprocessor">#[derive(Parser)]</span>
+<span class="org-preprocessor">#[command(version, about, long_about = None)]</span>
+<span class="org-doc">/// Global options (applies to all subcommands).</span>
+<span class="org-keyword">struct</span> <span class="org-type">Cli</span> {
+    <span class="org-doc">/// Config file path.</span>
+    <span class="org-preprocessor">#[arg(short, long,</span>
+<span class="org-preprocessor">          value_name = </span><span class="org-string">"LUA_CONFIG_FILE"</span><span class="org-preprocessor">, default_value = </span><span class="org-string">"~/.melby/melby.lua"</span><span class="org-preprocessor">)]</span>
+    <span class="org-variable-name">config</span>: <span class="org-type">PathBuf</span>,
+
+    <span class="org-doc">/// Inline Lua config if you want to test out small(er) snippets of code</span>
+    <span class="org-doc">/// directly without having to write a LUA_CONFIG_FILE on disk somewhere.</span>
+    <span class="org-preprocessor">#[arg(short = </span><span class="org-string">'r'</span><span class="org-preprocessor">, long,</span>
+<span class="org-preprocessor">          value_name = </span><span class="org-string">"RAW_INLINE_LUA_CONFIG"</span><span class="org-preprocessor">, default_value = </span><span class="org-string">""</span><span class="org-preprocessor">)]</span>
+    <span class="org-variable-name">config_raw</span>: <span class="org-type">String</span>,
+
+    <span class="org-doc">/// Port of melbyd (presumed to be running on localhost).</span>
+    <span class="org-preprocessor">#[arg(short, long, default_value_t = 50051)]</span>
+    <span class="org-variable-name">melbyd_port</span>: <span class="org-type">u16</span>,
+
+    <span class="org-doc">/// Subcommands.</span>
+    <span class="org-preprocessor">#[command(subcommand)]</span>
+    <span class="org-variable-name">command</span>: <span class="org-type">Option</span>&lt;<span class="org-type">Commands</span>&gt;,
+}
+</pre></div></div><p>
+Subcommands. There's only 1 right now, but we'll have more in the future.
+</p>
+
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#main-rs-for-client-rust">client-rust--option-handling</a></span>(2/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__client-rust--option-handling-2">&#x1f517;</a></span></div><pre class="src src-rust" id="__NREF__client-rust--option-handling-2"><span class="org-doc">/// Subcommands and their options.</span>
+<span class="org-preprocessor">#[derive(Subcommand)]</span>
+<span class="org-keyword">enum</span> <span class="org-type">Commands</span> {
+    <span class="org-type">View</span> {
+        <span class="org-preprocessor">#[arg(short, long, default_value_t = 0)]</span>
+        <span class="org-variable-name">shell_pid</span>: <span class="org-type">u32</span>,
+    },
+}
+</pre></div></div><p>
+Entrypoint.
+</p>
+
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#main-rs-for-client-rust">client-rust--main</a></span>(1/1) <span class="lilac-caption-link-symbol"><a href="#__NREF__client-rust--main">&#x1f517;</a></span></div><pre class="src src-rust" id="__NREF__client-rust--main"><span class="org-preprocessor">#[tokio::main]</span>
+<span class="org-keyword">async</span> <span class="org-keyword">fn</span> <span class="org-function-name">main</span>() -&gt; <span class="org-type">Result</span>&lt;(), <span class="org-type">Box</span>&lt;<span class="org-keyword">dyn</span> <span class="org-type">Error</span>&gt;&gt; {
+    <span class="org-keyword">let</span> <span class="org-variable-name">cli</span> = <span class="org-type">Cli</span>::parse();
+
+    <span class="org-keyword">match</span> <span class="org-rust-ampersand">&amp;</span>cli.command {
+        <span class="org-type">Some</span>(<span class="org-type">Commands</span>::<span class="org-type">View</span> { shell_pid }) =&gt; {
+            view(<span class="org-rust-ampersand">&amp;</span>cli, *shell_pid).<span class="org-keyword">await</span><span class="org-rust-question-mark">?</span>;
+        }
+        <span class="org-type">None</span> =&gt; {
+            ()
+        }
+    }
+
+    <span class="org-type">Ok</span>(())
+}
+</pre></div></div><p>
+View the output of running the Lua configuration inside melbyd.
+</p>
+
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#main-rs-for-client-rust">client-rust--business-logic</a></span>(1/1) <span class="lilac-caption-link-symbol"><a href="#__NREF__client-rust--business-logic">&#x1f517;</a></span></div><pre class="src src-rust" id="__NREF__client-rust--business-logic"><span class="org-keyword">async</span> <span class="org-keyword">fn</span> <span class="org-function-name">view</span>(<span class="org-variable-name">cli</span>: <span class="org-rust-ampersand">&amp;</span><span class="org-type">Cli</span>, <span class="org-variable-name">shell_pid</span>: <span class="org-type">u32</span>) -&gt; <span class="org-type">Result</span>&lt;(), <span class="org-type">Box</span>&lt;<span class="org-keyword">dyn</span> <span class="org-type">Error</span>&gt;&gt; {
+    <span class="org-keyword">let</span> <span class="org-variable-name">url</span> = <span class="org-rust-builtin-formatting-macro">format!</span>(<span class="org-string">"http://127.0.0.1:</span><span class="org-rust-string-interpolation">{0}</span><span class="org-string">"</span>, cli.melbyd_port);
+    <span class="org-keyword">let</span> <span class="org-keyword">mut</span> <span class="org-variable-name">client</span> = <span class="org-type">ViewClient</span>::connect(url).<span class="org-keyword">await</span><span class="org-rust-question-mark">?</span>;
+
+    <span class="org-comment-delimiter">// </span><span class="org-comment">FIXME: Instead of slurping up everything, only slurp up</span>
+    <span class="org-comment-delimiter">// </span><span class="org-comment">an "allowlist" of known ENV vars we want to feed into the server. This</span>
+    <span class="org-comment-delimiter">// </span><span class="org-comment">allowlist could be defined in settings.yml or even as an additive list of</span>
+    <span class="org-comment-delimiter">// </span><span class="org-comment">flags. We could do the additive list of flags first and then move to</span>
+    <span class="org-comment-delimiter">// </span><span class="org-comment">settings.yml in the future if there are just too many flags.</span>
+    <span class="org-keyword">let</span> <span class="org-keyword">mut</span> <span class="org-variable-name">env_vars</span>: <span class="org-type">HashMap</span>&lt;<span class="org-type">String</span>, <span class="org-type">String</span>&gt; = <span class="org-type">HashMap</span>::new();
+    <span class="org-keyword">for</span> (k, v) <span class="org-keyword">in</span> <span class="org-constant">std</span>::<span class="org-constant">env</span>::vars() {
+        env_vars.insert(k, v);
+    }
+
+    <span class="org-keyword">let</span> <span class="org-variable-name">req</span> = <span class="org-type">ViewRequest</span> {
+        <span class="org-variable-name">config_path</span>: cli.config.display().to_string(),
+        <span class="org-variable-name">config</span>: cli.config_raw.to_string(),
+        <span class="org-variable-name">env_vars</span>: env_vars,
+        <span class="org-variable-name">shell_pid</span>: shell_pid.to_string(),
+    };
+
+    <span class="org-keyword">let</span> <span class="org-variable-name">request</span> = <span class="org-constant">tonic</span>::<span class="org-type">Request</span>::new(req);
+    <span class="org-keyword">let</span> <span class="org-variable-name">response</span> = client.get_view(request).<span class="org-keyword">await</span><span class="org-rust-question-mark">?</span>;
+
+    <span class="org-rust-builtin-formatting-macro">println!</span>(<span class="org-string">"</span><span class="org-rust-string-interpolation">{}</span><span class="org-string">"</span>, response.get_ref().view);
+
+    <span class="org-type">Ok</span>(())
 }
 </pre></div></div>
+</div>
 </div>
 </div>
 </div>
