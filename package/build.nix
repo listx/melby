@@ -21,6 +21,7 @@ let
   hpg8107 = pkgs.haskell.packages.ghc8107;
   hpg96 = pkgs.haskell.packages.ghc96;
   melby-client = hpg8107.callPackage ../client/melby-client.nix {};
+  melby-client-rust = pkgs.callPackage ../client-rust/melby-client-rust.nix {};
   # FIXME: We need to pass in a "version" attribute to all Haskell packages
   # because the default buildStackProject helper does not provide a version.
   # This means we need to start creating version strings, probably in the format
@@ -33,5 +34,5 @@ let
   melby-nifs = pkgs.callPackage ../daemon/lib/melbyd/nifs/melby-nifs.nix {};
 in
   { melby-ptu = ptu;
-    inherit melby-client melby-renderer melby-daemon melby-nifs;
+    inherit melby-client melby-client-rust melby-renderer melby-daemon melby-nifs;
   }

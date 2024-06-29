@@ -26,6 +26,9 @@ build-melby-ptu:
 build-melby-client:
 	$(call run_build,melby-client)
 
+build-melby-client-rust:
+	$(call run_build,melby-client-rust)
+
 build-melby-daemon:
 	$(call run_build,melby-daemon)
 
@@ -45,6 +48,7 @@ update-nix:
 .PHONY: build
 .PHONY: build-melby-ptu
 .PHONY: build-melby-client
+.PHONY: build-melby-client-rust
 .PHONY: build-melby-renderer
 .PHONY: build-melby-daemon
 .PHONY: build-melby-nifs

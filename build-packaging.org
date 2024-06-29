@@ -252,6 +252,7 @@ let
   hpg8107 = pkgs.haskell.packages.ghc8107;
   hpg96 = pkgs.haskell.packages.ghc96;
   melby-client = hpg8107.callPackage ../client/melby-client.nix {};
+  melby-client-rust = pkgs.callPackage ../client-rust/melby-client-rust.nix {};
   # FIXME: We need to pass in a "version" attribute to all Haskell packages
   # because the default buildStackProject helper does not provide a version.
   # This means we need to start creating version strings, probably in the format
@@ -264,7 +265,7 @@ let
   melby-nifs = pkgs.callPackage ../daemon/lib/melbyd/nifs/melby-nifs.nix {};
 in
   { melby-ptu = ptu;
-    inherit melby-client melby-renderer melby-daemon melby-nifs;
+    inherit melby-client melby-client-rust melby-renderer melby-daemon melby-nifs;
   }
 #+end_src
 
@@ -284,6 +285,7 @@ in
     name = "melby";
     paths = with melby; [
       melby-client
+      melby-client-rust
       melby-renderer
       melby-daemon
     ];
@@ -336,6 +338,9 @@ build-melby-ptu:
 build-melby-client:
 	$(call run_build,melby-client)
 
+build-melby-client-rust:
+	$(call run_build,melby-client-rust)
+
 build-melby-daemon:
 	$(call run_build,melby-daemon)
 
@@ -355,6 +360,7 @@ update-nix:
 .PHONY: build
 .PHONY: build-melby-ptu
 .PHONY: build-melby-client
+.PHONY: build-melby-client-rust
 .PHONY: build-melby-renderer
 .PHONY: build-melby-daemon
 .PHONY: build-melby-nifs
@@ -367,6 +373,7 @@ update-nix:
 #+caption: package/.gitignore
 #+begin_src text :tangle package/.gitignore
 melby-client
+melby-client-rust
 melby-nifs
 melby-ptu
 melby-renderer
