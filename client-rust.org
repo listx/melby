@@ -126,26 +126,29 @@ use grpc_generated::melby_client::ViewRequest;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
-// Global options.
+/// Global options (applies to all subcommands).
 struct Cli {
-    // Config file path.
+    /// Config file path.
     #[arg(short, long,
           value_name = "LUA_CONFIG_FILE", default_value = "~/.melby/melby.lua")]
     config: PathBuf,
 
+    /// Inline Lua config if you want to test out small(er) snippets of code
+    /// directly without having to write a LUA_CONFIG_FILE on disk somewhere.
     #[arg(short = 'r', long,
           value_name = "RAW_INLINE_LUA_CONFIG", default_value = "")]
     config_raw: String,
 
-    // Port of melbyd (presumed to be running on localhost).
+    /// Port of melbyd (presumed to be running on localhost).
     #[arg(short, long, default_value_t = 50051)]
     melbyd_port: u16,
 
-    // Subcommands.
+    /// Subcommands.
     #[command(subcommand)]
     command: Option<Commands>,
 }
 
+/// Subcommands and their options.
 #[derive(Subcommand)]
 enum Commands {
     View {
