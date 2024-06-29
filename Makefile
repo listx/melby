@@ -50,6 +50,7 @@ tangle-build-tools: build-tools tangle-sources tangle-generated
 	# for building things, such as when building Haskell packages.
 	cp -f LICENSE client/LICENSE
 	cp -f melby_client.proto client/lib/MelbyClient/melby_client.proto
+	cp -f melby_client.proto client-rust/proto/melby_client.proto
 	cp -f melby_renderer.proto daemon/lib/melbyd/renderer/lib/MelbyRenderer/melby_renderer.proto
 .PHONY: tangle-build-tools
 
@@ -58,6 +59,7 @@ do-tangle: tangle-sources tangle-generated
 	./ptu add-legal $(shell git rev-parse --show-toplevel) "Linus Arver"
 	cp -f LICENSE client/LICENSE
 	cp -f melby_client.proto client/lib/MelbyClient/melby_client.proto
+	cp -f melby_client.proto client-rust/proto/melby_client.proto
 	cp -f melby_renderer.proto daemon/lib/melbyd/renderer/lib/MelbyRenderer/melby_renderer.proto
 .PHONY: do-tangle
 

@@ -13,10 +13,25 @@
 # limitations under the License.
 
 [package]
-name = "client-rust"
+name = "melbyc-rust"
+description = "melby client, written in Rust"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+tonic = "0.11"
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+prost = "0.12"
+clap = { version = "4.5.4", features = ["derive"]}
+config = { version = "0.14", features = ["yaml"]}
+
+[build-dependencies]
+tonic-build = "0.11"
+
+[[bin]]
+name = "melbyc-rust"
+path = "src/main.rs"
+
+[profile.release]
+# Strip all symbols.
+strip = true
