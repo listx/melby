@@ -123,6 +123,12 @@ see how it all works.
 # of that document interferes our own title.
 #+include: "client.org" :lines "16-"
 
+** Rust client
+
+# We skip the first line with ":lines ..." because otherwise the "#+title: ..."
+# of that document interferes our own title.
+#+include: "client-rust.org" :lines "16-"
+
 * melbyd
 
 # We skip the first line with ":lines ..." because otherwise the "#+title: ..."

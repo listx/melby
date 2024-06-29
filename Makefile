@@ -89,6 +89,7 @@ build-literate-org:
 
 # Generate source code.
 tangle-sources: client-org \
+		client-rust-org \
 		daemon-org \
 		controller-org \
 		model-org \
@@ -106,6 +107,8 @@ image-org: build-literate-org
 	$(call run_emacs,(org-babel-tangle),image.org)
 client-org: build-literate-org
 	$(call run_emacs,(org-babel-tangle),client.org)
+client-rust-org: build-literate-org
+	$(call run_emacs,(org-babel-tangle),client-rust.org)
 daemon-org: build-literate-org
 	$(call run_emacs,(org-babel-tangle),daemon.org)
 controller-org: build-literate-org
@@ -121,6 +124,7 @@ user-manual-org: build-literate-org
 .PHONY: build-packaging-org
 .PHONY: tangle-sources
 .PHONY: client-org
+.PHONY: client-rust-org
 .PHONY: daemon-org
 .PHONY: controller-org
 .PHONY: model-org

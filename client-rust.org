@@ -1,0 +1,54 @@
+# Copyright 2024 Linus Arver
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#+title: melby-client (Rust)
+#+PROPERTY: header-args :noweb no-export
+
+* Code overview
+
+While the Haskell client above does work, the [[https://github.com/higherkindness/mu-haskell][=mu-haskell=]] library it depends on
+appears to be abandoned. So we need a backup plan in case that library does turn
+out to be abandoned forever.
+
+Here we use Rust to build an equivalent client. We start with =Cargo.toml= for
+defining dependencies.
+
+#+name: rust-client-Cargo.toml
+#+caption: Cargo.toml for client-rust
+#+begin_src toml :tangle client-rust/Cargo.toml
+[package]
+name = "client-rust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+#+end_src
+
+And here's the =.gitignore= for this client.
+
+#+begin_src text :tangle client-rust/.gitignore
+.cargo
+
+target
+#+end_src
+
+#+name: rust-client-main.rs
+#+caption: main.rs for client-rust
+#+begin_src rust :tangle client-rust/src/main.rs
+fn main() {
+    println!("Hello, world!");
+}
+#+end_src
