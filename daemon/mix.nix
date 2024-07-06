@@ -1,17 +1,3 @@
-# Copyright 2023 Linus Arver
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 { lib, beamPackages, overrides ? (x: y: {}) }:
 
 let
@@ -63,12 +49,12 @@ let
 
     cowboy = buildErlangMk rec {
       name = "cowboy";
-      version = "2.10.0";
+      version = "2.12.0";
 
       src = fetchHex {
         pkg = "cowboy";
         version = "${version}";
-        sha256 = "3afdccb7183cc6f143cb14d3cf51fa00e53db9ec80cdcd525482f5e99bc41d6b";
+        sha256 = "8a7abe6d183372ceb21caa2709bec928ab2b72e18a3911aa1771639bef82651e";
       };
 
       beamDeps = [ cowlib ranch ];
@@ -76,12 +62,12 @@ let
 
     cowlib = buildRebar3 rec {
       name = "cowlib";
-      version = "2.12.1";
+      version = "2.13.0";
 
       src = fetchHex {
         pkg = "cowlib";
         version = "${version}";
-        sha256 = "163b73f6367a7341b33c794c4e88e7dbfe6498ac42dcd69ef44c5bc5507c8db0";
+        sha256 = "e1e1284dc3fc030a64b1ad0d8382ae7e99da46c3246b815318a4b848873800a4";
       };
 
       beamDeps = [];
@@ -89,15 +75,15 @@ let
 
     elixir_make = buildMix rec {
       name = "elixir_make";
-      version = "0.7.7";
+      version = "0.8.4";
 
       src = fetchHex {
         pkg = "elixir_make";
         version = "${version}";
-        sha256 = "5bc19fff950fad52bbe5f211b12db9ec82c6b34a9647da0c2224b8b8464c7e6c";
+        sha256 = "6e7f1d619b5f61dfabd0a20aa268e575572b542ac31723293a4c1a567d5ef040";
       };
 
-      beamDeps = [];
+      beamDeps = [ certifi ];
     };
 
     eternal = buildMix rec {
@@ -115,12 +101,12 @@ let
 
     expo = buildMix rec {
       name = "expo";
-      version = "0.5.1";
+      version = "0.5.2";
 
       src = fetchHex {
         pkg = "expo";
         version = "${version}";
-        sha256 = "68a4233b0658a3d12ee00d27d37d856b1ba48607e7ce20fd376958d0ba6ce92b";
+        sha256 = "8c9bfa06ca017c9cb4020fabe980bc7fdb1aaec059fd004c2ab3bff03b1c599c";
       };
 
       beamDeps = [];
@@ -154,12 +140,12 @@ let
 
     gproc = buildRebar3 rec {
       name = "gproc";
-      version = "0.9.1";
+      version = "1.0.0";
 
       src = fetchHex {
         pkg = "gproc";
         version = "${version}";
-        sha256 = "905088e32e72127ed9466f0bac0d8e65704ca5e73ee5a62cb073c3117916d507";
+        sha256 = "109f253c2787de8a371a51179d4973230cbec6239ee673fa12216a5ce7e4f902";
       };
 
       beamDeps = [];
@@ -167,25 +153,25 @@ let
 
     grpc = buildMix rec {
       name = "grpc";
-      version = "0.7.0";
+      version = "0.8.1";
 
       src = fetchHex {
         pkg = "grpc";
         version = "${version}";
-        sha256 = "632a9507da8d3c12b112b197db4d60da3c95bad02594d37711eeb622d032f254";
+        sha256 = "1cccd9fd83547a562f315cc0e1ee1879546f0a44193b5c8eb8d68dae0bb2065b";
       };
 
-      beamDeps = [ cowboy cowlib gun mint telemetry ];
+      beamDeps = [ cowboy cowlib gun jason mint protobuf telemetry ];
     };
 
     gun = buildRebar3 rec {
       name = "gun";
-      version = "2.0.1";
+      version = "2.1.0";
 
       src = fetchHex {
         pkg = "gun";
         version = "${version}";
-        sha256 = "a10bc8d6096b9502205022334f719cc9a08d9adcfbfc0dbee9ef31b56274a20b";
+        sha256 = "52fc7fc246bfc3b00e01aea1c2854c70a366348574ab50c57dfe796d24a0101d";
       };
 
       beamDeps = [ cowlib ];
@@ -206,12 +192,12 @@ let
 
     hpax = buildMix rec {
       name = "hpax";
-      version = "0.1.2";
+      version = "1.0.0";
 
       src = fetchHex {
         pkg = "hpax";
         version = "${version}";
-        sha256 = "2c87843d5a23f5f16748ebe77969880e29809580efdaccd615cd3bed628a8c13";
+        sha256 = "7f1314731d711e2ca5fdc7fd361296593fc2542570b3105595bb0bc6d0fad601";
       };
 
       beamDeps = [];
@@ -232,12 +218,12 @@ let
 
     jason = buildMix rec {
       name = "jason";
-      version = "1.4.1";
+      version = "1.4.3";
 
       src = fetchHex {
         pkg = "jason";
         version = "${version}";
-        sha256 = "fbb01ecdfd565b56261302f7e1fcc27c4fb8f32d56eab74db621fc154604a7a1";
+        sha256 = "9a90e868927f7c777689baa16d86f4d0e086d968db5c05d917ccff6d443e58a3";
       };
 
       beamDeps = [];
@@ -258,12 +244,12 @@ let
 
     luerl = buildRebar3 rec {
       name = "luerl";
-      version = "1.0.0";
+      version = "1.2.0";
 
       src = fetchHex {
         pkg = "luerl";
         version = "${version}";
-        sha256 = "c17bc45cb4b0845ec975387f9a5d8c81ab60456698527a29c96f78992af86bd1";
+        sha256 = "9cafd4f6094ff0f5a9d278fd81d60d3e026c820bdfb6cacd4b1bd909f21b525d";
       };
 
       beamDeps = [];
@@ -284,12 +270,12 @@ let
 
     mimerl = buildRebar3 rec {
       name = "mimerl";
-      version = "1.2.0";
+      version = "1.3.0";
 
       src = fetchHex {
         pkg = "mimerl";
         version = "${version}";
-        sha256 = "f278585650aa581986264638ebf698f8bb19df297f66ad91b18910dfc6e19323";
+        sha256 = "a1e15a50d1887217de95f0b9b0793e32853f7c258a5cd227650889b38839fe9d";
       };
 
       beamDeps = [];
@@ -297,12 +283,12 @@ let
 
     mint = buildMix rec {
       name = "mint";
-      version = "1.5.2";
+      version = "1.6.2";
 
       src = fetchHex {
         pkg = "mint";
         version = "${version}";
-        sha256 = "d77d9e9ce4eb35941907f1d3df38d8f750c357865353e21d335bdcdf6d892a02";
+        sha256 = "5ee441dffc1892f1ae59127f74afe8fd82fda6587794278d924e4d90ea3d63f9";
       };
 
       beamDeps = [ hpax ];
@@ -310,12 +296,12 @@ let
 
     muontrap = buildMix rec {
       name = "muontrap";
-      version = "1.4.0";
+      version = "1.4.1";
 
       src = fetchHex {
         pkg = "muontrap";
         version = "${version}";
-        sha256 = "04e73438af6d0954d3ea4ab6b70bc4d9eef80341647a1ce4449797294ebfc399";
+        sha256 = "c12a3469974f99b25a0cfa4bcf45aa15d122a1384308f602ca1c20c16f195729";
       };
 
       beamDeps = [ elixir_make ];
@@ -375,12 +361,12 @@ let
 
     rustler = buildMix rec {
       name = "rustler";
-      version = "0.30.0";
+      version = "0.33.0";
 
       src = fetchHex {
         pkg = "rustler";
         version = "${version}";
-        sha256 = "9ef1abb6a7dda35c47cfc649e6a5a61663af6cf842a55814a554a84607dee389";
+        sha256 = "7c4752728fee59a815ffd20c3429c55b644041f25129b29cdeb5c470b80ec5fd";
       };
 
       beamDeps = [ jason toml ];
@@ -388,12 +374,12 @@ let
 
     sleeplocks = buildRebar3 rec {
       name = "sleeplocks";
-      version = "1.1.2";
+      version = "1.1.3";
 
       src = fetchHex {
         pkg = "sleeplocks";
         version = "${version}";
-        sha256 = "9fe5d048c5b781d6305c1a3a0f40bb3dfc06f49bf40571f3d2d0c57eaa7f59a5";
+        sha256 = "d3b3958552e6eb16f463921e70ae7c767519ef8f5be46d7696cc1ed649421321";
       };
 
       beamDeps = [];
