@@ -3779,6 +3779,7 @@ argument is always the state of the Lua VM instance. This is demonstrated in the
   <span class="org-keyword">with</span> {<span class="org-elixir-atom">:ok</span>, channel} <span class="org-keyword">&lt;-</span>
          <span class="org-type">GRPC.Stub</span>.connect(<span class="org-string">"localhost:</span><span class="org-variable-name">#{Application.get_env(:melbyd, :melbyr_port)}</span><span class="org-string">"</span>),
        {<span class="org-elixir-atom">:ok</span>, reply} <span class="org-keyword">&lt;-</span> <span class="org-type">MelbyRenderer.Renderer.Stub</span>.render_widgets(channel, req, <span class="org-elixir-atom">timeout:</span> <span class="org-elixir-number">200</span>) <span class="org-keyword">do</span>
+    <span class="org-type">GRPC.Stub</span>.disconnect(channel)
     {<span class="org-elixir-atom">:ok</span>, reply.widgets_rendered, st0}
   <span class="org-keyword">else</span>
     err <span class="org-keyword">-&gt;</span> <span class="org-keyword">raise</span> <span class="org-string">"could not parse response from melbyr: </span><span class="org-variable-name">#{inspect(err)}</span><span class="org-string">"</span>
@@ -3929,6 +3930,7 @@ def_lua_func get_path_aliases_fake([path_aliases_raw], st0) <span class="org-key
   <span class="org-keyword">case</span> <span class="org-type">GRPC.Stub</span>.connect(<span class="org-string">"localhost:</span><span class="org-variable-name">#{Application.get_env(:melbyd, :melbyr_port)}</span><span class="org-string">"</span>) <span class="org-keyword">do</span>
     {<span class="org-elixir-atom">:ok</span>, channel} <span class="org-keyword">-&gt;</span>
       <span class="org-variable-name">res</span> = channel <span class="org-keyword">|&gt;</span> <span class="org-type">MelbyRenderer.Renderer.Stub</span>.parse_path_aliases(req, <span class="org-elixir-atom">timeout:</span> <span class="org-elixir-number">200</span>)
+      <span class="org-type">GRPC.Stub</span>.disconnect(channel)
 
       <span class="org-keyword">case</span> res <span class="org-keyword">do</span>
         {<span class="org-elixir-atom">:ok</span>, reply} <span class="org-keyword">-&gt;</span>
@@ -3966,8 +3968,10 @@ def_lua_func get_path_aliases_fake([path_aliases_raw], st0) <span class="org-key
   <span class="org-type">Logger</span>.debug(<span class="org-string">"elixir req was: </span><span class="org-variable-name">#{inspect(req)}</span><span class="org-string">"</span>)
 
   <span class="org-keyword">with</span> {<span class="org-elixir-atom">:ok</span>, channel} <span class="org-keyword">&lt;-</span> <span class="org-type">GRPC.Stub</span>.connect(<span class="org-string">"localhost:</span><span class="org-variable-name">#{Application.get_env(:melbyd, :melbyr_port)}</span><span class="org-string">"</span>),
-       {<span class="org-elixir-atom">:ok</span>, reply} <span class="org-keyword">&lt;-</span> channel <span class="org-keyword">|&gt;</span> <span class="org-type">MelbyRenderer.Renderer.Stub</span>.get_colorized_git_sha(req, <span class="org-elixir-atom">timeout:</span> <span class="org-elixir-number">200</span>),
-       <span class="org-elixir-atom">do:</span> {<span class="org-elixir-atom">:ok</span>, reply.sha_colorized, st0}
+       {<span class="org-elixir-atom">:ok</span>, reply} <span class="org-keyword">&lt;-</span> channel <span class="org-keyword">|&gt;</span> <span class="org-type">MelbyRenderer.Renderer.Stub</span>.get_colorized_git_sha(req, <span class="org-elixir-atom">timeout:</span> <span class="org-elixir-number">200</span>) <span class="org-keyword">do</span>
+    <span class="org-type">GRPC.Stub</span>.disconnect(channel)
+    {<span class="org-elixir-atom">:ok</span>, reply.sha_colorized, st0}
+  <span class="org-keyword">end</span>
 <span class="org-keyword">end</span>
 </pre></div></div>
 </div>

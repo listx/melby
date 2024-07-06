@@ -622,6 +622,7 @@ defmodule Melbyd.LuaSdk do
     with {:ok, channel} <-
            GRPC.Stub.connect("localhost:#{Application.get_env(:melbyd, :melbyr_port)}"),
          {:ok, reply} <- MelbyRenderer.Renderer.Stub.render_widgets(channel, req, timeout: 200) do
+      GRPC.Stub.disconnect(channel)
       {:ok, reply.widgets_rendered, st0}
     else
       err -> raise "could not parse response from melbyr: #{inspect(err)}"
@@ -765,6 +766,7 @@ defmodule Melbyd.LuaSdk do
     case GRPC.Stub.connect("localhost:#{Application.get_env(:melbyd, :melbyr_port)}") do
       {:ok, channel} ->
         res = channel |> MelbyRenderer.Renderer.Stub.parse_path_aliases(req, timeout: 200)
+        GRPC.Stub.disconnect(channel)
   
         case res do
           {:ok, reply} ->
@@ -795,8 +797,10 @@ defmodule Melbyd.LuaSdk do
     Logger.debug("elixir req was: #{inspect(req)}")
   
     with {:ok, channel} <- GRPC.Stub.connect("localhost:#{Application.get_env(:melbyd, :melbyr_port)}"),
-         {:ok, reply} <- channel |> MelbyRenderer.Renderer.Stub.get_colorized_git_sha(req, timeout: 200),
-         do: {:ok, reply.sha_colorized, st0}
+         {:ok, reply} <- channel |> MelbyRenderer.Renderer.Stub.get_colorized_git_sha(req, timeout: 200) do
+      GRPC.Stub.disconnect(channel)
+      {:ok, reply.sha_colorized, st0}
+    end
   end
   def_lua_func get_time([format, unix_seconds, time_zone], st0) do
     # Use UTC by default.
