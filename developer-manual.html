@@ -275,34 +275,14 @@
 </li>
 <li><a href="#h-Tangling--generating-the-source-code">2.3. Tangling (generating the source code)</a>
 <ul>
-<li><a href="#h-Copyright-headers">2.3.1. Copyright headers</a>
+<li><a href="#h-Copyright-headers">2.3.1. Copyright headers</a></li>
+<li><a href="#h-gitignore">2.3.2. .gitignore</a></li>
+<li><a href="#h-Post-tangled-phase">2.3.3. Post-tangled phase</a>
 <ul>
-<li><a href="#h-Business-logic">2.3.1.1. Business logic</a></li>
-<li><a href="#h-Main">2.3.1.2. Main</a></li>
-<li><a href="#h-Boilerplate">2.3.1.3. Boilerplate</a>
-<ul>
-<li><a href="#h-Option-handling">2.3.1.3.1. Option handling</a></li>
-<li><a href="#h-Pragmas">2.3.1.3.2. Pragmas</a></li>
-<li><a href="#h-Imports">2.3.1.3.3. Imports</a></li>
-<li><a href="#h-Git-versioning">2.3.1.3.4. Git versioning</a></li>
-</ul>
-</li>
-<li><a href="#h-Build-environment">2.3.1.4. Build environment</a>
-<ul>
-<li><a href="#h-Cabal">2.3.1.4.1. Cabal</a></li>
-<li><a href="#h-Stack">2.3.1.4.2. Stack</a></li>
-<li><a href="#h-Nix">2.3.1.4.3. Nix</a></li>
-<li><a href="#h-gitignore">2.3.1.4.4. .gitignore</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#h-Post-tangled-phase">2.3.2. Post-tangled phase</a>
-<ul>
-<li><a href="#h-Elixir">2.3.2.1. Elixir</a></li>
-<li><a href="#h-Rust">2.3.2.2. Rust</a></li>
-<li><a href="#h-Haskell">2.3.2.3. Haskell</a></li>
-<li><a href="#h-Lua">2.3.2.4. Lua</a></li>
+<li><a href="#h-Elixir">2.3.3.1. Elixir</a></li>
+<li><a href="#h-Rust">2.3.3.2. Rust</a></li>
+<li><a href="#h-Haskell">2.3.3.3. Haskell</a></li>
+<li><a href="#h-Lua">2.3.3.4. Lua</a></li>
 </ul>
 </li>
 </ul>
@@ -373,17 +353,17 @@
 <li><a href="#h-Overall-structure">5.4.1. Overall structure</a></li>
 </ul>
 </li>
-<li><a href="#h-Business-logic-1">5.5. Business logic</a></li>
-<li><a href="#h-Boilerplate-1">5.6. Boilerplate</a>
+<li><a href="#h-Business-logic">5.5. Business logic</a></li>
+<li><a href="#h-Boilerplate">5.6. Boilerplate</a>
 <ul>
-<li><a href="#h-Option-handling-1">5.6.1. Option handling</a></li>
-<li><a href="#h-Main-1">5.6.2. Main</a></li>
+<li><a href="#h-Option-handling">5.6.1. Option handling</a></li>
+<li><a href="#h-Main">5.6.2. Main</a></li>
 <li><a href="#h-gRPC-schema">5.6.3. gRPC schema</a></li>
 <li><a href="#h-Other">5.6.4. Other</a>
 <ul>
-<li><a href="#h-Pragmas-1">5.6.4.1. Pragmas</a></li>
-<li><a href="#h-Imports-1">5.6.4.2. Imports</a></li>
-<li><a href="#h-Git-versioning-1">5.6.4.3. Git versioning</a></li>
+<li><a href="#h-Pragmas">5.6.4.1. Pragmas</a></li>
+<li><a href="#h-Imports">5.6.4.2. Imports</a></li>
+<li><a href="#h-Git-versioning">5.6.4.3. Git versioning</a></li>
 </ul>
 </li>
 </ul>
@@ -391,9 +371,9 @@
 <li><a href="#h-Build-system">5.7. Build system</a>
 <ul>
 <li><a href="#h-Makefile-1">5.7.1. Makefile</a></li>
-<li><a href="#h-Cabal-1">5.7.2. Cabal</a></li>
+<li><a href="#h-Cabal">5.7.2. Cabal</a></li>
 <li><a href="#h-melbyc-nix">5.7.3. melbyc.nix</a></li>
-<li><a href="#h-Stack-1">5.7.4. Stack</a></li>
+<li><a href="#h-Stack">5.7.4. Stack</a></li>
 <li><a href="#h-gitignore-2">5.7.5. .gitignore</a></li>
 </ul>
 </li>
@@ -452,7 +432,7 @@
 <li><a href="#h-Other-1">6.6.3.2.8. Other</a></li>
 </ul>
 </li>
-<li><a href="#h-Boilerplate-2">6.6.3.3. Boilerplate</a></li>
+<li><a href="#h-Boilerplate-1">6.6.3.3. Boilerplate</a></li>
 <li><a href="#h-Luerl-util">6.6.3.4. Luerl util</a>
 <ul>
 <li><a href="#h-Reading-from-Lua-tables-returned-by-Luerl">6.6.3.4.1. Reading from Lua tables returned by Luerl</a></li>
@@ -522,7 +502,7 @@
 <li><a href="#h-Overall-structure-1">6.8.4.1. Overall structure</a></li>
 </ul>
 </li>
-<li><a href="#h-Business-logic-2">6.8.5. Business logic</a>
+<li><a href="#h-Business-logic-1">6.8.5. Business logic</a>
 <ul>
 <li><a href="#h-Widget-Rendering-System">6.8.5.1. Widget Rendering System</a>
 <ul>
@@ -540,10 +520,10 @@
 <li><a href="#h-Parse-path-aliases">6.8.5.3. Parse path aliases</a></li>
 </ul>
 </li>
-<li><a href="#h-Boilerplate-3">6.8.6. Boilerplate</a>
+<li><a href="#h-Boilerplate-2">6.8.6. Boilerplate</a>
 <ul>
-<li><a href="#h-Option-handling-2">6.8.6.1. Option handling</a></li>
-<li><a href="#h-Main-2">6.8.6.2. Main</a></li>
+<li><a href="#h-Option-handling-1">6.8.6.1. Option handling</a></li>
+<li><a href="#h-Main-1">6.8.6.2. Main</a></li>
 <li><a href="#h-gRPC-schema-1">6.8.6.3. gRPC schema</a>
 <ul>
 <li><a href="#h-Colorized-Git-SHA-2">6.8.6.3.1. Colorized Git SHA</a></li>
@@ -555,9 +535,9 @@
 <li><a href="#h-Logging">6.8.6.4. Logging</a></li>
 <li><a href="#h-Other-2">6.8.6.5. Other</a>
 <ul>
-<li><a href="#h-Pragmas-2">6.8.6.5.1. Pragmas</a></li>
-<li><a href="#h-Imports-2">6.8.6.5.2. Imports</a></li>
-<li><a href="#h-Git-versioning-2">6.8.6.5.3. Git versioning</a></li>
+<li><a href="#h-Pragmas-1">6.8.6.5.1. Pragmas</a></li>
+<li><a href="#h-Imports-1">6.8.6.5.2. Imports</a></li>
+<li><a href="#h-Git-versioning-1">6.8.6.5.3. Git versioning</a></li>
 </ul>
 </li>
 </ul>
@@ -565,9 +545,9 @@
 <li><a href="#h-Build-system-1">6.8.7. Build system</a>
 <ul>
 <li><a href="#h-Makefile-2">6.8.7.1. Makefile</a></li>
-<li><a href="#h-Cabal-2">6.8.7.2. Cabal</a></li>
-<li><a href="#h-Nix-1">6.8.7.3. Nix</a></li>
-<li><a href="#h-Stack-2">6.8.7.4. Stack</a></li>
+<li><a href="#h-Cabal-1">6.8.7.2. Cabal</a></li>
+<li><a href="#h-Nix">6.8.7.3. Nix</a></li>
+<li><a href="#h-Stack-1">6.8.7.4. Stack</a></li>
 <li><a href="#h-gitignore-3">6.8.7.5. .gitignore</a></li>
 </ul>
 </li>
@@ -602,7 +582,7 @@
 <ul>
 <li><a href="#h-Elixir-wrapper">6.10.2.1. Elixir wrapper</a></li>
 <li><a href="#h-Rust-wrapper">6.10.2.2. Rust wrapper</a></li>
-<li><a href="#h-Boilerplate-4">6.10.2.3. Boilerplate</a>
+<li><a href="#h-Boilerplate-3">6.10.2.3. Boilerplate</a>
 <ul>
 <li><a href="#h-Makefile-4">6.10.2.3.1. Makefile</a></li>
 <li><a href="#h-Cargo">6.10.2.3.2. Cargo</a></li>
@@ -928,19 +908,6 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
 </p>
 
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#code-Makefile--code">Makefile-tangle</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__Makefile-tangle">&#x1f517;</a></span></div><pre class="src src-makefile" id="__NREF__Makefile-tangle"><span class="org-makefile-targets">tangle-build-tools</span>: build-tools tangle-sources tangle-generated
-<span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">Prepend copyright headers.</span>
-<span class="org-makefile-space">    #</span>
-<span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">FIXME: Use something like "The Melby Authors" or something like that? See</span>
-<span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">https://opensource.google/documentation/reference/releasing/authors</span>
-<span class="org-makefile-space">    #</span>
-<span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">FIXME: Before tangling, run this utility to check what copyright years</span>
-<span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">were used for a file (and write this information to disk somewhere). Then</span>
-<span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">after tangling (when all such copyrights are stripped), when we run</span>
-<span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">"add-legal", check if the file we're prepending the copyright to has an</span>
-<span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">entry in the file written to disk. If so, use the year in that entry.</span>
-<span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">Otherwise, use the current year. This is so that we only use the year when</span>
-<span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">the file is first "published" (came into existence).</span>
-    ./ptu add-legal $(<span class="org-variable-name">shell</span> git rev-parse --show-toplevel) <span class="org-string">"Linus Arver"</span>
 <span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">Duplicate some files. This way we avoid symlinking, because symlinks can</span>
 <span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">break when we section off parts of the codebase into separate sandboxes</span>
 <span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">for building things, such as when building Haskell packages.</span>
@@ -952,7 +919,6 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
 
 <span class="org-comment-delimiter"># </span><span class="org-comment">Same as tangle-build-tools, but does not rebuild build tools (ptu).</span>
 <span class="org-makefile-targets">do-tangle</span>: tangle-sources tangle-generated
-    ./ptu add-legal $(<span class="org-variable-name">shell</span> git rev-parse --show-toplevel) <span class="org-string">"Linus Arver"</span>
     cp -f LICENSE client/LICENSE
     cp -f melby_client.proto client/lib/MelbyClient/melby_client.proto
     cp -f melby_client.proto client-rust/proto/melby_client.proto
@@ -1029,29 +995,6 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
 <span class="org-makefile-targets">.PHONY</span>: view-org
 <span class="org-makefile-targets">.PHONY</span>: user-manual-org
 <span class="org-makefile-targets">.PHONY</span>: image-org
-
-<span class="org-makefile-targets">build-tools</span>: ptu
-
-<span class="org-comment-delimiter"># </span><span class="org-comment">FIXME: NOTE: This stack invocation is for environments without Nix. But also,</span>
-<span class="org-comment-delimiter"># </span><span class="org-comment">it's useful during development because invoking stack directly like this</span>
-<span class="org-comment-delimiter"># </span><span class="org-comment">results in populating the build cache. In our (FIXME: link to build-melby-ptu</span>
-<span class="org-comment-delimiter"># </span><span class="org-comment">rule), when we invoke that we don't get any caching.</span>
-<span class="org-variable-name">UNAME</span> := $(<span class="org-variable-name">shell</span> uname)
-<span class="org-variable-name">C_INCLUDE_PATH</span> := <span class="org-string">""</span>
-ifeq ($(<span class="org-variable-name">UNAME</span>), Darwin)
-<span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">The `xcrun...` stuff here is from</span>
-<span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">https://gitlab.haskell.org/ghc/ghc/-/issues/20592#note_391266.</span>
-    <span class="org-variable-name">C_INCLUDE_PATH</span> := C_INCLUDE_PATH=$(<span class="org-variable-name">shell</span> xcrun --show-sdk-path)/usr/include/ffi
-endif
-<span class="org-makefile-targets">ptu</span>: ptu.cabal ptu.hs stack.yaml lib/PostTangleUtil/GitVersion.hs
-    $(<span class="org-variable-name">C_INCLUDE_PATH</span>) \
-    <span class="org-variable-name">PROJECT_GIT_ROOT</span>=$(<span class="org-variable-name">PWD</span>) stack build \
-        --copy-bins \
-        --local-bin-path $(<span class="org-variable-name">PWD</span>) \
-        --no-nix-pure \
-        <span class="org-variable-name">--extra-lib-dirs</span>=$(<span class="org-variable-name">ZLIB_SO_DIR</span>:<span class="org-variable-name">-L%</span>=%) \
-        <span class="org-variable-name">--extra-include-dirs</span>=$(<span class="org-variable-name">ZLIB_H_DIR</span>:<span class="org-variable-name">-I%</span>=%)
-<span class="org-makefile-targets">.PHONY</span>: ptu
 </pre></div></div>
 </div>
 
@@ -1059,587 +1002,36 @@ endif
 <h4 id="h-Copyright-headers"><span class="section-number-4">2.3.1.</span> Copyright headers</h4>
 <div class="outline-text-4" id="text-h-Copyright-headers">
 <p>
-We want to prepend copyright headers to every single tangled source code file in
-this project. There are two problems to solve:
+We used to use a utility called <code>ptu</code> ("post-tangle utility") to prepend
+copyright headers to all tangled files, but this resulted in a few problems:
 </p>
 
 <ol class="org-ol">
-<li>construct a definitive list of all source code files this project owns,</li>
-<li>prepend the actual copyright notice tailored to the comment syntax of each
-source code file.</li>
+<li>no support for copyright year ranges (e.g., 2020-2024),</li>
+<li>no support for checking when each tangled part was actually modified in the
+Org source file.</li>
 </ol>
 
 <p>
-We can also skip files that already have a copyright notice, but this is
-thankfully a non-issue because all tangled source code files won't have the
-headers in them.
-</p>
-
-<p>
-For the first problem, we don't want to hand-tune a list of files because that
-can become tedious and error-prone. Instad we can ask Git what files we own, and
-then filter them based on the file extension. The specific query is just:
-</p>
-
-<div class="org-src-container"><pre class="src src-shell" id="nil-2">git -C &lt;REPO_PATH&gt; ls-tree -r --name-only --full-tree HEAD
-</pre></div><p>
-And then it's just a matter of checking each line if it ends in a known extension.
-</p>
-
-<p>
-For the second problem, we just need to know which comment syntax the source
-code language is using, and prefix each line of the copyright notice with it.
-This is trivial with a basic hashtable lookup (where the key is the file
-extension and the value is the comment prefix).
-</p>
-
-<p>
-The last remaining problem is figuring out what the Git repository path is on
-the local filesystem, but this too is something Git provides with
-</p>
-
-<div class="org-src-container"><pre class="src src-shell" id="nil-3">git rev-parse --show-toplevel
-</pre></div><p>
-And then when we invoke <code>make</code>, the shell session we are in has to do it from
-within the repository path. There are probably many ways to remove even this
-constraint but it's not worth addressing.
-</p>
-
-<p>
-Here is the overall program structure:
-</p>
-
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name"><code>ptu.hs</code></label><span class="lilac-caption-link-symbol"><a href="#code-ptu-hs--code">&#x1f517;</a></span></div><pre class="src src-haskell" id="code-ptu-hs--code"><span class="lilac-child-link-from-parent"><a href="#__NREF__ptu_pragmas">ptu_pragmas</a></span>
-
-<span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">Main</span> <span class="org-haskell-keyword">where</span>
-
-<span class="lilac-child-link-from-parent"><a href="#__NREF__ptu_imports">ptu_imports</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__ptu_business_logic">ptu_business_logic</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__ptu_option_handling">ptu_option_handling</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__ptu_main">ptu_main</a></span>
-</pre></div></div><p>
-The name <code>ptu</code> stands for "post-tangle utility".
+Because of these issues, the utility has been removed.
 </p>
 </div>
-
-<div id="outline-container-h-Business-logic" class="outline-5">
-<h5 id="h-Business-logic"><span class="section-number-5">2.3.1.1.</span> Business logic</h5>
-<div class="outline-text-5" id="text-h-Business-logic">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#code-ptu-hs--code">ptu_business_logic</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__ptu_business_logic">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__ptu_business_logic"><span class="lilac-child-link-from-parent"><a href="#__NREF__ptu_get_source_code_files">ptu_get_source_code_files</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__ptu_prepend_copyright_headers">ptu_prepend_copyright_headers</a></span>
-</pre></div></div><p>
-We need to first get all source code files in the project. This is basically 2
-steps:
-</p>
-
-<ol class="org-ol">
-<li>ask Git to list all tracked files (<code>getAllTrackedFiles</code>)</li>
-<li>filter out any unrecognized (non-source-code) files (<code>getSourceCodeFiles</code>)</li>
-</ol>
-
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__ptu_business_logic">ptu_get_source_code_files</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__ptu_get_source_code_files">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__ptu_get_source_code_files"><span class="org-haskell-definition">getSourceCodeFiles</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">FilePath</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">IO</span> [(<span class="org-haskell-type">FilePath</span>, <span class="org-haskell-type">T.Text</span>)]
-<span class="org-haskell-definition">getSourceCodeFiles</span> projRoot <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">do</span>
-  allFiles <span class="org-haskell-operator">&lt;-</span> getAllTrackedFiles projRoot
-  contents <span class="org-haskell-operator">&lt;-</span> mapM (<span class="org-haskell-operator">\</span>path <span class="org-haskell-operator">-&gt;</span> T.readFile path) allFiles
-  pure
-    <span class="org-haskell-operator">.</span> filter (<span class="org-haskell-operator">\</span>(path, content) <span class="org-haskell-operator">-&gt;</span>
-                 hasExtension' path extensions <span class="org-haskell-operator">||</span> hasShebang content)
-    <span class="org-haskell-operator">$</span> zip allFiles contents
-  <span class="org-haskell-keyword">where</span>
-  extensions <span class="org-haskell-operator">=</span> map fst supportedExtensions
-
-<span class="org-haskell-definition">getAllTrackedFiles</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">FilePath</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">IO</span> [<span class="org-haskell-type">FilePath</span>]
-<span class="org-haskell-definition">getAllTrackedFiles</span> projRoot <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">do</span>
-  (<span class="org-haskell-keyword">_</span>, <span class="org-haskell-constructor">Just</span> hout, <span class="org-haskell-keyword">_</span>, <span class="org-haskell-keyword">_</span>) <span class="org-haskell-operator">&lt;-</span> createProcess
-    (<span class="org-haskell-keyword">proc</span> <span class="org-string">"git"</span>
-      [ <span class="org-string">"-C"</span>
-      , projRoot
-      , <span class="org-string">"ls-tree"</span>
-      , <span class="org-string">"-r"</span>
-      , <span class="org-string">"--name-only"</span>
-      , <span class="org-string">"--full-tree"</span>
-      , <span class="org-string">"HEAD"</span>])
-    { std_out <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">CreatePipe</span>
-    }
-  relativePaths <span class="org-haskell-operator">&lt;-</span> lines <span class="org-haskell-operator">&lt;$&gt;</span> hGetContents hout
-  <span class="org-haskell-keyword">let</span> absolutePaths <span class="org-haskell-operator">=</span> map (<span class="org-haskell-operator">\</span>p <span class="org-haskell-operator">-&gt;</span> projRoot <span class="org-haskell-operator">&lt;/&gt;</span> p) relativePaths
-  filterM doesFileExist absolutePaths
-
-<span class="org-haskell-definition">hasExtension'</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">FilePath</span> <span class="org-haskell-operator">-&gt;</span> [<span class="org-haskell-type">String</span>] <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Bool</span>
-<span class="org-haskell-definition">hasExtension'</span> path exts <span class="org-haskell-operator">=</span> any (flip isSuffixOf path) exts
-
-<span class="org-haskell-definition">hasShebang</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">T.Text</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Bool</span>
-<span class="org-haskell-definition">hasShebang</span> text <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">case</span> (take 1 <span class="org-haskell-operator">$</span> T.lines text) <span class="org-haskell-keyword">of</span>
-  [firstLine] <span class="org-haskell-operator">-&gt;</span> T.isPrefixOf <span class="org-string">"#!/"</span> firstLine
-  <span class="org-haskell-keyword">_</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-constructor">False</span>
-
-<span class="org-haskell-definition">supportedExtensions</span> <span class="org-haskell-operator">::</span> [(<span class="org-haskell-type">String</span>, <span class="org-haskell-type">T.Text</span>)]
-<span class="org-haskell-definition">supportedExtensions</span> <span class="org-haskell-operator">=</span>
-  [ (<span class="org-string">".cabal"</span>, <span class="org-string">"--"</span>)
-  , (<span class="org-string">".el"</span>, <span class="org-string">";;"</span>)
-  , (<span class="org-string">".ex"</span>, <span class="org-string">"#"</span>)
-  , (<span class="org-string">".exs"</span>, <span class="org-string">"#"</span>)
-  , (<span class="org-string">".ghci"</span>, <span class="org-string">"--"</span>)
-  , (<span class="org-string">".hs"</span>, <span class="org-string">"--"</span>)
-  , (<span class="org-string">".lua"</span>, <span class="org-string">"--"</span>)
-  , (<span class="org-string">".nix"</span>, <span class="org-string">"#"</span>)
-  , (<span class="org-string">".proto"</span>, <span class="org-string">"//"</span>)
-  , (<span class="org-string">".org"</span>, <span class="org-string">"#"</span>)
-  , (<span class="org-string">".service"</span>, <span class="org-string">"#"</span>) <span class="org-comment-delimiter">-- </span><span class="org-comment">systemd unit files</span>
-  , (<span class="org-string">".sh"</span>, <span class="org-string">"#"</span>)
-  , (<span class="org-string">".toml"</span>, <span class="org-string">"#"</span>)
-  , (<span class="org-string">".yaml"</span>, <span class="org-string">"#"</span>)
-  , (<span class="org-string">"Makefile"</span>, <span class="org-string">"#"</span>)
-  ]
-</pre></div></div><p>
-Now we need to prepend copyright headers to each one of these files. The main
-difficulty here is figuring out how to generate the copyright text such that the
-copyright text is commented out with the commenting syntax of the underlying
-source code language. This is done in <code>mkCopyrightHeader</code>.
-</p>
-
-<p>
-The rest is just appyling the <code>prependCopyrightHeader</code> function across all
-source code files. We use a basic heuristic that checks if the word "Copyright"
-(in its many different possible commented forms) is present at the beginning of
-the file, and if so, skips processing that file. This way, if we run this code
-multiple times on the same file, we will add the copyright header only once.
-</p>
-
-<p>
-We also see if the beginning of the file has a shebang (<code>#!/...</code>) line, and if
-so, make sure to preserve that line and add the copyright notice <b>underneath</b>
-that line.
-</p>
-
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__ptu_business_logic">ptu_prepend_copyright_headers</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__ptu_prepend_copyright_headers">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__ptu_prepend_copyright_headers"><span class="org-haskell-definition">prependCopyrightHeaders</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">FilePath</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">T.Text</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">IO</span> <span class="org-haskell-constructor">()</span>
-<span class="org-haskell-definition">prependCopyrightHeaders</span> projRoot author <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">do</span>
-  sourceCodeFiles <span class="org-haskell-operator">&lt;-</span> getSourceCodeFiles projRoot
-  mapM_ (prependCopyrightHeader author) sourceCodeFiles
-
-<span class="org-haskell-definition">prependCopyrightHeader</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">T.Text</span> <span class="org-haskell-operator">-&gt;</span> (<span class="org-haskell-type">FilePath</span>, <span class="org-haskell-type">T.Text</span>) <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">IO</span> <span class="org-haskell-constructor">()</span>
-<span class="org-haskell-definition">prependCopyrightHeader</span> author (path, content) <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">do</span>
-  putStrLn <span class="org-haskell-operator">$</span> <span class="org-string">"ptu: processing "</span> <span class="org-haskell-operator">&lt;&gt;</span> path
-  <span class="org-comment-delimiter">-- </span><span class="org-comment">Skip processing if the file has copyright text in it already.</span>
-  when (isNothing <span class="org-haskell-operator">$</span> copyrightLocation content) <span class="org-haskell-operator">$</span> <span class="org-haskell-keyword">do</span>
-    (year, <span class="org-haskell-keyword">_</span>, <span class="org-haskell-keyword">_</span>) <span class="org-haskell-operator">&lt;-</span> toGregorian <span class="org-haskell-operator">.</span> utctDay <span class="org-haskell-operator">&lt;$&gt;</span> getCurrentTime
-    <span class="org-haskell-keyword">let</span> ext <span class="org-haskell-operator">=</span> takeExtension path
-        boilerplate <span class="org-haskell-operator">=</span> copyrightApache (T.pack <span class="org-haskell-operator">$</span> show year) author
-        copyrightHeader <span class="org-haskell-operator">=</span> mkCopyrightHeader ext boilerplate underShebang
-        (shebang, underShebang) <span class="org-haskell-operator">=</span> extractShebang content
-    <span class="org-haskell-keyword">if</span> underShebang
-       <span class="org-haskell-keyword">then</span> T.writeFile path (shebang <span class="org-haskell-operator">&lt;&gt;</span> <span class="org-string">"\n"</span> <span class="org-haskell-operator">&lt;&gt;</span> copyrightHeader <span class="org-haskell-operator">&lt;&gt;</span> rest content)
-       <span class="org-haskell-keyword">else</span> T.writeFile path (copyrightHeader <span class="org-haskell-operator">&lt;&gt;</span> <span class="org-string">"\n"</span> <span class="org-haskell-operator">&lt;&gt;</span> content)
-  <span class="org-haskell-keyword">where</span>
-  extractShebang text <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">case</span> (take 1 <span class="org-haskell-operator">$</span> T.lines text) <span class="org-haskell-keyword">of</span>
-    [firstLine] <span class="org-haskell-operator">-&gt;</span> (firstLine, T.isPrefixOf <span class="org-string">"#!/"</span> firstLine)
-    <span class="org-haskell-keyword">_</span> <span class="org-haskell-operator">-&gt;</span> (<span class="org-string">""</span>, <span class="org-haskell-constructor">False</span>)
-  rest text <span class="org-haskell-operator">=</span> T.unlines <span class="org-haskell-operator">.</span> drop 1 <span class="org-haskell-operator">$</span> T.lines text
-
-<span class="org-haskell-keyword">data</span> <span class="org-haskell-type">CopyrightLocation</span>
-  <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">CopyrightLocationBeginning</span>
-  <span class="org-haskell-operator">|</span> <span class="org-haskell-constructor">CopyrightLocationAfterShebang</span>
-  <span class="org-haskell-keyword">deriving</span> (<span class="org-haskell-constructor">Enum</span>, <span class="org-haskell-constructor">Eq</span>, <span class="org-haskell-constructor">Ord</span>, <span class="org-haskell-constructor">Show</span>)
-
-<span class="org-haskell-definition">copyrightLocation</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">T.Text</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Maybe</span> <span class="org-haskell-type">CopyrightLocation</span>
-<span class="org-haskell-definition">copyrightLocation</span> text
-  <span class="org-haskell-operator">|</span> existsAtBeginnig <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">Just</span> <span class="org-haskell-constructor">CopyrightLocationBeginning</span>
-  <span class="org-haskell-operator">|</span> existsAfterShebang <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">Just</span> <span class="org-haskell-constructor">CopyrightLocationAfterShebang</span>
-  <span class="org-haskell-operator">|</span> otherwise <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">Nothing</span>
-  <span class="org-haskell-keyword">where</span>
-  commentStrsToCheck <span class="org-haskell-operator">=</span> nub <span class="org-haskell-operator">$</span> map snd supportedExtensions
-  existsAtBeginnig
-    <span class="org-haskell-operator">=</span> any (<span class="org-haskell-operator">\</span>commentStr <span class="org-haskell-operator">-&gt;</span> hasCopyrightLine commentStr text) commentStrsToCheck
-  existsAfterShebang <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">case</span> (take 3 <span class="org-haskell-operator">$</span> asLines) <span class="org-haskell-keyword">of</span>
-    [a,b,c] <span class="org-haskell-operator">-&gt;</span> all (<span class="org-haskell-operator">==</span><span class="org-haskell-constructor">True</span>)
-      [ hasShebangLine a
-      , any (<span class="org-haskell-operator">\</span>commentStr <span class="org-haskell-operator">-&gt;</span> commentStr <span class="org-haskell-operator">==</span> b <span class="org-haskell-operator">&amp;&amp;</span> hasCopyrightLine commentStr c)
-            commentStrsToCheck
-      ]
-    <span class="org-haskell-keyword">_</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-constructor">False</span>
-  asLines <span class="org-haskell-operator">=</span> T.lines text
-  hasShebangLine s <span class="org-haskell-operator">=</span> T.isPrefixOf <span class="org-string">"#!/"</span> s
-  hasCopyrightLine p s <span class="org-haskell-operator">=</span> T.isPrefixOf (p <span class="org-haskell-operator">&lt;&gt;</span> <span class="org-string">" Copyright"</span>) s
-
-<span class="org-haskell-definition">mkCopyrightHeader</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">String</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">T.Text</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Bool</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">T.Text</span>
-<span class="org-haskell-definition">mkCopyrightHeader</span> ext boilerplate underShebang
-  <span class="org-haskell-operator">|</span> underShebang <span class="org-haskell-operator">=</span> <span class="org-string">"#\n"</span> <span class="org-haskell-operator">&lt;&gt;</span> copyrightBlock <span class="org-haskell-operator">&lt;&gt;</span> <span class="org-string">"\n"</span>
-  <span class="org-haskell-operator">|</span> otherwise <span class="org-haskell-operator">=</span> copyrightBlock
-  <span class="org-haskell-keyword">where</span>
-  prependPrefix prefix' line
-    <span class="org-haskell-operator">|</span> T.null line <span class="org-haskell-operator">=</span> prefix'
-    <span class="org-haskell-operator">|</span> otherwise <span class="org-haskell-operator">=</span> T.append (prefix' <span class="org-haskell-operator">&lt;&gt;</span> <span class="org-string">" "</span>) line
-  prefix <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">case</span> (lookup ext supportedExtensions) <span class="org-haskell-keyword">of</span>
-    <span class="org-haskell-constructor">Just</span> p <span class="org-haskell-operator">-&gt;</span> p
-    <span class="org-haskell-constructor">Nothing</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-string">"#"</span>
-  copyrightBlock <span class="org-haskell-operator">=</span> T.unlines <span class="org-haskell-operator">.</span> map (prependPrefix prefix) <span class="org-haskell-operator">$</span> T.lines boilerplate
-
-<span class="lilac-child-link-from-parent"><a href="#__NREF__ptu_copyright_template">ptu_copyright_template</a></span>
-</pre></div></div><p>
-As for the actual copyright notice itself, we parameterize it so that we include
-the current year and author field. We could additionally even parameterize the
-copyright license itself (GPL, MIT, etc.) but we don't bother because we don't
-need to.
-</p>
-
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__ptu_prepend_copyright_headers">ptu_copyright_template</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__ptu_copyright_template">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__ptu_copyright_template"><span class="org-haskell-definition">copyrightApache</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">T.Text</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">T.Text</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">T.Text</span>
-<span class="org-haskell-definition">copyrightApache</span> year author <span class="org-haskell-operator">=</span>
-  [trimming<span class="org-haskell-quasi-quote">|</span>
-<span class="org-haskell-quasi-quote">    Copyright $year $author</span>
-
-<span class="org-haskell-quasi-quote">    Licensed under the Apache License, Version 2.0 (the "License");</span>
-<span class="org-haskell-quasi-quote">    you may not use this file except in compliance with the License.</span>
-<span class="org-haskell-quasi-quote">    You may obtain a copy of the License at</span>
-
-<span class="org-haskell-quasi-quote">         http://www.apache.org/licenses/LICENSE-2.0</span>
-
-<span class="org-haskell-quasi-quote">    Unless required by applicable law or agreed to in writing, software</span>
-<span class="org-haskell-quasi-quote">    distributed under the License is distributed on an "AS IS" BASIS,</span>
-<span class="org-haskell-quasi-quote">    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
-<span class="org-haskell-quasi-quote">    See the License for the specific language governing permissions and</span>
-<span class="org-haskell-quasi-quote">    limitations under the License.</span>
-<span class="org-haskell-quasi-quote">  |</span>]
-</pre></div></div>
-</div>
 </div>
 
-<div id="outline-container-h-Main" class="outline-5">
-<h5 id="h-Main"><span class="section-number-5">2.3.1.2.</span> Main</h5>
-<div class="outline-text-5" id="text-h-Main">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#code-ptu-hs--code">ptu_main</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__ptu_main">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__ptu_main"><span class="org-haskell-definition">main</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">IO</span> <span class="org-haskell-constructor">()</span>
-<span class="org-haskell-definition">main</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">do</span>
-  opts <span class="org-haskell-operator">&lt;-</span> customExecParser (prefs showHelpOnEmpty) optsP
-  optsHandler opts
-  <span class="org-haskell-keyword">where</span>
-  optsP <span class="org-haskell-operator">=</span> info parserProgramOptions infoMod
-  parserProgramOptions <span class="org-haskell-operator">=</span> helper
-    <span class="org-haskell-operator">&lt;*&gt;</span> versionOption
-    <span class="org-haskell-operator">&lt;*&gt;</span> optionsP
-  infoMod <span class="org-haskell-operator">=</span> fullDesc
-    <span class="org-haskell-operator">&lt;&gt;</span> header <span class="org-string">"ptu - post-tangle utility"</span>
-  versionOption <span class="org-haskell-operator">=</span> infoOption
-    (concat [showVersion version, <span class="org-string">"-g"</span>, <span class="org-haskell-operator">$</span>(gitVersion)])
-    (long <span class="org-string">"version"</span> <span class="org-haskell-operator">&lt;&gt;</span> short <span class="org-string">'v'</span> <span class="org-haskell-operator">&lt;&gt;</span> help <span class="org-string">"Show version"</span>)
-</pre></div></div>
-</div>
-</div>
-
-<div id="outline-container-h-Boilerplate" class="outline-5">
-<h5 id="h-Boilerplate"><span class="section-number-5">2.3.1.3.</span> Boilerplate</h5>
-<div class="outline-text-5" id="text-h-Boilerplate">
-</div>
-
-<div id="outline-container-h-Option-handling" class="outline-6">
-<h6 id="h-Option-handling"><span class="section-number-6">2.3.1.3.1.</span> Option handling</h6>
-<div class="outline-text-6" id="text-h-Option-handling">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#code-ptu-hs--code">ptu_option_handling</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__ptu_option_handling">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__ptu_option_handling"><span class="lilac-child-link-from-parent"><a href="#__NREF__ptu_option_handling_types">ptu_option_handling_types</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__ptu_option_handling_parsers">ptu_option_handling_parsers</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__ptu_option_handling_dispatcher">ptu_option_handling_dispatcher</a></span>
-</pre></div></div><p>
-The types here are what we read in from the command line.
-</p>
-
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__ptu_option_handling">ptu_option_handling_types</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__ptu_option_handling_types">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__ptu_option_handling_types"><span class="org-haskell-keyword">newtype</span> <span class="org-haskell-type">Opts</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">Opts</span>
-  { subcommand <span class="org-haskell-operator">::</span> <span class="org-haskell-type">Subcommand</span> }
-
-<span class="org-haskell-keyword">data</span> <span class="org-haskell-type">Subcommand</span>
-  <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">AddLegal</span> <span class="org-haskell-constructor">AddLegalOpts</span>
-
-<span class="org-haskell-keyword">data</span> <span class="org-haskell-type">AddLegalOpts</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">AddLegalOpts</span>
-  { oProjRoot <span class="org-haskell-operator">::</span> <span class="org-haskell-type">FilePath</span>
-  , oAuthor <span class="org-haskell-operator">::</span> <span class="org-haskell-type">T.Text</span>
-  }
-</pre></div></div><p>
-The parsers here determine how the types we defined above are accepted on the
-command line. For the user, this is the help message they see so that they know
-how to provide the right arguments to ensure that we get the correct types.
-</p>
-
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__ptu_option_handling">ptu_option_handling_parsers</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__ptu_option_handling_parsers">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__ptu_option_handling_parsers"><span class="org-haskell-definition">optionsP</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">Parser</span> <span class="org-haskell-type">Opts</span>
-<span class="org-haskell-definition">optionsP</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">Opts</span> <span class="org-haskell-operator">&lt;$&gt;</span> subcommandP
-
-<span class="org-haskell-definition">subcommandP</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">Parser</span> <span class="org-haskell-type">Subcommand</span>
-<span class="org-haskell-definition">subcommandP</span> <span class="org-haskell-operator">=</span> hsubparser
-  ( command <span class="org-string">"add-legal"</span>
-    (info (<span class="org-haskell-constructor">AddLegal</span> <span class="org-haskell-operator">&lt;$&gt;</span> addLegalOptsP)
-          (progDesc <span class="org-string">"set copyright headers in source files for a project"</span>))
-  <span class="org-haskell-operator">&lt;&gt;</span> metavar <span class="org-string">"SUBCOMMAND"</span>
-  )
-
-<span class="org-haskell-definition">addLegalOptsP</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">Parser</span> <span class="org-haskell-type">AddLegalOpts</span>
-<span class="org-haskell-definition">addLegalOptsP</span>
-  <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">AddLegalOpts</span>
-  <span class="org-haskell-operator">&lt;$&gt;</span> (argument str (metavar <span class="org-string">"PROJECT_ROOT"</span>))
-  <span class="org-haskell-operator">&lt;*&gt;</span> (argument str (metavar <span class="org-string">"AUTHOR"</span>))
-</pre></div></div><p>
-Lastly, <code>optsHandler</code> is where we send the types that we've constructed (after a
-successful parse of command line arguments) to the business logic.
-</p>
-
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__ptu_option_handling">ptu_option_handling_dispatcher</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__ptu_option_handling_dispatcher">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__ptu_option_handling_dispatcher"><span class="org-haskell-definition">optsHandler</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">Opts</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">IO</span> <span class="org-haskell-constructor">()</span>
-<span class="org-haskell-definition">optsHandler</span> (<span class="org-haskell-constructor">Opts</span> subcommand') <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">do</span>
-  <span class="org-haskell-keyword">case</span> subcommand' <span class="org-haskell-keyword">of</span>
-    <span class="org-haskell-constructor">AddLegal</span> o <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-keyword">do</span>
-      putStrLn <span class="org-string">"ptu: Prepending copyright headers."</span>
-      prependCopyrightHeaders (oProjRoot o) (oAuthor o)
-      putStrLn <span class="org-string">"ptu: Done."</span>
-</pre></div></div>
-</div>
-</div>
-
-<div id="outline-container-h-Pragmas" class="outline-6">
-<h6 id="h-Pragmas"><span class="section-number-6">2.3.1.3.2.</span> Pragmas</h6>
-<div class="outline-text-6" id="text-h-Pragmas">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#code-ptu-hs--code">ptu_pragmas</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__ptu_pragmas">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__ptu_pragmas"><span class="org-haskell-pragma">{-# language DataKinds #-}</span>
-<span class="org-haskell-pragma">{-# language OverloadedLabels #-}</span>
-<span class="org-haskell-pragma">{-# language OverloadedStrings #-}</span>
-<span class="org-haskell-pragma">{-# language QuasiQuotes #-}</span>
-<span class="org-haskell-pragma">{-# language ScopedTypeVariables #-}</span>
-<span class="org-haskell-pragma">{-# language TemplateHaskell #-}</span>
-<span class="org-haskell-pragma">{-# language TypeApplications #-}</span>
-</pre></div></div>
-</div>
-</div>
-
-<div id="outline-container-h-Imports" class="outline-6">
-<h6 id="h-Imports"><span class="section-number-6">2.3.1.3.3.</span> Imports</h6>
-<div class="outline-text-6" id="text-h-Imports">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#code-ptu-hs--code">ptu_imports</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__ptu_imports">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__ptu_imports"><span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Control.Monad</span> (filterM, when)
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Data.List</span> (isSuffixOf, nub)
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Data.Maybe</span> (isNothing)
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-keyword">qualified</span> <span class="org-haskell-constructor">Data.Text</span> <span class="org-haskell-keyword">as</span> <span class="org-haskell-constructor">T</span>
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-keyword">qualified</span> <span class="org-haskell-constructor">Data.Text.IO</span> <span class="org-haskell-keyword">as</span> <span class="org-haskell-constructor">T</span>
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Data.Time.Calendar</span>
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Data.Time.Clock</span>
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">GHC.IO.Handle</span>
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">NeatInterpolation</span> <span class="org-haskell-keyword">hiding</span> (text)
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Options.Applicative</span>
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">System.Directory</span> (doesFileExist)
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">System.FilePath</span>
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">System.Process</span>
-
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Data.Version</span> (showVersion)
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Paths_ptu</span> (version)
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">PostTangleUtil.GitVersion</span>
-</pre></div></div>
-</div>
-</div>
-
-<div id="outline-container-h-Git-versioning" class="outline-6">
-<h6 id="h-Git-versioning"><span class="section-number-6">2.3.1.3.4.</span> Git versioning</h6>
-<div class="outline-text-6" id="text-h-Git-versioning">
-<div class="org-src-container"><pre class="src src-haskell" id="nil-4"><span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">PostTangleUtil.GitVersion</span>
-  ( gitVersion
-  ) <span class="org-haskell-keyword">where</span>
-
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Data.Time.LocalTime</span>
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Language.Haskell.TH</span>
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">System.Environment</span>
-<span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">System.Process</span>
-
-<span class="org-haskell-definition">gitVersion</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">Q</span> <span class="org-haskell-type">Exp</span>
-<span class="org-haskell-definition">gitVersion</span> <span class="org-haskell-operator">=</span> stringE <span class="org-haskell-operator">=&lt;&lt;</span> runIO getCombinedInfo
-
-<span class="org-haskell-definition">getCombinedInfo</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">IO</span> <span class="org-haskell-type">String</span>
-<span class="org-haskell-definition">getCombinedInfo</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">do</span>
-  gi <span class="org-haskell-operator">&lt;-</span> getGitInfo
-  ti <span class="org-haskell-operator">&lt;-</span> getTimeInfo
-  pure <span class="org-haskell-operator">$</span> concat [gi, <span class="org-string">"  ("</span>, ti, <span class="org-string">")"</span>]
-
-<span class="org-haskell-definition">getGitInfo</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">IO</span> <span class="org-haskell-type">String</span>
-<span class="org-haskell-definition">getGitInfo</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">do</span>
-  maybeProjectRoot <span class="org-haskell-operator">&lt;-</span> lookupEnv <span class="org-string">"MELBY_PROJECT_ROOT"</span>
-  <span class="org-haskell-keyword">case</span> maybeProjectRoot <span class="org-haskell-keyword">of</span>
-    <span class="org-haskell-constructor">Just</span> projectRoot <span class="org-haskell-operator">-&gt;</span> readProcess <span class="org-string">"git"</span>
-      [ <span class="org-string">"-C"</span>
-      , projectRoot
-      , <span class="org-string">"describe"</span>
-      , <span class="org-string">"--abbrev=10"</span>
-      , <span class="org-string">"--always"</span>
-      , <span class="org-string">"--dirty"</span>
-      ]
-      <span class="org-string">""</span>
-    <span class="org-haskell-constructor">Nothing</span> <span class="org-haskell-operator">-&gt;</span> pure <span class="org-string">"-unknown"</span>
-
-<span class="org-haskell-definition">getTimeInfo</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">IO</span> <span class="org-haskell-type">String</span>
-<span class="org-haskell-definition">getTimeInfo</span> <span class="org-haskell-operator">=</span> show <span class="org-haskell-operator">&lt;$&gt;</span> getZonedTime
-</pre></div>
-</div>
-</div>
-</div>
-
-<div id="outline-container-h-Build-environment" class="outline-5">
-<h5 id="h-Build-environment"><span class="section-number-5">2.3.1.4.</span> Build environment</h5>
-<div class="outline-text-5" id="text-h-Build-environment">
-</div>
-
-<div id="outline-container-h-Cabal" class="outline-6">
-<h6 id="h-Cabal"><span class="section-number-6">2.3.1.4.1.</span> Cabal</h6>
-<div class="outline-text-6" id="text-h-Cabal">
-<div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-5"><span class="org-keyword">name</span>: ptu
-<span class="org-keyword">version</span>: 1.0.0.0
-<span class="org-keyword">author</span>: Linus Arver
-<span class="org-keyword">maintainer</span>: linusa@google.com
-<span class="org-keyword">category</span>: Utility
-<span class="org-keyword">build-type</span>: Simple
-<span class="org-keyword">cabal-version</span>: &gt;=1.10
-<span class="org-keyword">license</span>: Apache-2.0
-<span class="org-keyword">license-file</span>: LICENSE
-
-<span class="org-keyword">executable</span> <span class="org-function-name">ptu</span>
-  <span class="org-keyword">main-is</span>: ptu.hs
-  <span class="org-keyword">default-language</span>: Haskell2010
-  <span class="org-keyword">other-modules</span>:
-    Paths_ptu
-  <span class="org-keyword">default-extensions</span>:
-    DisambiguateRecordFields
-    DuplicateRecordFields
-    ImportQualifiedPost
-    LambdaCase
-    MultiWayIf
-    NoDoAndIfThenElse
-    NoNondecreasingIndentation
-    OverloadedStrings
-  <span class="org-keyword">ghc-options</span>:
-    -O2 -Werror -threaded -fno-warn-tabs
-    -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
-    -Wincomplete-record-updates -Wredundant-constraints
-    -fhide-source-paths -Wpartial-fields -fforce-recomp
-  <span class="org-keyword">build-depends</span>:
-      base &gt;= 4.8
-    , ptu
-    , aeson
-    , bytestring
-    , directory
-    , filepath
-    , process
-    , neat-interpolation
-    , optparse-applicative &gt;= 0.16.1.0
-    , text &gt;=2.0.2 &amp;&amp; &lt;3
-    , template-haskell
-    , time
-    , unordered-containers &gt;= 0.2.16.0
-
-<span class="org-keyword">library</span>
-  <span class="org-keyword">default-language</span>: Haskell2010
-  <span class="org-keyword">exposed-modules</span>:
-    PostTangleUtil.GitVersion
-  <span class="org-keyword">hs-source-dirs</span>:
-    lib
-  <span class="org-keyword">default-extensions</span>:
-    DisambiguateRecordFields
-    DuplicateRecordFields
-    ImportQualifiedPost
-    LambdaCase
-    MultiWayIf
-    NoDoAndIfThenElse
-    NoNondecreasingIndentation
-    OverloadedStrings
-  <span class="org-keyword">ghc-options</span>:
-    -O2 -Werror -fno-warn-tabs
-    -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
-    -Wincomplete-record-updates -Wredundant-constraints
-    -fhide-source-paths -Wpartial-fields -fforce-recomp
-  <span class="org-keyword">build-depends</span>:
-      base &gt;= 4.8
-    , bytestring
-    , directory
-    , process
-    , template-haskell
-    , text &gt;=2.0.2 &amp;&amp; &lt;3
-    , time
-</pre></div><div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-6"><span class="org-keyword">executable-stripping</span>: <span class="org-constant">True</span>
-<span class="org-keyword">packages</span>:
-  ./ptu.cabal
-</pre></div>
-</div>
-</div>
-
-<div id="outline-container-h-Stack" class="outline-6">
-<h6 id="h-Stack"><span class="section-number-6">2.3.1.4.2.</span> Stack</h6>
-<div class="outline-text-6" id="text-h-Stack">
-<div class="org-src-container"><pre class="src src-yaml" id="nil-7"><span class="org-variable-name">resolver</span>: lts-22.6 <span class="org-comment-delimiter"># </span><span class="org-comment">GHC 9.6.3</span>
-<span class="org-variable-name">allow-newer</span>: <span class="org-constant">true</span>
-
-<span class="org-variable-name">packages</span>:
-- .
-
-<span class="org-comment-delimiter"># </span><span class="org-comment">For ptu, use the system ghc because it's faster. And we don't care too much</span>
-<span class="org-comment-delimiter"># </span><span class="org-comment">about packaging it as much as the other components, because ptu is only used</span>
-<span class="org-comment-delimiter"># </span><span class="org-comment">during development.</span>
-<span class="org-variable-name">nix</span>:
-  <span class="org-variable-name">enable</span>: <span class="org-constant">true</span>
-</pre></div>
-</div>
-</div>
-
-<div id="outline-container-h-Nix" class="outline-6">
-<h6 id="h-Nix"><span class="section-number-6">2.3.1.4.3.</span> Nix</h6>
-<div class="outline-text-6" id="text-h-Nix">
-<div class="org-src-container"><pre class="src src-nix" id="nil-8"><span class="org-nix-keyword">let</span>
-  <span class="org-nix-attribute">sources</span> = <span class="org-nix-builtin">import</span> <span class="org-nix-constant">package/nix/sources.nix</span>;
-  <span class="org-nix-attribute">pkgs</span> = <span class="org-nix-builtin">import</span> sources.nixpkgs { };
-  <span class="org-nix-attribute">fakeGit</span> = pkgs.writeShellScriptBin <span class="org-string">"git"</span>
-  <span class="org-string">''</span>
-<span class="org-string">    echo -unknown</span>
-<span class="org-string">  ''</span>;
-  <span class="org-nix-attribute">files</span> = [
-    <span class="org-nix-constant">./LICENSE</span>
-    <span class="org-nix-constant">./cabal.project</span>
-    <span class="org-nix-constant">./lib</span>
-    <span class="org-nix-constant">./lib/PostTangleUtil</span>
-    <span class="org-nix-constant">./lib/PostTangleUtil/GitVersion.hs</span>
-    <span class="org-nix-constant">./ptu.cabal</span>
-    <span class="org-nix-constant">./ptu.hs</span>
-    <span class="org-nix-constant">./ptu.nix</span>
-    <span class="org-nix-constant">./stack.yaml</span>
-    <span class="org-nix-constant">./stack.yaml.lock</span>
-  ];
-  <span class="org-nix-attribute">macOS-security</span> =
-    <span class="org-comment"># Make `/usr/bin/security` available in `PATH`, which is needed for stack</span>
-    <span class="org-comment"># on darwin which calls this binary to find certificates. See</span>
-    <span class="org-comment"># https://github.com/tweag/rules_haskell/commit/31171a520f49f263895112678ac93c7ed958ead1.</span>
-    pkgs.writeScriptBin <span class="org-string">"security"</span> <span class="org-string">''exec /usr/bin/security "$@"''</span>;
-<span class="org-nix-keyword">in</span>
-
-{ ghc }:
-
-pkgs.haskell.lib.buildStackProject {
-  <span class="org-nix-keyword">inherit</span> ghc;
-  <span class="org-nix-attribute">name</span> = <span class="org-string">"melby-ptu"</span>;
-  <span class="org-comment"># We use this builtin because we want to use our own name for the folder.</span>
-  <span class="org-comment"># Otherwise, the surrounding folder name "doc" gets used, which is bad.</span>
-  <span class="org-nix-attribute">src</span> = builtins.path {
-    <span class="org-nix-attribute">name</span> = <span class="org-string">"melby-ptu"</span>;
-    <span class="org-nix-attribute">path</span> = <span class="org-nix-constant">./.</span>;
-    <span class="org-nix-attribute">filter</span> = path: type: builtins.elem (<span class="org-nix-constant">/.</span> + path) files;
-  };
-  <span class="org-nix-attribute">buildInputs</span> = [
-    pkgs.zlib
-    fakeGit
-  ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [pkgs.llvm_10 macOS-security];
-}
-</pre></div>
-</div>
-</div>
-
-<div id="outline-container-h-gitignore" class="outline-6">
-<h6 id="h-gitignore"><span class="section-number-6">2.3.1.4.4.</span> .gitignore</h6>
-<div class="outline-text-6" id="text-h-gitignore">
-<div class="org-src-container"><pre class="src src-text" id="nil-9">.stack-work
+<div id="outline-container-h-gitignore" class="outline-4">
+<h4 id="h-gitignore"><span class="section-number-4">2.3.2.</span> .gitignore</h4>
+<div class="outline-text-4" id="text-h-gitignore">
+<div class="org-src-container"><pre class="src src-text" id="nil-2">.stack-work
 deps/
 dist-newstyle/
 image/*.pdf
 image/*uncropped*
-ptu
 </pre></div>
-</div>
-</div>
 </div>
 </div>
 
 <div id="outline-container-h-Post-tangled-phase" class="outline-4">
-<h4 id="h-Post-tangled-phase"><span class="section-number-4">2.3.2.</span> Post-tangled phase</h4>
+<h4 id="h-Post-tangled-phase"><span class="section-number-4">2.3.3.</span> Post-tangled phase</h4>
 <div class="outline-text-4" id="text-h-Post-tangled-phase">
 <p>
 Here we discuss the various programming languages and their required build
@@ -1648,7 +1040,7 @@ environments.
 </div>
 
 <div id="outline-container-h-Elixir" class="outline-5">
-<h5 id="h-Elixir"><span class="section-number-5">2.3.2.1.</span> Elixir</h5>
+<h5 id="h-Elixir"><span class="section-number-5">2.3.3.1.</span> Elixir</h5>
 <div class="outline-text-5" id="text-h-Elixir">
 <p>
 We use Elixir 1.13.4+.
@@ -1657,13 +1049,13 @@ We use Elixir 1.13.4+.
 </div>
 
 <div id="outline-container-h-Rust" class="outline-5">
-<h5 id="h-Rust"><span class="section-number-5">2.3.2.2.</span> Rust</h5>
+<h5 id="h-Rust"><span class="section-number-5">2.3.3.2.</span> Rust</h5>
 <div class="outline-text-5" id="text-h-Rust">
 </div>
 </div>
 
 <div id="outline-container-h-Haskell" class="outline-5">
-<h5 id="h-Haskell"><span class="section-number-5">2.3.2.3.</span> Haskell</h5>
+<h5 id="h-Haskell"><span class="section-number-5">2.3.3.3.</span> Haskell</h5>
 <div class="outline-text-5" id="text-h-Haskell">
 <p>
 We use stack for reproducibility, although we should probably also think of
@@ -1678,7 +1070,7 @@ with GHC 9+.
 </div>
 
 <div id="outline-container-h-Lua" class="outline-5">
-<h5 id="h-Lua"><span class="section-number-5">2.3.2.4.</span> Lua</h5>
+<h5 id="h-Lua"><span class="section-number-5">2.3.3.4.</span> Lua</h5>
 <div class="outline-text-5" id="text-h-Lua">
 <p>
 We use luerl (add link), which uses Lua 5.2 with some 5.3 support.
@@ -1724,15 +1116,9 @@ There are several pieces of software we need to build (compile from source):
 <ol class="org-ol">
 <li>melbyc (Haskell)</li>
 <li>melbyr (Haskell)</li>
-<li>ptu (Haskell)</li>
 <li>melbyd (Elixir)</li>
 <li>melbyd Nifs (Rust)</li>
 </ol>
-
-<p>
-The <code>ptu</code> binary is only used for weaving, and thus, is not required for
-packaging up Melby for end users.
-</p>
 </div>
 </div>
 </div>
@@ -1982,11 +1368,10 @@ shipping.
   <span class="org-comment">#melby-client-2 = (import melby-client-1) {};</span>
   <span class="org-comment">#melby-client-3 = pkgs.haskell.lib.addBuildTool melby-client-2 fakeGit;</span>
   <span class="org-nix-attribute">melby-renderer</span> = hpg8107.callPackage <span class="org-nix-constant">../daemon/lib/melbyd/renderer/melby-renderer.nix</span> {};
-  <span class="org-nix-attribute">ptu</span> = hpg96.callPackage <span class="org-nix-constant">../ptu.nix</span> {};
   <span class="org-nix-attribute">melby-daemon</span> = pkgs.callPackage <span class="org-nix-constant">../daemon/melby-daemon.nix</span> {};
   <span class="org-nix-attribute">melby-nifs</span> = pkgs.callPackage <span class="org-nix-constant">../daemon/lib/melbyd/nifs/melby-nifs.nix</span> {};
 <span class="org-nix-keyword">in</span>
-  { <span class="org-nix-attribute">melby-ptu</span> = ptu;
+  {
     <span class="org-nix-keyword">inherit</span> melby-client melby-client-rust melby-renderer melby-daemon melby-nifs;
   }
 </pre></div></div><p>
@@ -2029,7 +1414,7 @@ to not conflict with the dev environment. Even better, add these settings in our
 Elixir code so that the user does not (normally) have to configure them.
 </p>
 
-<pre class="example" id="org0000038">
+<pre class="example" id="org0000012">
 RELEASE_COOKIE=path/to/cookie
 </pre>
 
@@ -2037,7 +1422,7 @@ RELEASE_COOKIE=path/to/cookie
 Then populate <code>path/to/cookie</code> with a random text string like this:
 </p>
 
-<pre class="example" id="org0000039">
+<pre class="example" id="org0000013">
 $ cd ~/.melby
 $ openssl rand -base64 48 &gt; cookie
 $ chmod 600 cookie
@@ -2060,9 +1445,6 @@ endef
 
 <span class="org-makefile-targets">build</span>:
     nix-build build.nix --option sandbox relaxed --show-trace
-
-<span class="org-makefile-targets">build-melby-ptu</span>:
-    $(<span class="org-variable-name">call</span> run_build,melby-ptu)
 
 <span class="org-makefile-targets">build-melby-client</span>:
     $(<span class="org-variable-name">call</span> run_build,melby-client)
@@ -2087,7 +1469,6 @@ endef
     niv update nixpkgs --branch nixos-23.11
 
 <span class="org-makefile-targets">.PHONY</span>: build
-<span class="org-makefile-targets">.PHONY</span>: build-melby-ptu
 <span class="org-makefile-targets">.PHONY</span>: build-melby-client
 <span class="org-makefile-targets">.PHONY</span>: build-melby-client-rust
 <span class="org-makefile-targets">.PHONY</span>: build-melby-renderer
@@ -2105,7 +1486,6 @@ endef
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">package/.gitignore</label><span class="lilac-caption-link-symbol"><a href="#package--gitignore">&#x1f517;</a></span></div><pre class="src src-text" id="package--gitignore">melby-client
 melby-client-rust
 melby-nifs
-melby-ptu
 melby-renderer
 melby-daemon
 result*
@@ -2144,7 +1524,7 @@ You then need to stand up each individual Melby component.
 <div id="outline-container-h-melbyr---renderer--required-by-daemon" class="outline-4">
 <h4 id="h-melbyr---renderer--required-by-daemon"><span class="section-number-4">4.1.1.</span> <code>melbyr</code> (renderer; required by daemon)</h4>
 <div class="outline-text-4" id="text-h-melbyr---renderer--required-by-daemon">
-<pre class="example" id="org000003e">
+<pre class="example" id="org0000018">
 cd daemon/lib/melbyd/renderer; make
 </pre>
 </div>
@@ -2153,7 +1533,7 @@ cd daemon/lib/melbyd/renderer; make
 <div id="outline-container-h-melbyd---daemon" class="outline-4">
 <h4 id="h-melbyd---daemon"><span class="section-number-4">4.1.2.</span> <code>melbyd</code> (daemon)</h4>
 <div class="outline-text-4" id="text-h-melbyd---daemon">
-<pre class="example" id="org000003f">
+<pre class="example" id="org0000019">
 cd daemon &amp;&amp; make
 </pre>
 
@@ -2161,7 +1541,7 @@ cd daemon &amp;&amp; make
 And then to run the daemon, do
 </p>
 
-<pre class="example" id="org0000040">
+<pre class="example" id="org000001a">
 cd daemon &amp;&amp; make run_dev
 </pre>
 
@@ -2178,7 +1558,7 @@ you are running.
 <div id="outline-container-h-melbyc---client" class="outline-3">
 <h3 id="h-melbyc---client"><span class="section-number-3">4.2.</span> <code>melbyc</code> (client)</h3>
 <div class="outline-text-3" id="text-h-melbyc---client">
-<pre class="example" id="org0000041">
+<pre class="example" id="org000001b">
 cd client; make
 </pre>
 
@@ -2309,7 +1689,7 @@ stub. We also use it to generate the Elixir server stubs. FIXME: add link to
 where it's used in Elixir.
 </p>
 
-<div class="org-src-container"><pre class="src src-protobuf" id="nil-10">syntax = <span class="org-string">"proto3"</span>;
+<div class="org-src-container"><pre class="src src-protobuf" id="nil-3">syntax = <span class="org-string">"proto3"</span>;
 
 <span class="org-keyword">package</span> <span class="org-type">melby_client</span>;
 
@@ -2425,9 +1805,9 @@ code.
 </div>
 </div>
 
-<div id="outline-container-h-Business-logic-1" class="outline-3">
-<h3 id="h-Business-logic-1"><span class="section-number-3">5.5.</span> Business logic</h3>
-<div class="outline-text-3" id="text-h-Business-logic-1">
+<div id="outline-container-h-Business-logic" class="outline-3">
+<h3 id="h-Business-logic"><span class="section-number-3">5.5.</span> Business logic</h3>
+<div class="outline-text-3" id="text-h-Business-logic">
 <p>
 Recall in section FIXME that we said we wanted to pass in some Lua code. So
 that's basically what we do here &#x2014; we pass in a gRPC connection and a filepath
@@ -2517,14 +1897,14 @@ something like:
 </div>
 </div>
 
-<div id="outline-container-h-Boilerplate-1" class="outline-3">
-<h3 id="h-Boilerplate-1"><span class="section-number-3">5.6.</span> Boilerplate</h3>
-<div class="outline-text-3" id="text-h-Boilerplate-1">
+<div id="outline-container-h-Boilerplate" class="outline-3">
+<h3 id="h-Boilerplate"><span class="section-number-3">5.6.</span> Boilerplate</h3>
+<div class="outline-text-3" id="text-h-Boilerplate">
 </div>
 
-<div id="outline-container-h-Option-handling-1" class="outline-4">
-<h4 id="h-Option-handling-1"><span class="section-number-4">5.6.1.</span> Option handling</h4>
-<div class="outline-text-4" id="text-h-Option-handling-1">
+<div id="outline-container-h-Option-handling" class="outline-4">
+<h4 id="h-Option-handling"><span class="section-number-4">5.6.1.</span> Option handling</h4>
+<div class="outline-text-4" id="text-h-Option-handling">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-client-hs--code">melbyc_option_handling</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyc_option_handling">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyc_option_handling"><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_option_handling_types">melbyc_option_handling_types</a></span>
 <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_option_handling_parsers">melbyc_option_handling_parsers</a></span>
 <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_option_handling_dispatcher">melbyc_option_handling_dispatcher</a></span>
@@ -2610,9 +1990,9 @@ successful parse of command line arguments) to the business logic.
 </div>
 </div>
 
-<div id="outline-container-h-Main-1" class="outline-4">
-<h4 id="h-Main-1"><span class="section-number-4">5.6.2.</span> Main</h4>
-<div class="outline-text-4" id="text-h-Main-1">
+<div id="outline-container-h-Main" class="outline-4">
+<h4 id="h-Main"><span class="section-number-4">5.6.2.</span> Main</h4>
+<div class="outline-text-4" id="text-h-Main">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-client-hs--code">melbyc_main</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyc_main">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyc_main"><span class="org-haskell-definition">main</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">IO</span> <span class="org-haskell-constructor">()</span>
 <span class="org-haskell-definition">main</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">do</span>
   opts <span class="org-haskell-operator">&lt;-</span> customExecParser (prefs showHelpOnEmpty) optsP
@@ -2651,7 +2031,7 @@ namely the <code>melbyd-lens</code> Haskell service that runs as part of melbyd.
 FIXME: break this up into smaller chunks
 </p>
 
-<div class="org-src-container"><pre class="src src-haskell" id="nil-11"><span class="org-haskell-pragma">{-# language CPP                   #-}</span>
+<div class="org-src-container"><pre class="src src-haskell" id="nil-4"><span class="org-haskell-pragma">{-# language CPP                   #-}</span>
 <span class="org-haskell-pragma">{-# language DataKinds             #-}</span>
 <span class="org-haskell-pragma">{-# language DeriveAnyClass        #-}</span>
 <span class="org-haskell-pragma">{-# language DeriveGeneric         #-}</span>
@@ -2712,9 +2092,9 @@ FIXME: break this up into smaller chunks
 <h4 id="h-Other"><span class="section-number-4">5.6.4.</span> Other</h4>
 <div class="outline-text-4" id="text-h-Other">
 </div>
-<div id="outline-container-h-Pragmas-1" class="outline-5">
-<h5 id="h-Pragmas-1"><span class="section-number-5">5.6.4.1.</span> Pragmas</h5>
-<div class="outline-text-5" id="text-h-Pragmas-1">
+<div id="outline-container-h-Pragmas" class="outline-5">
+<h5 id="h-Pragmas"><span class="section-number-5">5.6.4.1.</span> Pragmas</h5>
+<div class="outline-text-5" id="text-h-Pragmas">
 <p>
 The language pragmas are not that interesting, as their purpose is to basically
 turn on the various GHC extensions that allow us to use the libraries we use.
@@ -2730,9 +2110,9 @@ turn on the various GHC extensions that allow us to use the libraries we use.
 </div>
 </div>
 
-<div id="outline-container-h-Imports-1" class="outline-5">
-<h5 id="h-Imports-1"><span class="section-number-5">5.6.4.2.</span> Imports</h5>
-<div class="outline-text-5" id="text-h-Imports-1">
+<div id="outline-container-h-Imports" class="outline-5">
+<h5 id="h-Imports"><span class="section-number-5">5.6.4.2.</span> Imports</h5>
+<div class="outline-text-5" id="text-h-Imports">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-client-hs--code">melbyc_imports</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyc_imports">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyc_imports"><span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Data.Map.Strict</span> <span class="org-haskell-keyword">qualified</span> <span class="org-haskell-keyword">as</span> <span class="org-haskell-constructor">M</span>
 <span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Data.Text</span> <span class="org-haskell-keyword">qualified</span> <span class="org-haskell-keyword">as</span> <span class="org-haskell-constructor">T</span>
 <span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Data.Text.IO</span> <span class="org-haskell-keyword">qualified</span> <span class="org-haskell-keyword">as</span> <span class="org-haskell-constructor">T</span>
@@ -2754,9 +2134,9 @@ turn on the various GHC extensions that allow us to use the libraries we use.
 </div>
 </div>
 
-<div id="outline-container-h-Git-versioning-1" class="outline-5">
-<h5 id="h-Git-versioning-1"><span class="section-number-5">5.6.4.3.</span> Git versioning</h5>
-<div class="outline-text-5" id="text-h-Git-versioning-1">
+<div id="outline-container-h-Git-versioning" class="outline-5">
+<h5 id="h-Git-versioning"><span class="section-number-5">5.6.4.3.</span> Git versioning</h5>
+<div class="outline-text-5" id="text-h-Git-versioning">
 <p>
 We want to store the git hash of the project into the melbyc binary itself (this
 is just good practice). The part we do the storing in the binary is done below,
@@ -2770,7 +2150,7 @@ as part of the <code>&lt;&lt;main&gt;&gt;</code> block of code:
 The underlying plumbing that handles this is done in FIXME path:
 </p>
 
-<div class="org-src-container"><pre class="src src-haskell" id="nil-12"><span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">MelbyClient.GitVersion</span>
+<div class="org-src-container"><pre class="src src-haskell" id="nil-5"><span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">MelbyClient.GitVersion</span>
   ( gitVersion
   ) <span class="org-haskell-keyword">where</span>
 
@@ -2833,7 +2213,7 @@ The underlying plumbing that handles this is done in FIXME path:
 <div id="outline-container-h-Makefile-1" class="outline-4">
 <h4 id="h-Makefile-1"><span class="section-number-4">5.7.1.</span> Makefile</h4>
 <div class="outline-text-4" id="text-h-Makefile-1">
-<div class="org-src-container"><pre class="src src-makefile" id="nil-13"><span class="org-comment-delimiter"># </span><span class="org-comment">NOTE: Below is an installation rule for a Nix + Cabal workflow. It may be</span>
+<div class="org-src-container"><pre class="src src-makefile" id="nil-6"><span class="org-comment-delimiter"># </span><span class="org-comment">NOTE: Below is an installation rule for a Nix + Cabal workflow. It may be</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">useful to do this in case stack doesn't work for some reason. Originally we</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">wanted to use this workflow instead but ran up against a Nix + MacOS breakage</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">(https://github.com/NixOS/nixpkgs/pull/149942). Currently only stack works, so</span>
@@ -2872,10 +2252,10 @@ because Git will still figure out how to run <code>git describe</code>. We just 
 </div>
 </div>
 
-<div id="outline-container-h-Cabal-1" class="outline-4">
-<h4 id="h-Cabal-1"><span class="section-number-4">5.7.2.</span> Cabal</h4>
-<div class="outline-text-4" id="text-h-Cabal-1">
-<div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-14"><span class="org-keyword">name</span>: melby-client
+<div id="outline-container-h-Cabal" class="outline-4">
+<h4 id="h-Cabal"><span class="section-number-4">5.7.2.</span> Cabal</h4>
+<div class="outline-text-4" id="text-h-Cabal">
+<div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-7"><span class="org-keyword">name</span>: melby-client
 <span class="org-keyword">version</span>: 1.0.0.0
 <span class="org-keyword">author</span>: Linus Arver
 <span class="org-keyword">maintainer</span>: linusa@google.com
@@ -2956,7 +2336,7 @@ because Git will still figure out how to run <code>git describe</code>. We just 
     , template-haskell
     , text &gt;=1.2 &amp;&amp; &lt;2
     , time
-</pre></div><div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-15"><span class="org-keyword">executable-stripping</span>: <span class="org-constant">True</span>
+</pre></div><div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-8"><span class="org-keyword">executable-stripping</span>: <span class="org-constant">True</span>
 <span class="org-keyword">packages</span>:
   ./melby-client.cabal
 </pre></div>
@@ -2972,7 +2352,7 @@ simply because Stack's LTS snapshots stay frozen, whereas Nix keeps evolving to
 support the latest and greatest packages.
 </p>
 
-<div class="org-src-container"><pre class="src src-nix" id="nil-16"><span class="org-nix-keyword">let</span>
+<div class="org-src-container"><pre class="src src-nix" id="nil-9"><span class="org-nix-keyword">let</span>
   <span class="org-nix-attribute">sources</span> = <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../package/nix/sources.nix</span>;
   <span class="org-nix-attribute">pkgs</span> = <span class="org-nix-builtin">import</span> sources.nixpkgs { };
   <span class="org-comment"># Nix never copies the .git directory as input to generate a derivation,</span>
@@ -3035,9 +2415,9 @@ pkgs.haskell.lib.buildStackProject {
 </div>
 </div>
 
-<div id="outline-container-h-Stack-1" class="outline-4">
-<h4 id="h-Stack-1"><span class="section-number-4">5.7.4.</span> Stack</h4>
-<div class="outline-text-4" id="text-h-Stack-1">
+<div id="outline-container-h-Stack" class="outline-4">
+<h4 id="h-Stack"><span class="section-number-4">5.7.4.</span> Stack</h4>
+<div class="outline-text-4" id="text-h-Stack">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">client/stack.yaml</label><span class="lilac-caption-link-symbol"><a href="#client-stack-yaml">&#x1f517;</a></span></div><pre class="src src-yaml" id="client-stack-yaml"><span class="org-variable-name">resolver</span>: lts-18.28
 <span class="org-variable-name">allow-newer</span>: <span class="org-constant">true</span>
 
@@ -3131,14 +2511,14 @@ See more keys and their definitions at <a href="https://doc.rust-lang.org/cargo/
 And here's the <code>.gitignore</code> for this client.
 </p>
 
-<div class="org-src-container"><pre class="src src-text" id="nil-17">.cargo
+<div class="org-src-container"><pre class="src src-text" id="nil-10">.cargo
 
 target
 </pre></div><p>
 Here's the <code>Makefile</code> for building and testing.
 </p>
 
-<div class="org-src-container"><pre class="src src-makefile" id="nil-18"><span class="org-makefile-targets">build_dev</span>:
+<div class="org-src-container"><pre class="src src-makefile" id="nil-11"><span class="org-makefile-targets">build_dev</span>:
     cargo build
 <span class="org-makefile-targets">.PHONY</span>: build_dev
 
@@ -3298,43 +2678,24 @@ View the output of running the Lua configuration inside melbyd.
 <div id="outline-container-h-Packaging-1" class="outline-4">
 <h4 id="h-Packaging-1"><span class="section-number-4">5.8.2.</span> Packaging</h4>
 <div class="outline-text-4" id="text-h-Packaging-1">
-<div class="org-src-container"><pre class="src src-nix" id="nil-19"><span class="org-comment-delimiter">#</span><span class="org-comment">let func = x: {}; in {} // func ""</span>
-{ sources ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../package/nix/sources.nix</span> }:
+<div class="org-src-container"><pre class="src src-nix" id="nil-12">{ sources ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../package/nix/sources.nix</span> }:
 <span class="org-nix-keyword">let</span>
-  <span class="org-comment">#sources = import ../package/nix/sources.nix;</span>
   <span class="org-comment"># Overlays</span>
   <span class="org-nix-attribute">oxalica-rust-overlay</span> = <span class="org-nix-builtin">import</span> sources.rust-overlay;
   <span class="org-comment"># Build rust crates.</span>
-  <span class="org-nix-attribute">naersk</span> = pkgs.callPackage sources.naersk {};
+  <span class="org-nix-attribute">naersk</span> = pkgs.callPackage sources.naersk {
+    <span class="org-nix-attribute">cargo</span> = pkgs.rust-bin.stable.latest.minimal;
+    <span class="org-nix-attribute">rustc</span> = pkgs.rust-bin.stable.latest.minimal;
+  };
   <span class="org-comment"># The final "pkgs" attribute with all the bells and whistles of our overlays.</span>
   <span class="org-nix-attribute">pkgs</span> = <span class="org-nix-builtin">import</span> sources.nixpkgs {
     <span class="org-nix-attribute">overlays</span> = [
       oxalica-rust-overlay
     ];
   };
-  <span class="org-comment"># Build our own "rustPlatform" that is based on the oxalica overlay, not what is in sources.nix.</span>
-  <span class="org-comment">#rustPlatform = pkgs.makeRustPlatform {</span>
-  <span class="org-comment">#  cargo = pkgs.rust-bin.stable.latest.minimal;</span>
-  <span class="org-comment">#  rustc = pkgs.rust-bin.stable.latest.minimal;</span>
-  <span class="org-comment">#};</span>
-  <span class="org-nix-attribute">files</span> = [
-    <span class="org-nix-constant">./Cargo.lock</span>
-    <span class="org-nix-constant">./Cargo.toml</span>
-    <span class="org-nix-constant">./Makefile</span>
-    <span class="org-nix-constant">./build.rs</span>
-    <span class="org-nix-constant">./proto/melby_client.proto</span>
-    <span class="org-nix-constant">./src/grpc_generated/melby_client.rs</span>
-    <span class="org-nix-constant">./src/grpc_generated/mod.rs</span>
-    <span class="org-nix-constant">./src/main.rs</span>
-  ];
-  <span class="org-nix-attribute">src</span> = builtins.path {
-    <span class="org-nix-attribute">name</span> = <span class="org-string">"melby-client-rust"</span>;
-    <span class="org-nix-attribute">path</span> = <span class="org-nix-constant">./.</span>;
-    <span class="org-nix-attribute">filter</span> = path: type: builtins.elem (<span class="org-nix-constant">/.</span> + path) files;
-  };
 <span class="org-nix-keyword">in</span>
   naersk.buildPackage {
-    <span class="org-nix-keyword">inherit</span> src;
+    <span class="org-nix-attribute">src</span> = <span class="org-nix-constant">./.</span>;
     <span class="org-nix-attribute">copyBins</span> = <span class="org-nix-builtin">true</span>;
     <span class="org-nix-attribute">copyTarget</span> = <span class="org-nix-builtin">false</span>;
     <span class="org-comment"># See https://pyo3.rs/v0.14.2/building_and_distribution.html#macos (by way</span>
@@ -3342,19 +2703,10 @@ View the output of running the Lua configuration inside melbyd.
     <span class="org-nix-attribute">CARGO_BUILD_RUSTFLAGS</span> = pkgs.lib.optional
       pkgs.stdenv.isDarwin
       <span class="org-string">"-C link-arg=-undefined -C link-arg=dynamic_lookup"</span>;
+    <span class="org-nix-attribute">buildInputs</span> = [
+      pkgs.protobuf
+    ];
   }
-<span class="org-comment-delimiter">#</span><span class="org-comment">rustPlatform.buildRustPackage rec {</span>
-<span class="org-comment-delimiter">#  </span><span class="org-comment">name = "melby-client-rust";</span>
-<span class="org-comment-delimiter">#  </span><span class="org-comment">version = "0.1";</span>
-<span class="org-comment-delimiter">#</span>
-<span class="org-comment-delimiter">#  </span><span class="org-comment">src = builtins.path {</span>
-<span class="org-comment-delimiter">#    </span><span class="org-comment">name = "melby-client-rust";</span>
-<span class="org-comment-delimiter">#    </span><span class="org-comment">path = ./.;</span>
-<span class="org-comment-delimiter">#    </span><span class="org-comment">filter = path: type: builtins.elem (/. + path) files;</span>
-<span class="org-comment-delimiter">#  </span><span class="org-comment">};</span>
-<span class="org-comment-delimiter">#</span>
-<span class="org-comment-delimiter">#  </span><span class="org-comment">cargoHash = "sha256-zr3DnfcRXiHZjKgmix9j1ia9h8iDWyaTMcre4KSKrIQ=";</span>
-<span class="org-comment-delimiter">#</span><span class="org-comment">}</span>
 </pre></div>
 </div>
 </div>
@@ -3392,7 +2744,7 @@ FIXME: we should probably break this up into smaller noweb bits (<code>__NREF__.
 and combine it into a <code>melbyd.proto</code>.
 </p>
 
-<div class="org-src-container"><pre class="src src-protobuf" id="nil-20">syntax = <span class="org-string">"proto3"</span>;
+<div class="org-src-container"><pre class="src src-protobuf" id="nil-13">syntax = <span class="org-string">"proto3"</span>;
 
 <span class="org-keyword">package</span> <span class="org-type">melby</span>;
 
@@ -3646,7 +2998,7 @@ add link), there is a single View service.
 The View service is shown below.
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-21"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.GRPC</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-14"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.GRPC</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">GRPC.Endpoint</span>
 
   intercept <span class="org-type">GRPC.Server.Interceptors.Logger</span>, <span class="org-elixir-atom">level:</span> <span class="org-elixir-atom">:info</span>
@@ -3684,7 +3036,7 @@ Below is <code>melby-client</code>'s <code>ViewRequest</code> that we handle. As
 we will need to call out to the melbyr Haskell server over gRPC.
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-22"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.View</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-15"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.View</span> <span class="org-keyword">do</span>
   <span class="org-elixir-attribute">@moduledoc</span> <span class="org-doc">"""</span>
 <span class="org-doc">  Module to generate an arbitrary view (string).</span>
 <span class="org-doc">  """</span>
@@ -5301,9 +4653,9 @@ The Lua config should know what topics to subscribe to.
 </div>
 </div>
 
-<div id="outline-container-h-Boilerplate-2" class="outline-5">
-<h5 id="h-Boilerplate-2"><span class="section-number-5">6.6.3.3.</span> Boilerplate</h5>
-<div class="outline-text-5" id="text-h-Boilerplate-2">
+<div id="outline-container-h-Boilerplate-1" class="outline-5">
+<h5 id="h-Boilerplate-1"><span class="section-number-5">6.6.3.3.</span> Boilerplate</h5>
+<div class="outline-text-5" id="text-h-Boilerplate-1">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#code-Melbyd-LuaInterop--code">melbyd_luasdkhelper</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_luasdkhelper">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_luasdkhelper"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.LuaSdkLoadable</span> <span class="org-keyword">do</span>
   <span class="org-keyword">require</span> <span class="org-type">Logger</span>
 
@@ -5458,12 +4810,12 @@ by providing a list of keys to look up. For example, for a native Elixir map
 with nested maps, the syntax would look like this:
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-23">foo_map[<span class="org-string">"a"</span>][<span class="org-string">"b"</span>][<span class="org-string">"c"</span>]
+<div class="org-src-container"><pre class="src src-elixir" id="nil-16">foo_map[<span class="org-string">"a"</span>][<span class="org-string">"b"</span>][<span class="org-string">"c"</span>]
 </pre></div><p>
 and we want to do something similar to a table returned by Luerl. Something like this:
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-24">lookup(foo_table, [<span class="org-string">"a"</span>, <span class="org-string">"b"</span>, <span class="org-string">"c"</span>])
+<div class="org-src-container"><pre class="src src-elixir" id="nil-17">lookup(foo_table, [<span class="org-string">"a"</span>, <span class="org-string">"b"</span>, <span class="org-string">"c"</span>])
 </pre></div><p>
 The key (no pun intended) is to do a linear search of all tuples to find the
 right tuple, and to repeat this search on the resulting value as many times as
@@ -5587,12 +4939,12 @@ We have a Lua smoke test to check that Lua/Elixir interop is working. This tests
 the sample Lua configuration to ensure that it is a fully working example.
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-25"><span class="org-keyword">import</span> <span class="org-type">Config</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-18"><span class="org-keyword">import</span> <span class="org-type">Config</span>
 
 <span class="org-comment-delimiter"># </span><span class="org-comment">Log everything during tests. We want to see all logs in case a test fails.</span>
 config <span class="org-elixir-atom">:logger</span>,
   <span class="org-elixir-atom">level:</span> <span class="org-elixir-atom">:debug</span>
-</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-26"><span class="org-keyword">defmodule</span> <span class="org-type">MelbydTest</span> <span class="org-keyword">do</span>
+</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-19"><span class="org-keyword">defmodule</span> <span class="org-type">MelbydTest</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">ExUnit.Case</span>
   <span class="org-keyword">require</span> <span class="org-type">Logger</span>
   <span class="org-keyword">require</span> <span class="org-type">WaitForIt</span>
@@ -6261,7 +5613,7 @@ down this process.
 <div id="outline-container-h-Proto-2" class="outline-5">
 <h5 id="h-Proto-2"><span class="section-number-5">6.7.1.1.</span> Proto</h5>
 <div class="outline-text-5" id="text-h-Proto-2">
-<div class="org-src-container"><pre class="src src-protobuf" id="nil-27">syntax = <span class="org-string">"proto3"</span>;
+<div class="org-src-container"><pre class="src src-protobuf" id="nil-20">syntax = <span class="org-string">"proto3"</span>;
 
 <span class="org-keyword">package</span> <span class="org-type">melby_daemon</span>;
 
@@ -6287,7 +5639,7 @@ down this process.
 <div id="outline-container-h-Implementation" class="outline-5">
 <h5 id="h-Implementation"><span class="section-number-5">6.7.1.2.</span> Implementation</h5>
 <div class="outline-text-5" id="text-h-Implementation">
-<div class="org-src-container"><pre class="src src-elixir" id="nil-28"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.StandardResource</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-21"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.StandardResource</span> <span class="org-keyword">do</span>
   <span class="org-comment-delimiter"># </span><span class="org-comment">If a Standard Resource Service process dies, don't restart it, because it</span>
   <span class="org-comment-delimiter"># </span><span class="org-comment">will be restarted on the next use (when a client requests info for it).</span>
   <span class="org-keyword">use</span> <span class="org-type">GenServer</span>, <span class="org-elixir-atom">restart:</span> <span class="org-elixir-atom">:temporary</span>
@@ -6713,7 +6065,7 @@ down this process.
 <div id="outline-container-h-Tick" class="outline-5">
 <h5 id="h-Tick"><span class="section-number-5">6.7.1.3.</span> Tick</h5>
 <div class="outline-text-5" id="text-h-Tick">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-28">melbyd_srs_tick</a></span>(1/1) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_tick">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_tick"><span class="org-comment-delimiter"># </span><span class="org-comment">Send a "tick" message to our GenServer in 1 second. See</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-21">melbyd_srs_tick</a></span>(1/1) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_tick">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_tick"><span class="org-comment-delimiter"># </span><span class="org-comment">Send a "tick" message to our GenServer in 1 second. See</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">https://stackoverflow.com/a/32097971/437583.</span>
 <span class="org-keyword">defp</span> <span class="org-function-name">tick</span>(ttl, notify_on_exit_pid) <span class="org-keyword">do</span>
   <span class="org-keyword">case</span> ttl <span class="org-keyword">do</span>
@@ -6743,7 +6095,7 @@ down this process.
       <span class="org-type">Process</span>.send_after(self(), <span class="org-elixir-atom">:tick</span>, <span class="org-elixir-attribute">@tick_interval</span>)
   <span class="org-keyword">end</span>
 <span class="org-keyword">end</span>
-</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-28">melbyd_srs_handle_info</a></span>(1/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-1">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-1"><span class="org-comment-delimiter"># </span><span class="org-comment">Process tick. The tick must handle the true and false cases for the "stale"</span>
+</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-21">melbyd_srs_handle_info</a></span>(1/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-1">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-1"><span class="org-comment-delimiter"># </span><span class="org-comment">Process tick. The tick must handle the true and false cases for the "stale"</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">key of the state. First we handle the case where stale is true (we must</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">re-read data).</span>
 <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_tick_do_work">melbyd_srs_tick_do_work</a></span>
@@ -6811,7 +6163,7 @@ down this process.
     %{state | <span class="org-elixir-atom">ttl:</span> ttl - <span class="org-elixir-number">1</span>}
   <span class="org-keyword">end</span>
 <span class="org-keyword">end</span>
-</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-28">melbyd_srs_handle_call</a></span>(1/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_call-1">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_call-1"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-21">melbyd_srs_handle_call</a></span>(1/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_call-1">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_call-1"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_call</span>(
       <span class="org-elixir-atom">:tick</span>,
       <span class="org-comment">_from</span>,
@@ -6838,7 +6190,7 @@ If we mark an SRS GenServer as stale, this forces the re-reading of state such
 that it is loaded as the newest element in the <code>state_hist</code> queue.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-28">melbyd_srs_staleness</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_staleness">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_staleness"><span class="org-keyword">defp</span> <span class="org-function-name">mark_stale</span>(id) <span class="org-keyword">do</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-21">melbyd_srs_staleness</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_staleness">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_staleness"><span class="org-keyword">defp</span> <span class="org-function-name">mark_stale</span>(id) <span class="org-keyword">do</span>
   <span class="org-type">GenServer</span>.cast(via_tuple(id), <span class="org-elixir-atom">:mark_stale</span>)
 <span class="org-keyword">end</span>
 </pre></div></div><p>
@@ -6856,7 +6208,7 @@ state between now and the next tick() will know that we've recognized the need
 to refresh the state on the next tick().
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-28">melbyd_srs_handle_cast</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_cast">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_cast"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-21">melbyd_srs_handle_cast</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_cast">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_cast"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_cast</span>(<span class="org-elixir-atom">:mark_stale</span>, %{<span class="org-elixir-atom">stale:</span> <span class="org-constant">_</span>, <span class="org-elixir-atom">state_hist:</span> [current | rest]} = state) <span class="org-keyword">do</span>
   {<span class="org-elixir-atom">:noreply</span>,
    %{
@@ -6871,7 +6223,7 @@ can be more precise with how its state is updated with a followup coordinated
 <code>:tick</code> message (also a <code>call</code>).
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-28">melbyd_srs_handle_call</a></span>(2/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_call-2">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_call-2"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-21">melbyd_srs_handle_call</a></span>(2/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_call-2">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_call-2"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_call</span>(<span class="org-elixir-atom">:mark_stale</span>, <span class="org-comment">_from</span>, %{<span class="org-elixir-atom">stale:</span> <span class="org-constant">_</span>, <span class="org-elixir-atom">state_hist:</span> [current | rest]} = state) <span class="org-keyword">do</span>
   {<span class="org-elixir-atom">:reply</span>,
    <span class="org-elixir-atom">:ok</span>,
@@ -6917,7 +6269,7 @@ Conceivably, other SRS GenServers that rely on filesystem staleness probably
 want the same <code>mark_all_stale_from/1</code> behavior.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-28">melbyd_srs_handle_info</a></span>(2/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-2">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-2"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-21">melbyd_srs_handle_info</a></span>(2/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-2">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-2"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       {<span class="org-elixir-atom">:file_event</span>, <span class="org-comment">_watcher_pid</span>, {path, events}},
       %{
@@ -6962,7 +6314,7 @@ to -1 is important because it signals to the other <code>handle_call</code> call
 accepts the <code>:read</code> atom that it should not reset the TTL back up to <code>ttl_max</code>.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-28">melbyd_srs_handle_info</a></span>(3/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-3">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-3"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-21">melbyd_srs_handle_info</a></span>(3/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-3">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-3"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       {<span class="org-elixir-atom">:file_event</span>, watcher_pid, <span class="org-elixir-atom">:stop</span>},
       %{
@@ -6984,7 +6336,7 @@ tick, when we see that we're in a stale state, we will regenerate the state and
 mark ourselves as being fresh (<code>stale: false</code>) again.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-28">melbyd_srs_handle_info</a></span>(4/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-4">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-4"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-21">melbyd_srs_handle_info</a></span>(4/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-4">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-4"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       {<span class="org-elixir-atom">:file_event</span>, <span class="org-comment">_watcher_pid</span>, {<span class="org-comment">_path</span>, <span class="org-comment">_events</span>}},
       %{
@@ -7012,7 +6364,7 @@ When the user specifies a directory to watch, we watch it and all of it
 subdirectories for changes.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-28">melbyd_srs_staleness_detector_setup</a></span>(1/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_staleness_detector_setup-1">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_staleness_detector_setup-1"><span class="org-keyword">defp</span> <span class="org-function-name">setup_staleness_flagger</span>(
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-21">melbyd_srs_staleness_detector_setup</a></span>(1/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_staleness_detector_setup-1">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_staleness_detector_setup-1"><span class="org-keyword">defp</span> <span class="org-function-name">setup_staleness_flagger</span>(
        %{<span class="org-string">"type"</span> <span class="org-keyword">=&gt;</span> <span class="org-string">"filesystem"</span>,
          <span class="org-string">"watch_paths"</span> <span class="org-keyword">=&gt;</span> watch_paths_lua_array,
          <span class="org-string">"fs_event_handler"</span> <span class="org-keyword">=&gt;</span> fs_event_handler} =
@@ -7044,7 +6396,7 @@ Here are some helper functions. The main workhorse here is
 the root directory (<code>/</code>) as stale.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-28">melbyd_srs_staleness_filesystem_helpers</a></span>(1/1) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_staleness_filesystem_helpers">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_staleness_filesystem_helpers"><span class="org-comment-delimiter"># </span><span class="org-comment">Mark the given path as stale, as well as all other SRS GenServers whose id's</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-21">melbyd_srs_staleness_filesystem_helpers</a></span>(1/1) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_staleness_filesystem_helpers">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_staleness_filesystem_helpers"><span class="org-comment-delimiter"># </span><span class="org-comment">Mark the given path as stale, as well as all other SRS GenServers whose id's</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">are of the form "{resource_type, path}" where "path" is a parent path.</span>
 <span class="org-keyword">defp</span> <span class="org-function-name">mark_all_paths_stale_from</span>({resource_type, path}) <span class="org-keyword">do</span>
   get_all_parents(path)
@@ -7093,7 +6445,7 @@ discussion about timers and durations. There they mention
 <a href="https://hex.pm/packages/quantum">https://hex.pm/packages/quantum</a> which is basically cron but for Elixir.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-28">melbyd_srs_handle_info</a></span>(5/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-5">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-5"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-21">melbyd_srs_handle_info</a></span>(5/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-5">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-5"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       <span class="org-elixir-atom">:duration_event</span>,
       %{
@@ -7111,7 +6463,7 @@ Similar to filesystem-based staleness, we ignore the <code>:duration_event</code
 state has already been marked stale (because it is redundant).
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-28">melbyd_srs_handle_info</a></span>(6/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-6">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-6"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-21">melbyd_srs_handle_info</a></span>(6/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-6">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-6"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       <span class="org-elixir-atom">:duration_event</span>,
       %{
@@ -7128,7 +6480,7 @@ which has everything we need. The duration must be set using ISO 8601 notation,
 and is only precise to 1 whole second (sub-second durations are ignored).
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-28">melbyd_srs_staleness_detector_setup</a></span>(2/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_staleness_detector_setup-2">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_staleness_detector_setup-2"><span class="org-keyword">defp</span> <span class="org-function-name">setup_staleness_flagger</span>(
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-21">melbyd_srs_staleness_detector_setup</a></span>(2/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_staleness_detector_setup-2">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_staleness_detector_setup-2"><span class="org-keyword">defp</span> <span class="org-function-name">setup_staleness_flagger</span>(
        %{<span class="org-string">"type"</span> <span class="org-keyword">=&gt;</span> <span class="org-string">"duration"</span>, <span class="org-string">"duration"</span> <span class="org-keyword">=&gt;</span> duration} = <span class="org-comment">_staleness_flagger</span>,
        initial_state
      ) <span class="org-keyword">do</span>
@@ -7163,7 +6515,7 @@ and is only precise to 1 whole second (sub-second durations are ignored).
 <div id="outline-container-h-Graceful-shutdown" class="outline-5">
 <h5 id="h-Graceful-shutdown"><span class="section-number-5">6.7.1.5.</span> Graceful shutdown</h5>
 <div class="outline-text-5" id="text-h-Graceful-shutdown">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-28">melbyd_srs_handle_info</a></span>(7/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-7">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-7"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-21">melbyd_srs_handle_info</a></span>(7/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-7">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-7"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       {<span class="org-elixir-atom">:EXIT</span>, from_pid, reason},
       %{
@@ -7213,7 +6565,7 @@ generating the state from scratch, based on the Lua configuration, is left to
 the <code>run_readers/2</code> private method.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-28">melbyd_srs_client_interface</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_client_interface">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_client_interface"><span class="org-keyword">def</span> <span class="org-function-name">read</span>(resource, resource_opts) <span class="org-keyword">do</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-21">melbyd_srs_client_interface</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_client_interface">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_client_interface"><span class="org-keyword">def</span> <span class="org-function-name">read</span>(resource, resource_opts) <span class="org-keyword">do</span>
   <span class="org-comment-delimiter"># </span><span class="org-comment">At this point we have all the information we need in order to instantiate a</span>
   <span class="org-comment-delimiter"># </span><span class="org-comment">new SRS GenServer. We need to start it up (if necessary) and get information</span>
   <span class="org-comment-delimiter"># </span><span class="org-comment">out of it. This optional startup can be handled by the DynamicSupervisor,</span>
@@ -7383,7 +6735,7 @@ one that reaches out to <code>Melbyd.StandardResourceSupervisor</code> to start 
 <code>Melbyd.StandardResource</code> knows how to supervise itself.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-28">melbyd_srs_supervisor</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_supervisor">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_supervisor"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.StandardResourceSupervisor</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-21">melbyd_srs_supervisor</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_supervisor">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_supervisor"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.StandardResourceSupervisor</span> <span class="org-keyword">do</span>
   <span class="org-elixir-attribute">@moduledoc</span> <span class="org-doc">"""</span>
 <span class="org-doc">  StandardResource GenServers are created dynamically during runtime. This</span>
 <span class="org-doc">  module supervises these servers so that they are restarted if they fail</span>
@@ -7451,7 +6803,7 @@ is up to the user's Lua configuration). And then it's up to SPS GenServers to
 subscribe to these topics and display these messages to the user.
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-29"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.ShellProcess</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-22"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.ShellProcess</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">GenServer</span>, <span class="org-elixir-atom">restart:</span> <span class="org-elixir-atom">:temporary</span>
   <span class="org-keyword">require</span> <span class="org-type">Logger</span>
 
@@ -7584,7 +6936,7 @@ subscribe to these topics and display these messages to the user.
 This is modeled after <code>Melbyd.StandardResource.tick/2</code>.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-29">melbyd_sps_tick</a></span>(1/1) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_tick">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_tick"><span class="org-comment-delimiter"># </span><span class="org-comment">FIXME: This code is identical to the one in Melbyd.StandardResource.tick/2. Can</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-22">melbyd_sps_tick</a></span>(1/1) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_tick">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_tick"><span class="org-comment-delimiter"># </span><span class="org-comment">FIXME: This code is identical to the one in Melbyd.StandardResource.tick/2. Can</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">we make it DRY somehow?</span>
 <span class="org-keyword">defp</span> <span class="org-function-name">tick</span>(ttl, notify_on_exit_pid) <span class="org-keyword">do</span>
   <span class="org-keyword">case</span> ttl <span class="org-keyword">do</span>
@@ -7608,7 +6960,7 @@ This is modeled after <code>Melbyd.StandardResource.tick/2</code>.
       <span class="org-type">Process</span>.send_after(self(), <span class="org-elixir-atom">:tick</span>, <span class="org-elixir-attribute">@tick_interval</span>)
   <span class="org-keyword">end</span>
 <span class="org-keyword">end</span>
-</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-29">melbyd_sps_handle_info</a></span>(1/3) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_handle_info-1">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_handle_info-1"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-22">melbyd_sps_handle_info</a></span>(1/3) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_handle_info-1">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_handle_info-1"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       <span class="org-elixir-atom">:tick</span>,
       %{
@@ -7633,7 +6985,7 @@ about a Git repo at <code>/a/b/c</code> where <code>c</code> is the repo root, b
 process) is currently located at <code>/a/b</code>, then we need to discard this message.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-29">melbyd_sps_handle_info</a></span>(2/3) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_handle_info-2">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_handle_info-2"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-22">melbyd_sps_handle_info</a></span>(2/3) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_handle_info-2">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_handle_info-2"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       %{<span class="org-elixir-atom">topic:</span> topic, <span class="org-elixir-atom">from:</span> <span class="org-comment">_from</span>, <span class="org-elixir-atom">payload:</span> <span class="org-comment">_payload</span>} = message,
       %{
@@ -7681,7 +7033,7 @@ FIXME: Can we make it DRY? Maybe use a macro, or some new utility functions? Or
 a behaviour or protocol&#x2026;?
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-29">melbyd_sps_handle_info</a></span>(3/3) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_handle_info-3">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_handle_info-3"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-22">melbyd_sps_handle_info</a></span>(3/3) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_handle_info-3">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_handle_info-3"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       {<span class="org-elixir-atom">:EXIT</span>, from_pid, reason},
       %{<span class="org-elixir-atom">shell_pid:</span> shell_pid} = state
@@ -7723,7 +7075,7 @@ yet, just creates one.
 The internals here mirror the design in <code>Melbyd.StandardResource.read/2</code>.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-29">melbyd_sps_client_interface</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_client_interface">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_client_interface"><span class="org-keyword">def</span> <span class="org-function-name">get_messages</span>(shell_pid, topic_handlers, env_vars) <span class="org-keyword">do</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-22">melbyd_sps_client_interface</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_client_interface">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_client_interface"><span class="org-keyword">def</span> <span class="org-function-name">get_messages</span>(shell_pid, topic_handlers, env_vars) <span class="org-keyword">do</span>
   <span class="org-keyword">case</span> <span class="org-elixir-atom">:gproc</span>.lookup_pids({<span class="org-elixir-atom">:n</span>, <span class="org-elixir-atom">:l</span>, {<span class="org-type">Melbyd.ShellProcess</span>, shell_pid}}) <span class="org-keyword">do</span>
     [pid] <span class="org-keyword">-&gt;</span>
       <span class="org-type">Logger</span>.info(<span class="org-string">"Found existing pid for </span><span class="org-variable-name">#{inspect(shell_pid)}</span><span class="org-string">: </span><span class="org-variable-name">#{inspect(pid)}</span><span class="org-string">"</span>)
@@ -7748,7 +7100,7 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
 <div id="outline-container-h-Supervisor-1" class="outline-5">
 <h5 id="h-Supervisor-1"><span class="section-number-5">6.7.2.5.</span> Supervisor</h5>
 <div class="outline-text-5" id="text-h-Supervisor-1">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-29">melbyd_sps_supervisor</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_supervisor">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_supervisor"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.ShellProcessSupervisor</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-22">melbyd_sps_supervisor</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_supervisor">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_supervisor"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.ShellProcessSupervisor</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">DynamicSupervisor</span>
 
   <span class="org-keyword">require</span> <span class="org-type">Logger</span>
@@ -7797,7 +7149,7 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
 <div id="outline-container-h-Path" class="outline-5">
 <h5 id="h-Path"><span class="section-number-5">6.7.3.1.</span> Path</h5>
 <div class="outline-text-5" id="text-h-Path">
-<div class="org-src-container"><pre class="src src-elixir" id="nil-30"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Path</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-23"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Path</span> <span class="org-keyword">do</span>
   <span class="org-elixir-attribute">@moduledoc</span> <span class="org-doc">"""</span>
 <span class="org-doc">  Caching wrapper around path shortening function.</span>
 <span class="org-doc">  """</span>
@@ -7834,7 +7186,7 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
     <span class="org-keyword">end</span>
   <span class="org-keyword">end</span>
 <span class="org-keyword">end</span>
-</pre></div><div class="org-src-container"><pre class="src src-rust" id="nil-31"><span class="org-keyword">use</span> <span class="org-constant">std</span>::<span class="org-constant">collections</span>::<span class="org-type">HashMap</span>;
+</pre></div><div class="org-src-container"><pre class="src src-rust" id="nil-24"><span class="org-keyword">use</span> <span class="org-constant">std</span>::<span class="org-constant">collections</span>::<span class="org-type">HashMap</span>;
 <span class="org-keyword">use</span> <span class="org-constant">envsubst</span>;
 
 <span class="org-preprocessor">#[rustler::nif]</span>
@@ -8145,7 +7497,7 @@ We only keep a cache size of 256 because in practice we only move around a
 handful of directories during a typical computing session.
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-32"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Cache.PathShorten</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-25"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Cache.PathShorten</span> <span class="org-keyword">do</span>
   <span class="org-elixir-attribute">@moduledoc</span> <span class="org-doc">"""</span>
 <span class="org-doc">  path-shorten Cache</span>
 <span class="org-doc">  """</span>
@@ -8180,7 +7532,7 @@ point of using a NIF here isn't so much about speed, but more about the
 convenience of being able to use this library.
 </p>
 
-<div class="org-src-container"><pre class="src src-rust" id="nil-33"><span class="org-keyword">use</span> <span class="org-constant">csscolorparser</span>::<span class="org-type">Color</span>;
+<div class="org-src-container"><pre class="src src-rust" id="nil-26"><span class="org-keyword">use</span> <span class="org-constant">csscolorparser</span>::<span class="org-type">Color</span>;
 
 <span class="org-preprocessor">#[derive(rustler::NifTuple, Default, Debug, PartialEq, Eq)]</span>
 <span class="org-keyword">pub</span> <span class="org-keyword">struct</span> <span class="org-type">Color24BitRust</span> {
@@ -8231,7 +7583,7 @@ convenience of being able to use this library.
         <span class="org-preprocessor">assert_eq!</span>(_parse_color(<span class="org-string">"hello world"</span>), [127, 127, 127, 255]);
     }
 }
-</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-34"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Color</span> <span class="org-keyword">do</span>
+</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-27"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Color</span> <span class="org-keyword">do</span>
   <span class="org-elixir-attribute">@moduledoc</span> <span class="org-doc">"""</span>
 <span class="org-doc">  Color parsing.</span>
 <span class="org-doc">  """</span>
@@ -8303,7 +7655,7 @@ We would like <code>melbyr</code> to observe the following behaviors.
 <div id="outline-container-h-Proto-3" class="outline-6">
 <h6 id="h-Proto-3"><span class="section-number-6">6.8.3.1.1.</span> Proto</h6>
 <div class="outline-text-6" id="text-h-Proto-3">
-<div class="org-src-container"><pre class="src src-protobuf" id="nil-35">syntax = <span class="org-string">"proto3"</span>;
+<div class="org-src-container"><pre class="src src-protobuf" id="nil-28">syntax = <span class="org-string">"proto3"</span>;
 
 <span class="org-keyword">package</span> <span class="org-type">melby_renderer</span>;
 
@@ -8499,9 +7851,9 @@ This walkthrough is written for the future maintainers of this codebase.
 </div>
 </div>
 
-<div id="outline-container-h-Business-logic-2" class="outline-4">
-<h4 id="h-Business-logic-2"><span class="section-number-4">6.8.5.</span> Business logic</h4>
-<div class="outline-text-4" id="text-h-Business-logic-2">
+<div id="outline-container-h-Business-logic-1" class="outline-4">
+<h4 id="h-Business-logic-1"><span class="section-number-4">6.8.5.</span> Business logic</h4>
+<div class="outline-text-4" id="text-h-Business-logic-1">
 </div>
 
 <div id="outline-container-h-Widget-Rendering-System" class="outline-5">
@@ -8513,7 +7865,7 @@ terminal. Widgets are encoded in Lua directly in the user configuration. Here is
 an example:
 </p>
 
-<div class="org-src-container"><pre class="src src-lua" id="nil-36">foo = {str=<span class="org-string">" foo "</span>, fg=<span class="org-string">"white"</span>, bg=<span class="org-string">"blue"</span>, styles={<span class="org-string">"bold"</span>}}
+<div class="org-src-container"><pre class="src src-lua" id="nil-29">foo = {str=<span class="org-string">" foo "</span>, fg=<span class="org-string">"white"</span>, bg=<span class="org-string">"blue"</span>, styles={<span class="org-string">"bold"</span>}}
 </pre></div><p>
 This encodes the <code>" foo "</code> string with a blue background with white, bolded
 text. The user can then just send over a list of these widgets to be rendered on
@@ -8525,7 +7877,7 @@ Between each widget, 1 space character is inserted by default. This can be
 adjusted with the <code>delimiter</code> option in the call to <code>render()</code>, like this:
 </p>
 
-<div class="org-src-container"><pre class="src src-lua" id="nil-37">rendered = melbyd.render(widgets, delimiter={str=<span class="org-string">"**"</span>}, render_options={format=<span class="org-string">"RENDER_FORMAT_UNIX_TERMINAL"</span>, color_depth=<span class="org-string">"RENDER_COLOR_DEPTH_24_BIT"</span>})
+<div class="org-src-container"><pre class="src src-lua" id="nil-30">rendered = melbyd.render(widgets, delimiter={str=<span class="org-string">"**"</span>}, render_options={format=<span class="org-string">"RENDER_FORMAT_UNIX_TERMINAL"</span>, color_depth=<span class="org-string">"RENDER_COLOR_DEPTH_24_BIT"</span>})
 </pre></div><p>
 This uses 2 asterisks as a delimiter.
 </p>
@@ -8621,7 +7973,7 @@ Actually we can do the above with just recursion. See <code>injectDelimiters</co
 <div id="outline-container-h-Implementation-1" class="outline-6">
 <h6 id="h-Implementation-1"><span class="section-number-6">6.8.5.1.3.</span> Implementation</h6>
 <div class="outline-text-6" id="text-h-Implementation-1">
-<div class="org-src-container"><pre class="src src-haskell" id="nil-38"><span class="org-haskell-pragma">{-# LANGUAGE DataKinds #-}</span>
+<div class="org-src-container"><pre class="src src-haskell" id="nil-31"><span class="org-haskell-pragma">{-# LANGUAGE DataKinds #-}</span>
 <span class="org-haskell-pragma">{-# LANGUAGE FlexibleContexts #-}</span>
 <span class="org-haskell-pragma">{-# LANGUAGE TypeApplications #-}</span>
 
@@ -8780,7 +8132,7 @@ and distributing these colors onto the 40 hex characters.
 <div id="outline-container-h-Overview-1" class="outline-6">
 <h6 id="h-Overview-1"><span class="section-number-6">6.8.5.2.1.</span> Overview</h6>
 <div class="outline-text-6" id="text-h-Overview-1">
-<div class="org-src-container"><pre class="src src-haskell" id="nil-39"><span class="org-haskell-pragma">{-# LANGUAGE DataKinds #-}</span>
+<div class="org-src-container"><pre class="src src-haskell" id="nil-32"><span class="org-haskell-pragma">{-# LANGUAGE DataKinds #-}</span>
 <span class="org-haskell-pragma">{-# LANGUAGE FlexibleContexts #-}</span>
 <span class="org-haskell-pragma">{-# LANGUAGE TypeApplications #-}</span>
 
@@ -8887,7 +8239,7 @@ don't follow that guide because the work has already been done for us in the
 space.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-39">melbyr_perceived_lightness</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_perceived_lightness">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_perceived_lightness"><span class="org-haskell-definition">getPerceivedLightness</span> <span class="org-haskell-operator">::</span> (<span class="org-haskell-type">Floating</span> b, <span class="org-haskell-type">RealFrac</span> b) <span class="org-haskell-operator">=&gt;</span> <span class="org-haskell-type">Colour</span> b <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Double</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-32">melbyr_perceived_lightness</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_perceived_lightness">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_perceived_lightness"><span class="org-haskell-definition">getPerceivedLightness</span> <span class="org-haskell-operator">::</span> (<span class="org-haskell-type">Floating</span> b, <span class="org-haskell-type">RealFrac</span> b) <span class="org-haskell-operator">=&gt;</span> <span class="org-haskell-type">Colour</span> b <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Double</span>
 <span class="org-haskell-definition">getPerceivedLightness</span> c <span class="org-haskell-operator">=</span> lightness d65 <span class="org-haskell-operator">$</span> sRGB24 r g b
   <span class="org-haskell-keyword">where</span>
   m <span class="org-haskell-operator">=</span> toSRGB24 c
@@ -8907,7 +8259,7 @@ space.
 
 <li><a id="h-Implementation-2"></a>Implementation<br>
 <div class="outline-text-7" id="text-h-Implementation-2">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-39">melbyr_colorize_git_sha_24_bit</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_colorize_git_sha_24_bit">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_colorize_git_sha_24_bit"><span class="org-haskell-definition">colorizeGitSha24bit</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">T.Text</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Word32</span> <span class="org-haskell-operator">-&gt;</span> [(<span class="org-haskell-type">SGR</span>, <span class="org-haskell-type">T.Text</span>)]
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-32">melbyr_colorize_git_sha_24_bit</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_colorize_git_sha_24_bit">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_colorize_git_sha_24_bit"><span class="org-haskell-definition">colorizeGitSha24bit</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">T.Text</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Word32</span> <span class="org-haskell-operator">-&gt;</span> [(<span class="org-haskell-type">SGR</span>, <span class="org-haskell-type">T.Text</span>)]
 <span class="org-haskell-definition">colorizeGitSha24bit</span> shaStr len
   <span class="org-haskell-operator">=</span> reverse
   <span class="org-haskell-operator">.</span> zip colorCodes
@@ -8941,7 +8293,7 @@ space.
   buildOutput acc hexChars <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">case</span> T.length (T.take 4 hexChars) <span class="org-haskell-keyword">of</span>
     0 <span class="org-haskell-operator">-&gt;</span> acc
     <span class="org-haskell-keyword">_</span> <span class="org-haskell-operator">-&gt;</span> buildOutput (T.take 4 hexChars <span class="org-haskell-constructor">:</span> acc) (T.drop 4 hexChars)
-</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-39">melbyr_add_padding</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_add_padding">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_add_padding"><span class="org-haskell-definition">addPadding</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">Word32</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Word32</span> <span class="org-haskell-operator">-&gt;</span> [(<span class="org-haskell-type">SGR</span>, <span class="org-haskell-type">T.Text</span>)] <span class="org-haskell-operator">-&gt;</span> [(<span class="org-haskell-type">SGR</span>, <span class="org-haskell-type">T.Text</span>)]
+</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-32">melbyr_add_padding</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_add_padding">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_add_padding"><span class="org-haskell-definition">addPadding</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">Word32</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Word32</span> <span class="org-haskell-operator">-&gt;</span> [(<span class="org-haskell-type">SGR</span>, <span class="org-haskell-type">T.Text</span>)] <span class="org-haskell-operator">-&gt;</span> [(<span class="org-haskell-type">SGR</span>, <span class="org-haskell-type">T.Text</span>)]
 <span class="org-haskell-definition">addPadding</span> padl padr colorized <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">case</span> colorized <span class="org-haskell-keyword">of</span>
   <span class="org-haskell-constructor">[]</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-constructor">[]</span>
   (c, t)<span class="org-haskell-constructor">:[]</span> <span class="org-haskell-operator">-&gt;</span> [(c, prefix <span class="org-haskell-operator">&lt;&gt;</span> t <span class="org-haskell-operator">&lt;&gt;</span> suffix)]
@@ -8954,7 +8306,7 @@ space.
   <span class="org-haskell-keyword">where</span>
   prefix <span class="org-haskell-operator">=</span> T.replicate (fromIntegral padl) <span class="org-string">" "</span>
   suffix <span class="org-haskell-operator">=</span> T.replicate (fromIntegral padr) <span class="org-string">" "</span>
-</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-39">melbyr_render_misc</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_render_misc">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_render_misc"><span class="org-haskell-definition">renderColorized</span> <span class="org-haskell-operator">::</span> [(<span class="org-haskell-type">SGR</span>, <span class="org-haskell-type">T.Text</span>)] <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">T.Text</span>
+</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-32">melbyr_render_misc</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_render_misc">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_render_misc"><span class="org-haskell-definition">renderColorized</span> <span class="org-haskell-operator">::</span> [(<span class="org-haskell-type">SGR</span>, <span class="org-haskell-type">T.Text</span>)] <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">T.Text</span>
 <span class="org-haskell-definition">renderColorized</span> <span class="org-haskell-operator">=</span> T.concat <span class="org-haskell-operator">.</span> map f
   <span class="org-haskell-keyword">where</span>
   f (code, hexChars) <span class="org-haskell-operator">=</span> T.pack (setSGRCode [code]) <span class="org-haskell-operator">&lt;&gt;</span> fgColor <span class="org-haskell-operator">&lt;&gt;</span> hexChars
@@ -8978,7 +8330,7 @@ space.
 <div id="outline-container-h-Parse-path-aliases" class="outline-5">
 <h5 id="h-Parse-path-aliases"><span class="section-number-5">6.8.5.3.</span> Parse path aliases</h5>
 <div class="outline-text-5" id="text-h-Parse-path-aliases">
-<div class="org-src-container"><pre class="src src-haskell" id="nil-40"><span class="org-haskell-pragma">{-# LANGUAGE FlexibleContexts #-}</span>
+<div class="org-src-container"><pre class="src src-haskell" id="nil-33"><span class="org-haskell-pragma">{-# LANGUAGE FlexibleContexts #-}</span>
 
 <span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">MelbyRenderer.PathAliases</span>
   ( parsePathAliases
@@ -9134,7 +8486,7 @@ space.
 
 <span class="org-haskell-definition">symbol</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">T.Text</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Megaparser</span> <span class="org-haskell-type">T.Text</span>
 <span class="org-haskell-definition">symbol</span> <span class="org-haskell-operator">=</span> L.symbol sc
-</pre></div><div class="org-src-container"><pre class="src src-haskell" id="nil-41"><span class="org-haskell-pragma">{-# LANGUAGE QuasiQuotes #-}</span>
+</pre></div><div class="org-src-container"><pre class="src src-haskell" id="nil-34"><span class="org-haskell-pragma">{-# LANGUAGE QuasiQuotes #-}</span>
 
 <span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">Main</span> (main) <span class="org-haskell-keyword">where</span>
 
@@ -9201,14 +8553,14 @@ space.
 </div>
 </div>
 
-<div id="outline-container-h-Boilerplate-3" class="outline-4">
-<h4 id="h-Boilerplate-3"><span class="section-number-4">6.8.6.</span> Boilerplate</h4>
-<div class="outline-text-4" id="text-h-Boilerplate-3">
+<div id="outline-container-h-Boilerplate-2" class="outline-4">
+<h4 id="h-Boilerplate-2"><span class="section-number-4">6.8.6.</span> Boilerplate</h4>
+<div class="outline-text-4" id="text-h-Boilerplate-2">
 </div>
 
-<div id="outline-container-h-Option-handling-2" class="outline-5">
-<h5 id="h-Option-handling-2"><span class="section-number-5">6.8.6.1.</span> Option handling</h5>
-<div class="outline-text-5" id="text-h-Option-handling-2">
+<div id="outline-container-h-Option-handling-1" class="outline-5">
+<h5 id="h-Option-handling-1"><span class="section-number-5">6.8.6.1.</span> Option handling</h5>
+<div class="outline-text-5" id="text-h-Option-handling-1">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-renderer-hs--code">melbyr_option_handling</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_option_handling">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_option_handling"><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_option_handling_types">melbyr_option_handling_types</a></span>
 <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_option_handling_parsers">melbyr_option_handling_parsers</a></span>
 <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_option_handling_dispatcher">melbyr_option_handling_dispatcher</a></span>
@@ -9261,9 +8613,9 @@ space.
 </div>
 </div>
 
-<div id="outline-container-h-Main-2" class="outline-5">
-<h5 id="h-Main-2"><span class="section-number-5">6.8.6.2.</span> Main</h5>
-<div class="outline-text-5" id="text-h-Main-2">
+<div id="outline-container-h-Main-1" class="outline-5">
+<h5 id="h-Main-1"><span class="section-number-5">6.8.6.2.</span> Main</h5>
+<div class="outline-text-5" id="text-h-Main-1">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-renderer-hs--code">melbyr_main</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_main">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_main"><span class="org-haskell-definition">main</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">IO</span> <span class="org-haskell-constructor">()</span>
 <span class="org-haskell-definition">main</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">do</span>
   opts <span class="org-haskell-operator">&lt;-</span> customExecParser (prefs showHelpOnEmpty) optsP
@@ -9287,7 +8639,7 @@ space.
 FIXME: break this up into smaller chunks
 </p>
 
-<div class="org-src-container"><pre class="src src-haskell" id="nil-42"><span class="org-haskell-pragma">{-# language CPP                   #-}</span>
+<div class="org-src-container"><pre class="src src-haskell" id="nil-35"><span class="org-haskell-pragma">{-# language CPP                   #-}</span>
 <span class="org-haskell-pragma">{-# language DataKinds             #-}</span>
 <span class="org-haskell-pragma">{-# language DeriveAnyClass        #-}</span>
 <span class="org-haskell-pragma">{-# language DeriveGeneric         #-}</span>
@@ -9324,7 +8676,7 @@ FIXME: break this up into smaller chunks
 <div id="outline-container-h-Colorized-Git-SHA-2" class="outline-6">
 <h6 id="h-Colorized-Git-SHA-2"><span class="section-number-6">6.8.6.3.1.</span> Colorized Git SHA</h6>
 <div class="outline-text-6" id="text-h-Colorized-Git-SHA-2">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-42">melbyr_schema_colorized_git_sha</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_colorized_git_sha">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_colorized_git_sha"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MColorizedGitShaRequest</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MColorizedGitShaRequest</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-35">melbyr_schema_colorized_git_sha</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_colorized_git_sha">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_colorized_git_sha"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MColorizedGitShaRequest</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MColorizedGitShaRequest</span>
   <span class="org-comment-delimiter">-- </span><span class="org-comment">In mu-haskell, nested types must be contained in a Maybe. See</span>
   <span class="org-comment-delimiter">-- </span><span class="org-comment">https://github.com/higherkindness/mu-haskell/issues/255#issuecomment-730468011.</span>
   { sha <span class="org-haskell-operator">::</span> <span class="org-haskell-type">T.Text</span>
@@ -9348,7 +8700,7 @@ FIXME: break this up into smaller chunks
 <div id="outline-container-h-Render-options" class="outline-6">
 <h6 id="h-Render-options"><span class="section-number-6">6.8.6.3.2.</span> Render options</h6>
 <div class="outline-text-6" id="text-h-Render-options">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-42">melbyr_schema_render_options</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_render_options">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_render_options"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MRenderOptions</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MRenderOptions</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-35">melbyr_schema_render_options</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_render_options">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_render_options"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MRenderOptions</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MRenderOptions</span>
   { format <span class="org-haskell-operator">::</span> <span class="org-haskell-type">MRenderFormat</span>
   , color_depth <span class="org-haskell-operator">::</span> <span class="org-haskell-type">MRenderColorDepth</span>
   } <span class="org-haskell-keyword">deriving</span> (<span class="org-haskell-constructor">Eq</span>, <span class="org-haskell-constructor">Ord</span>, <span class="org-haskell-constructor">Show</span>, <span class="org-haskell-constructor">Generic</span>
@@ -9376,7 +8728,7 @@ FIXME: break this up into smaller chunks
 <div id="outline-container-h-Widgets" class="outline-6">
 <h6 id="h-Widgets"><span class="section-number-6">6.8.6.3.3.</span> Widgets</h6>
 <div class="outline-text-6" id="text-h-Widgets">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-42">melbyr_schema_widgets</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_widgets">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_widgets"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MRenderWidgetsRequest</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MRenderWidgetsRequest</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-35">melbyr_schema_widgets</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_widgets">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_widgets"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MRenderWidgetsRequest</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MRenderWidgetsRequest</span>
   { widgets <span class="org-haskell-operator">::</span> [<span class="org-haskell-type">MWidget</span>]
   , delimiter <span class="org-haskell-operator">::</span> <span class="org-haskell-type">Maybe</span> <span class="org-haskell-type">MWidget</span>
   <span class="org-comment-delimiter">-- </span><span class="org-comment">FIXME: allow duplicate fields once we move to GHC 9 (waiting on mu-haskell)</span>
@@ -9446,7 +8798,7 @@ FIXME: break this up into smaller chunks
 <div id="outline-container-h-Parse-path-aliases-1" class="outline-6">
 <h6 id="h-Parse-path-aliases-1"><span class="section-number-6">6.8.6.3.4.</span> Parse path aliases</h6>
 <div class="outline-text-6" id="text-h-Parse-path-aliases-1">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-42">melbyr_schema_parse_path_aliases</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_parse_path_aliases">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_parse_path_aliases"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MParsePathAliasesRequest</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MParsePathAliasesRequest</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-35">melbyr_schema_parse_path_aliases</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_parse_path_aliases">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_parse_path_aliases"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MParsePathAliasesRequest</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MParsePathAliasesRequest</span>
   { path_aliases_raw <span class="org-haskell-operator">::</span> <span class="org-haskell-type">T.Text</span>
   } <span class="org-haskell-keyword">deriving</span> (<span class="org-haskell-constructor">Eq</span>, <span class="org-haskell-constructor">Show</span>, <span class="org-haskell-constructor">Ord</span>, <span class="org-haskell-constructor">Generic</span>
              , <span class="org-haskell-constructor">ToSchema</span> <span class="org-haskell-constructor">MelbyRendererSchema</span> <span class="org-string">"ParsePathAliasesRequest"</span>
@@ -9475,7 +8827,7 @@ FIXME: break this up into smaller chunks
 <div id="outline-container-h-Logging" class="outline-5">
 <h5 id="h-Logging"><span class="section-number-5">6.8.6.4.</span> Logging</h5>
 <div class="outline-text-5" id="text-h-Logging">
-<div class="org-src-container"><pre class="src src-haskell" id="nil-43"><span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">MelbyRenderer.Log</span> <span class="org-haskell-keyword">where</span>
+<div class="org-src-container"><pre class="src src-haskell" id="nil-36"><span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">MelbyRenderer.Log</span> <span class="org-haskell-keyword">where</span>
 
 <span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Control.Monad.Logger</span>
 <span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Control.Monad.Logger.Prefix</span>
@@ -9493,9 +8845,9 @@ FIXME: break this up into smaller chunks
 <h5 id="h-Other-2"><span class="section-number-5">6.8.6.5.</span> Other</h5>
 <div class="outline-text-5" id="text-h-Other-2">
 </div>
-<div id="outline-container-h-Pragmas-2" class="outline-6">
-<h6 id="h-Pragmas-2"><span class="section-number-6">6.8.6.5.1.</span> Pragmas</h6>
-<div class="outline-text-6" id="text-h-Pragmas-2">
+<div id="outline-container-h-Pragmas-1" class="outline-6">
+<h6 id="h-Pragmas-1"><span class="section-number-6">6.8.6.5.1.</span> Pragmas</h6>
+<div class="outline-text-6" id="text-h-Pragmas-1">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-renderer-hs--code">melbyr_pragmas</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_pragmas">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_pragmas"><span class="org-haskell-pragma">{-# LANGUAGE DataKinds #-}</span>
 <span class="org-haskell-pragma">{-# LANGUAGE FlexibleContexts #-}</span>
 <span class="org-haskell-pragma">{-# LANGUAGE OverloadedLabels #-}</span>
@@ -9510,9 +8862,9 @@ FIXME: break this up into smaller chunks
 </div>
 </div>
 
-<div id="outline-container-h-Imports-2" class="outline-6">
-<h6 id="h-Imports-2"><span class="section-number-6">6.8.6.5.2.</span> Imports</h6>
-<div class="outline-text-6" id="text-h-Imports-2">
+<div id="outline-container-h-Imports-1" class="outline-6">
+<h6 id="h-Imports-1"><span class="section-number-6">6.8.6.5.2.</span> Imports</h6>
+<div class="outline-text-6" id="text-h-Imports-1">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-renderer-hs--code">melbyr_imports</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_imports">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_imports"><span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Control.Monad.Logger</span> <span class="org-haskell-keyword">hiding</span> (logDebug)
 <span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Data.Version</span> (showVersion)
 <span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Mu.GRpc.Server</span>
@@ -9530,9 +8882,9 @@ FIXME: break this up into smaller chunks
 </div>
 </div>
 
-<div id="outline-container-h-Git-versioning-2" class="outline-6">
-<h6 id="h-Git-versioning-2"><span class="section-number-6">6.8.6.5.3.</span> Git versioning</h6>
-<div class="outline-text-6" id="text-h-Git-versioning-2">
+<div id="outline-container-h-Git-versioning-1" class="outline-6">
+<h6 id="h-Git-versioning-1"><span class="section-number-6">6.8.6.5.3.</span> Git versioning</h6>
+<div class="outline-text-6" id="text-h-Git-versioning-1">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__melbyr_main">melbyr_gitVersion</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_gitVersion">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_gitVersion"><span class="org-haskell-definition">versionOption</span> <span class="org-haskell-operator">=</span> infoOption
   (concat [showVersion version, <span class="org-string">"-g"</span>, <span class="org-haskell-operator">$</span>(gitVersion)])
   (long <span class="org-string">"version"</span> <span class="org-haskell-operator">&lt;&gt;</span> short <span class="org-string">'v'</span> <span class="org-haskell-operator">&lt;&gt;</span> help <span class="org-string">"Show version"</span>)
@@ -9540,7 +8892,7 @@ FIXME: break this up into smaller chunks
 FIXME: should we move this to a common "melby" haskell package?
 </p>
 
-<div class="org-src-container"><pre class="src src-haskell" id="nil-44"><span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">MelbyRenderer.GitVersion</span>
+<div class="org-src-container"><pre class="src src-haskell" id="nil-37"><span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">MelbyRenderer.GitVersion</span>
   ( gitVersion
   ) <span class="org-haskell-keyword">where</span>
 
@@ -9585,7 +8937,7 @@ FIXME: should we move this to a common "melby" haskell package?
 This follows the Makefile for <code>melbyc</code> (FIXME: add link).
 </p>
 
-<div class="org-src-container"><pre class="src src-makefile" id="nil-45"><span class="org-variable-name">ZLIB_SO_DIR</span>=$(<span class="org-variable-name">shell</span> pkg-config --libs-only-L zlib)
+<div class="org-src-container"><pre class="src src-makefile" id="nil-38"><span class="org-variable-name">ZLIB_SO_DIR</span>=$(<span class="org-variable-name">shell</span> pkg-config --libs-only-L zlib)
 <span class="org-variable-name">ZLIB_H_DIR</span>=$(<span class="org-variable-name">shell</span> pkg-config --cflags-only-I zlib)
 
 <span class="org-makefile-targets">all</span>: melbyr
@@ -9613,10 +8965,10 @@ This follows the Makefile for <code>melbyc</code> (FIXME: add link).
 </div>
 </div>
 
-<div id="outline-container-h-Cabal-2" class="outline-5">
-<h5 id="h-Cabal-2"><span class="section-number-5">6.8.7.2.</span> Cabal</h5>
-<div class="outline-text-5" id="text-h-Cabal-2">
-<div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-46"><span class="org-keyword">name</span>: melby-renderer
+<div id="outline-container-h-Cabal-1" class="outline-5">
+<h5 id="h-Cabal-1"><span class="section-number-5">6.8.7.2.</span> Cabal</h5>
+<div class="outline-text-5" id="text-h-Cabal-1">
+<div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-39"><span class="org-keyword">name</span>: melby-renderer
 <span class="org-keyword">version</span>: 1.0.0.0
 <span class="org-keyword">author</span>: Linus Arver
 <span class="org-keyword">maintainer</span>: linusa@google.com
@@ -9727,17 +9079,17 @@ This follows the Makefile for <code>melbyc</code> (FIXME: add link).
     , hspec-megaparsec
     , megaparsec &gt;= 9.0.1
     , neat-interpolation
-</pre></div><div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-47"><span class="org-keyword">executable-stripping</span>: <span class="org-constant">True</span>
+</pre></div><div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-40"><span class="org-keyword">executable-stripping</span>: <span class="org-constant">True</span>
 <span class="org-keyword">packages</span>:
   ./melby-renderer.cabal
 </pre></div>
 </div>
 </div>
 
-<div id="outline-container-h-Nix-1" class="outline-5">
-<h5 id="h-Nix-1"><span class="section-number-5">6.8.7.3.</span> Nix</h5>
-<div class="outline-text-5" id="text-h-Nix-1">
-<div class="org-src-container"><pre class="src src-nix" id="nil-48"><span class="org-nix-keyword">let</span>
+<div id="outline-container-h-Nix" class="outline-5">
+<h5 id="h-Nix"><span class="section-number-5">6.8.7.3.</span> Nix</h5>
+<div class="outline-text-5" id="text-h-Nix">
+<div class="org-src-container"><pre class="src src-nix" id="nil-41"><span class="org-nix-keyword">let</span>
   <span class="org-nix-attribute">sources</span> = <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../../../../package/nix/sources.nix</span>;
   <span class="org-nix-attribute">pkgs</span> = <span class="org-nix-builtin">import</span> sources.nixpkgs { };
   <span class="org-nix-attribute">fakeGit</span> = pkgs.writeShellScriptBin <span class="org-string">"git"</span>
@@ -9784,10 +9136,10 @@ pkgs.haskell.lib.buildStackProject {
 </div>
 </div>
 
-<div id="outline-container-h-Stack-2" class="outline-5">
-<h5 id="h-Stack-2"><span class="section-number-5">6.8.7.4.</span> Stack</h5>
-<div class="outline-text-5" id="text-h-Stack-2">
-<div class="org-src-container"><pre class="src src-yaml" id="nil-49"><span class="org-variable-name">resolver</span>: lts-18.28
+<div id="outline-container-h-Stack-1" class="outline-5">
+<h5 id="h-Stack-1"><span class="section-number-5">6.8.7.4.</span> Stack</h5>
+<div class="outline-text-5" id="text-h-Stack-1">
+<div class="org-src-container"><pre class="src src-yaml" id="nil-42"><span class="org-variable-name">resolver</span>: lts-18.28
 <span class="org-variable-name">allow-newer</span>: <span class="org-constant">true</span>
 
 <span class="org-variable-name">packages</span>:
@@ -9822,7 +9174,7 @@ pkgs.haskell.lib.buildStackProject {
 <div id="outline-container-h-gitignore-3" class="outline-5">
 <h5 id="h-gitignore-3"><span class="section-number-5">6.8.7.5.</span> .gitignore</h5>
 <div class="outline-text-5" id="text-h-gitignore-3">
-<div class="org-src-container"><pre class="src src-text" id="nil-50">dist-newstyle
+<div class="org-src-container"><pre class="src src-text" id="nil-43">dist-newstyle
 melbyr
 .stack-work
 </pre></div>
@@ -9843,7 +9195,7 @@ melbyr
 This script starts melbyd.
 </p>
 
-<div class="org-src-container"><pre class="src src-shell" id="nil-51"><span class="org-builtin">set</span> -euo pipefail
+<div class="org-src-container"><pre class="src src-shell" id="nil-44"><span class="org-builtin">set</span> -euo pipefail
 
 <span class="org-variable-name">SCRIPT_ROOT</span>=<span class="org-string">"$(</span><span class="org-sh-quoted-exec">dirname "$(realpath "$0"</span><span class="org-string">)")"</span>
 
@@ -9874,7 +9226,7 @@ The stuff here should probably instead be in the User Guide (or Setup Guide).
 <div id="outline-container-h-Mac" class="outline-5">
 <h5 id="h-Mac"><span class="section-number-5">6.9.2.1.</span> Mac</h5>
 <div class="outline-text-5" id="text-h-Mac">
-<div class="org-src-container"><pre class="src src-shell" id="nil-52"><span class="org-builtin">set</span> -euo pipefail
+<div class="org-src-container"><pre class="src src-shell" id="nil-45"><span class="org-builtin">set</span> -euo pipefail
 
 <span class="org-variable-name">SCRIPT_ROOT</span>=<span class="org-string">"$(</span><span class="org-sh-quoted-exec">dirname "$(realpath "$0"</span><span class="org-string">)")"</span>
 
@@ -9954,7 +9306,7 @@ launchd config file to use the nix path, just like how we mod the path for
 systemd for Linux.
 </p>
 
-<div class="org-src-container"><pre class="src src-text" id="nil-53">[Unit]
+<div class="org-src-container"><pre class="src src-text" id="nil-46">[Unit]
 Description=melby service
 After=network.target
 StartLimitIntervalSec=0
@@ -10065,7 +9417,7 @@ lib/melbyd/nifs/Cargo.toml diff
 <div id="outline-container-h-Mix-tool-configuration" class="outline-5">
 <h5 id="h-Mix-tool-configuration"><span class="section-number-5">6.10.1.3.</span> Mix tool configuration</h5>
 <div class="outline-text-5" id="text-h-Mix-tool-configuration">
-<div class="org-src-container"><pre class="src src-elixir" id="nil-54"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.MixProject</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-47"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.MixProject</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">Mix.Project</span>
 
   <span class="org-keyword">def</span> <span class="org-function-name">project</span> <span class="org-keyword">do</span>
@@ -10123,7 +9475,7 @@ lib/melbyd/nifs/Cargo.toml diff
 <div id="outline-container-h-gitignore-4" class="outline-5">
 <h5 id="h-gitignore-4"><span class="section-number-5">6.10.1.4.</span> .gitignore</h5>
 <div class="outline-text-5" id="text-h-gitignore-4">
-<div class="org-src-container"><pre class="src src-text" id="nil-55"># The directory Mix will write compiled artifacts to.
+<div class="org-src-container"><pre class="src src-text" id="nil-48"># The directory Mix will write compiled artifacts to.
 /_build/
 
 # If you run "mix test --cover", coverage assets end up here.
@@ -10162,7 +9514,7 @@ melby-*.tar
 <div id="outline-container-h-Formatter" class="outline-5">
 <h5 id="h-Formatter"><span class="section-number-5">6.10.1.5.</span> Formatter</h5>
 <div class="outline-text-5" id="text-h-Formatter">
-<div class="org-src-container"><pre class="src src-elixir" id="nil-56"><span class="org-comment-delimiter"># </span><span class="org-comment">Used by "mix format"</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-49"><span class="org-comment-delimiter"># </span><span class="org-comment">Used by "mix format"</span>
 [
   <span class="org-elixir-atom">inputs:</span> [<span class="org-string">"{mix,.formatter}.exs"</span>, <span class="org-string">"{config,lib,test}/**/*.{ex,exs}"</span>]
 ]
@@ -10179,7 +9531,7 @@ package it ourselves by writing our own derivation. This allows us to have a
 working <code>nix-shell</code> where we can generate Elixir code from <code>*.proto</code> files.
 </p>
 
-<div class="org-src-container"><pre class="src src-nix" id="nil-57">{ sources ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">./nix/sources.nix</span>
+<div class="org-src-container"><pre class="src src-nix" id="nil-50">{ sources ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">./nix/sources.nix</span>
 , pkgs ? <span class="org-nix-builtin">import</span> sources.nixpkgs {} }:
 <span class="org-nix-keyword">let</span>
   <span class="org-nix-attribute">packages</span> = pkgs.beam.packagesWith pkgs.beam.interpreters.erlangR26;
@@ -10441,7 +9793,7 @@ We package up <code>melbyd</code> as a standalone "package".
 Build our Rust library (<code>melbyd_nifs</code>).
 </p>
 
-<div class="org-src-container"><pre class="src src-nix" id="nil-58">{ sources ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../../../../package/nix/sources.nix</span> }:
+<div class="org-src-container"><pre class="src src-nix" id="nil-51">{ sources ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../../../../package/nix/sources.nix</span> }:
 <span class="org-nix-keyword">let</span>
   <span class="org-nix-attribute">files</span> = [
     <span class="org-nix-constant">./Cargo.toml</span>
@@ -10487,7 +9839,7 @@ Build our Rust library (<code>melbyd_nifs</code>).
 <div id="outline-container-h-Additional-application-configuration" class="outline-5">
 <h5 id="h-Additional-application-configuration"><span class="section-number-5">6.10.1.8.</span> Additional application configuration</h5>
 <div class="outline-text-5" id="text-h-Additional-application-configuration">
-<div class="org-src-container"><pre class="src src-elixir" id="nil-59"><span class="org-keyword">import</span> <span class="org-type">Config</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-52"><span class="org-keyword">import</span> <span class="org-type">Config</span>
 
 config <span class="org-elixir-atom">:logger</span>, <span class="org-elixir-atom">:console</span>,
   <span class="org-elixir-atom">format:</span> <span class="org-string">"$time [$level] $metadata $message\n"</span>,
@@ -10502,15 +9854,15 @@ config <span class="org-elixir-atom">:elixir</span>, <span class="org-elixir-ato
 <span class="org-comment-delimiter"># </span><span class="org-comment">This imports config/test.exs when we run unit tests. Otherwise that</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">configuration (used during "mix test", called by "make test") is not used.</span>
 import_config <span class="org-string">"</span><span class="org-variable-name">#{config_env()}</span><span class="org-string">.exs"</span>
-</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-60"><span class="org-comment-delimiter"># </span><span class="org-comment">Stub.</span>
-</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-61"><span class="org-keyword">import</span> <span class="org-type">Config</span>
+</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-53"><span class="org-comment-delimiter"># </span><span class="org-comment">Stub.</span>
+</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-54"><span class="org-keyword">import</span> <span class="org-type">Config</span>
 
 config <span class="org-elixir-atom">:logger</span>,
   <span class="org-elixir-atom">backends:</span> [<span class="org-elixir-atom">:console</span>],
   <span class="org-elixir-atom">compile_time_purge_matching:</span> [
     [<span class="org-elixir-atom">level_lower_than:</span> <span class="org-elixir-atom">:info</span>]
   ]
-</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-62"><span class="org-keyword">import</span> <span class="org-type">Config</span>
+</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-55"><span class="org-keyword">import</span> <span class="org-type">Config</span>
 
 config <span class="org-elixir-atom">:melbyd</span>,
   <span class="org-elixir-atom">env:</span> config_env(),
@@ -10565,7 +9917,7 @@ both the Elixir and Rust side.
 <div id="outline-container-h-Elixir-wrapper" class="outline-5">
 <h5 id="h-Elixir-wrapper"><span class="section-number-5">6.10.2.1.</span> Elixir wrapper</h5>
 <div class="outline-text-5" id="text-h-Elixir-wrapper">
-<div class="org-src-container"><pre class="src src-elixir" id="nil-63"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Nifs</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-56"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Nifs</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">Rustler</span>,
     <span class="org-elixir-atom">otp_app:</span> <span class="org-elixir-atom">:melbyd</span>,
     <span class="org-elixir-atom">crate:</span> <span class="org-elixir-atom">:melbyd_nifs</span>,
@@ -10585,7 +9937,7 @@ both the Elixir and Rust side.
 <div id="outline-container-h-Rust-wrapper" class="outline-5">
 <h5 id="h-Rust-wrapper"><span class="section-number-5">6.10.2.2.</span> Rust wrapper</h5>
 <div class="outline-text-5" id="text-h-Rust-wrapper">
-<div class="org-src-container"><pre class="src src-rust" id="nil-64"><span class="org-keyword">pub</span> <span class="org-keyword">mod</span> <span class="org-constant">color</span>;
+<div class="org-src-container"><pre class="src src-rust" id="nil-57"><span class="org-keyword">pub</span> <span class="org-keyword">mod</span> <span class="org-constant">color</span>;
 <span class="org-keyword">pub</span> <span class="org-keyword">mod</span> <span class="org-constant">path_shorten</span>;
 
 <span class="org-constant">rustler</span>::<span class="org-preprocessor">init!</span>(
@@ -10599,15 +9951,15 @@ both the Elixir and Rust side.
 </div>
 </div>
 
-<div id="outline-container-h-Boilerplate-4" class="outline-5">
-<h5 id="h-Boilerplate-4"><span class="section-number-5">6.10.2.3.</span> Boilerplate</h5>
-<div class="outline-text-5" id="text-h-Boilerplate-4">
+<div id="outline-container-h-Boilerplate-3" class="outline-5">
+<h5 id="h-Boilerplate-3"><span class="section-number-5">6.10.2.3.</span> Boilerplate</h5>
+<div class="outline-text-5" id="text-h-Boilerplate-3">
 </div>
 
 <div id="outline-container-h-Makefile-4" class="outline-6">
 <h6 id="h-Makefile-4"><span class="section-number-6">6.10.2.3.1.</span> Makefile</h6>
 <div class="outline-text-6" id="text-h-Makefile-4">
-<div class="org-src-container"><pre class="src src-makefile" id="nil-65"><span class="org-makefile-targets">test</span>:
+<div class="org-src-container"><pre class="src src-makefile" id="nil-58"><span class="org-makefile-targets">test</span>:
     cargo test
 </pre></div>
 </div>
@@ -10616,7 +9968,7 @@ both the Elixir and Rust side.
 <div id="outline-container-h-Cargo" class="outline-6">
 <h6 id="h-Cargo"><span class="section-number-6">6.10.2.3.2.</span> Cargo</h6>
 <div class="outline-text-6" id="text-h-Cargo">
-<div class="org-src-container"><pre class="src src-makefile" id="nil-66">[package]
+<div class="org-src-container"><pre class="src src-makefile" id="nil-59">[package]
 <span class="org-variable-name">name</span> = <span class="org-string">"melbyd_nifs"</span>
 <span class="org-variable-name">version</span> = <span class="org-string">"0.1.0"</span>
 <span class="org-variable-name">authors</span> = []
@@ -10645,7 +9997,7 @@ We ignore Cargo.lock for libraries. See
 <a href="https://doc.rust-lang.org/cargo/faq.html#why-do-binaries-have-cargolock-in-version-control-but-not-libraries">https://doc.rust-lang.org/cargo/faq.html#why-do-binaries-have-cargolock-in-version-control-but-not-libraries</a>.
 </p>
 
-<div class="org-src-container"><pre class="src src-text" id="nil-67">/target
+<div class="org-src-container"><pre class="src src-text" id="nil-60">/target
 Cargo.lock
 
 .cargo
@@ -10663,7 +10015,7 @@ Cargo.lock
 <div id="outline-container-h-Set-up-GHCi-environment" class="outline-5">
 <h5 id="h-Set-up-GHCi-environment"><span class="section-number-5">6.10.3.1.</span> Set up GHCi environment</h5>
 <div class="outline-text-5" id="text-h-Set-up-GHCi-environment">
-<div class="org-src-container"><pre class="src src-text" id="nil-68">:set -XOverloadedStrings
+<div class="org-src-container"><pre class="src src-text" id="nil-61">:set -XOverloadedStrings
 </pre></div>
 </div>
 </div>
@@ -10678,7 +10030,7 @@ This probably should be in a separate file, as it requires a pretty big context
 switch.
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-69"><span class="org-comment-delimiter"># </span><span class="org-comment">Instead of printing logs, capture them. Only print them for tests that fail.</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-62"><span class="org-comment-delimiter"># </span><span class="org-comment">Instead of printing logs, capture them. Only print them for tests that fail.</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">See https://hashrocket.com/blog/posts/silence-logger-messages-in-exunit.</span>
 <span class="org-type">ExUnit</span>.start(<span class="org-elixir-atom">capture_log:</span> <span class="org-elixir-atom">true</span>)
 </pre></div>

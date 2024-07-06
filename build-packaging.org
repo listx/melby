@@ -27,12 +27,8 @@ There are several pieces of software we need to build (compile from source):
 
 1. melbyc (Haskell)
 2. melbyr (Haskell)
-3. ptu (Haskell)
-4. melbyd (Elixir)
-5. melbyd Nifs (Rust)
-
-The =ptu= binary is only used for weaving, and thus, is not required for
-packaging up Melby for end users.
+3. melbyd (Elixir)
+4. melbyd Nifs (Rust)
 
 * Development environment
 
@@ -260,11 +256,10 @@ let
   #melby-client-2 = (import melby-client-1) {};
   #melby-client-3 = pkgs.haskell.lib.addBuildTool melby-client-2 fakeGit;
   melby-renderer = hpg8107.callPackage ../daemon/lib/melbyd/renderer/melby-renderer.nix {};
-  ptu = hpg96.callPackage ../ptu.nix {};
   melby-daemon = pkgs.callPackage ../daemon/melby-daemon.nix {};
   melby-nifs = pkgs.callPackage ../daemon/lib/melbyd/nifs/melby-nifs.nix {};
 in
-  { melby-ptu = ptu;
+  {
     inherit melby-client melby-client-rust melby-renderer melby-daemon melby-nifs;
   }
 #+end_src
@@ -332,9 +327,6 @@ endef
 build:
 	nix-build build.nix --option sandbox relaxed --show-trace
 
-build-melby-ptu:
-	$(call run_build,melby-ptu)
-
 build-melby-client:
 	$(call run_build,melby-client)
 
@@ -358,7 +350,6 @@ update-nix:
 	niv update nixpkgs --branch nixos-23.11
 
 .PHONY: build
-.PHONY: build-melby-ptu
 .PHONY: build-melby-client
 .PHONY: build-melby-client-rust
 .PHONY: build-melby-renderer
@@ -375,7 +366,6 @@ update-nix:
 melby-client
 melby-client-rust
 melby-nifs
-melby-ptu
 melby-renderer
 melby-daemon
 result*

@@ -1,17 +1,3 @@
-# Copyright 2024 Linus Arver
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 PROJ_ROOT := $(shell git rev-parse --show-toplevel)
 LILAC_ROOT := $(PROJ_ROOT)/deps/elisp/lilac
 PROCS := $(shell nproc)
@@ -32,19 +18,6 @@ fresh-repl:
 	make -C $(PROJ_ROOT)/daemon repl
 
 tangle-build-tools: build-tools tangle-sources tangle-generated
-	# Prepend copyright headers.
-	#
-	# FIXME: Use something like "The Melby Authors" or something like that? See
-	# https://opensource.google/documentation/reference/releasing/authors
-	#
-	# FIXME: Before tangling, run this utility to check what copyright years
-	# were used for a file (and write this information to disk somewhere). Then
-	# after tangling (when all such copyrights are stripped), when we run
-	# "add-legal", check if the file we're prepending the copyright to has an
-	# entry in the file written to disk. If so, use the year in that entry.
-	# Otherwise, use the current year. This is so that we only use the year when
-	# the file is first "published" (came into existence).
-	./ptu add-legal $(shell git rev-parse --show-toplevel) "Linus Arver"
 	# Duplicate some files. This way we avoid symlinking, because symlinks can
 	# break when we section off parts of the codebase into separate sandboxes
 	# for building things, such as when building Haskell packages.
@@ -56,7 +29,6 @@ tangle-build-tools: build-tools tangle-sources tangle-generated
 
 # Same as tangle-build-tools, but does not rebuild build tools (ptu).
 do-tangle: tangle-sources tangle-generated
-	./ptu add-legal $(shell git rev-parse --show-toplevel) "Linus Arver"
 	cp -f LICENSE client/LICENSE
 	cp -f melby_client.proto client/lib/MelbyClient/melby_client.proto
 	cp -f melby_client.proto client-rust/proto/melby_client.proto
@@ -133,29 +105,6 @@ user-manual-org: build-literate-org
 .PHONY: view-org
 .PHONY: user-manual-org
 .PHONY: image-org
-
-build-tools: ptu
-
-# FIXME: NOTE: This stack invocation is for environments without Nix. But also,
-# it's useful during development because invoking stack directly like this
-# results in populating the build cache. In our (FIXME: link to build-melby-ptu
-# rule), when we invoke that we don't get any caching.
-UNAME := $(shell uname)
-C_INCLUDE_PATH := ""
-ifeq ($(UNAME), Darwin)
-	# The `xcrun...` stuff here is from
-	# https://gitlab.haskell.org/ghc/ghc/-/issues/20592#note_391266.
-	C_INCLUDE_PATH := C_INCLUDE_PATH=$(shell xcrun --show-sdk-path)/usr/include/ffi
-endif
-ptu: ptu.cabal ptu.hs stack.yaml lib/PostTangleUtil/GitVersion.hs
-	$(C_INCLUDE_PATH) \
-	PROJECT_GIT_ROOT=$(PWD) stack build \
-		--copy-bins \
-		--local-bin-path $(PWD) \
-		--no-nix-pure \
-		--extra-lib-dirs=$(ZLIB_SO_DIR:-L%=%) \
-		--extra-include-dirs=$(ZLIB_H_DIR:-I%=%)
-.PHONY: ptu
 
 weave: build-html build-images
 
