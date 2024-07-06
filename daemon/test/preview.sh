@@ -4,8 +4,8 @@ set -euo pipefail
 SCRIPT_ROOT="$(dirname "$(realpath "$0")")"
 
 export HOST="somehost"
-export MELBY_ZSH_KEYMAP_INDICATOR="${1}"
-export MELBY_LAST_CMD_EXIT_STATUS="${2}"
+export MELBY_ZSH_KEYMAP_INDICATOR="${1:-I}"
+export MELBY_LAST_CMD_EXIT_STATUS="${2:-127}"
 export MELBY_PATH_ALIASES_FILE="${SCRIPT_ROOT}/sample/path-aliases"
 export MELBY_WANT_KUBECTL_ERROR
 MELBY_DIR="${SCRIPT_ROOT}/sample"
@@ -28,24 +28,12 @@ get_view()
 	"${MELBYC_PATH}" \
         --melbyd-port "${MELBYD_PORT}" \
         view "${SCRIPT_ROOT}/sample/melby.lua" \
-        --shell-pid "${3}"
+        --shell-pid "${3:-0}"
 }
 
 main()
 {
-	if (( $# != 3 )); then
-		usage
-		return 1
-	fi
-
-	source <(get_view "$@")
-
-	echo "GOT MELBY_PS1_LINE1: $MELBY_PS1_LINE1"
-	echo "GOT MELBY_PS1_LINE2: $MELBY_PS1_LINE2"
-
-	for m in "${MELBY_SHELL_MESSAGES[@]}"; do
-		echo -e "GOT MESSAGE: ${m}"
-	done
+	get_view "$@"
 }
 
 main "$@"

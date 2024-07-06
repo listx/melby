@@ -2562,8 +2562,8 @@ the <code>main()</code> function.
 <span class="org-variable-name">SCRIPT_ROOT</span>=<span class="org-string">"$(</span><span class="org-sh-quoted-exec">dirname "$(realpath "$0"</span><span class="org-string">)")"</span>
 
 <span class="org-builtin">export</span> <span class="org-variable-name">HOST</span>=<span class="org-string">"somehost"</span>
-<span class="org-builtin">export</span> <span class="org-variable-name">MELBY_ZSH_KEYMAP_INDICATOR</span>=<span class="org-string">"${1}"</span>
-<span class="org-builtin">export</span> <span class="org-variable-name">MELBY_LAST_CMD_EXIT_STATUS</span>=<span class="org-string">"${2}"</span>
+<span class="org-builtin">export</span> <span class="org-variable-name">MELBY_ZSH_KEYMAP_INDICATOR</span>=<span class="org-string">"${1:-I}"</span>
+<span class="org-builtin">export</span> <span class="org-variable-name">MELBY_LAST_CMD_EXIT_STATUS</span>=<span class="org-string">"${2:-127}"</span>
 <span class="org-builtin">export</span> <span class="org-variable-name">MELBY_PATH_ALIASES_FILE</span>=<span class="org-string">"${SCRIPT_ROOT}/sample/path-aliases"</span>
 <span class="org-builtin">export</span> MELBY_WANT_KUBECTL_ERROR
 <span class="org-variable-name">MELBY_DIR</span>=<span class="org-string">"${SCRIPT_ROOT}/sample"</span>
@@ -2586,24 +2586,12 @@ the <code>main()</code> function.
     <span class="org-string">"${MELBYC_PATH}"</span> <span class="org-sh-escaped-newline">\</span>
         --melbyd-port <span class="org-string">"${MELBYD_PORT}"</span> <span class="org-sh-escaped-newline">\</span>
         view <span class="org-string">"${SCRIPT_ROOT}/sample/melby.lua"</span> <span class="org-sh-escaped-newline">\</span>
-        --shell-pid <span class="org-string">"${3}"</span>
+        --shell-pid <span class="org-string">"${3:-0}"</span>
 }
 
 <span class="org-function-name">main</span>()
 {
-    <span class="org-keyword">if</span> (( $<span class="org-variable-name">#</span> != 3 )); <span class="org-keyword">then</span>
-        usage
-        <span class="org-keyword">return</span> 1
-    <span class="org-keyword">fi</span>
-
-    <span class="org-builtin">source</span> &lt;(get_view <span class="org-string">"$@"</span>)
-
-    <span class="org-builtin">echo</span> <span class="org-string">"GOT MELBY_PS1_LINE1: $MELBY_PS1_LINE1"</span>
-    <span class="org-builtin">echo</span> <span class="org-string">"GOT MELBY_PS1_LINE2: $MELBY_PS1_LINE2"</span>
-
-    <span class="org-keyword">for</span> m<span class="org-keyword"> in</span> <span class="org-string">"${MELBY_SHELL_MESSAGES[@]}"</span>; <span class="org-keyword">do</span>
-        <span class="org-builtin">echo</span> -e <span class="org-string">"GOT MESSAGE: ${m}"</span>
-    <span class="org-keyword">done</span>
+    get_view <span class="org-string">"$@"</span>
 }
 
 main <span class="org-string">"$@"</span>
