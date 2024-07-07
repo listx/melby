@@ -600,6 +600,10 @@ defmodule Melbyd.LuaSdk do
 
   @newlines ["\n", "\r", "\r\n", "\n\r"]
 
+  def get_melbyr_addr() do
+    "localhost:#{Application.get_env(:melbyd, :melbyr_port)}"
+  end
+
   def_lua_func render([widgets_list_ref, delimiter_ref], st0) do
     delimiter_tuples = Luerl.decode(st0, delimiter_ref)
     delimiter = widget_from_tuples(delimiter_tuples)
@@ -619,8 +623,8 @@ defmodule Melbyd.LuaSdk do
     req = Map.put(req, :render_options, render_options)
   
     # Call out to melbyr over gRPC.
-    with {:ok, channel} <-
-           GRPC.Stub.connect("localhost:#{Application.get_env(:melbyd, :melbyr_port)}"),
+    addr = get_melbyr_addr()
+    with {:ok, channel} <- GRPC.Stub.connect(addr),
          {:ok, reply} <- MelbyRenderer.Renderer.Stub.render_widgets(channel, req, timeout: 200) do
       GRPC.Stub.disconnect(channel)
       {:ok, reply.widgets_rendered, st0}
@@ -763,25 +767,17 @@ defmodule Melbyd.LuaSdk do
     req = Map.put(req, :path_aliases_raw, path_aliases_raw)
   
     # Call out to melbyr over gRPC.
-    case GRPC.Stub.connect("localhost:#{Application.get_env(:melbyd, :melbyr_port)}") do
-      {:ok, channel} ->
-        res = channel |> MelbyRenderer.Renderer.Stub.parse_path_aliases(req, timeout: 200)
-        GRPC.Stub.disconnect(channel)
-  
-        case res do
-          {:ok, reply} ->
-            if reply.status == :PARSE_STATUS_ERROR do
-              Logger.warning("parse failed: #{inspect(reply.error)}")
-            end
-  
-            {:ok, reply.path_aliases, st0}
-  
-          err ->
-            raise "could not parse response from melbyr: #{inspect(err)}"
-        end
-  
-      err ->
-        raise "could not connect to melbyr: #{inspect(err)}"
+    addr = get_melbyr_addr()
+    with {:ok, channel} <- GRPC.Stub.connect(addr),
+         {:ok, reply} <- MelbyRenderer.Renderer.Stub.parse_path_aliases(
+           channel, req, timeout: 200) do
+      GRPC.Stub.disconnect(channel)
+      if reply.status == :PARSE_STATUS_ERROR do
+        Logger.warning("parse failed: #{inspect(reply.error)}")
+      end
+      {:ok, reply.path_aliases, st0}
+    else
+      err -> raise "failed to successfully call melbyr: #{inspect(err)}"
     end
   end
   def_lua_func get_colorized_sha([sha, sha_length, pad_left, pad_right], st0) do
@@ -796,7 +792,8 @@ defmodule Melbyd.LuaSdk do
   
     Logger.debug("elixir req was: #{inspect(req)}")
   
-    with {:ok, channel} <- GRPC.Stub.connect("localhost:#{Application.get_env(:melbyd, :melbyr_port)}"),
+    addr = get_melbyr_addr()
+    with {:ok, channel} <- GRPC.Stub.connect(addr),
          {:ok, reply} <- channel |> MelbyRenderer.Renderer.Stub.get_colorized_git_sha(req, timeout: 200) do
       GRPC.Stub.disconnect(channel)
       {:ok, reply.sha_colorized, st0}

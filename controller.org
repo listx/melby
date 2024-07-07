@@ -1012,25 +1012,16 @@ def get_path_aliases_helper(path_aliases_raw, st0) do
 
   # Call out to melbyr over gRPC.
   addr = get_melbyr_addr()
-  case GRPC.Stub.connect(addr) do
-    {:ok, channel} ->
-      res = channel |> MelbyRenderer.Renderer.Stub.parse_path_aliases(req, timeout: 200)
-      GRPC.Stub.disconnect(channel)
-
-      case res do
-        {:ok, reply} ->
-          if reply.status == :PARSE_STATUS_ERROR do
-            Logger.warning("parse failed: #{inspect(reply.error)}")
-          end
-
-          {:ok, reply.path_aliases, st0}
-
-        err ->
-          raise "could not parse response from melbyr: #{inspect(err)}"
-      end
-
-    err ->
-      raise "could not connect to melbyr: #{inspect(err)}"
+  with {:ok, channel} <- GRPC.Stub.connect(addr),
+       {:ok, reply} <- MelbyRenderer.Renderer.Stub.parse_path_aliases(
+         channel, req, timeout: 200) do
+    GRPC.Stub.disconnect(channel)
+    if reply.status == :PARSE_STATUS_ERROR do
+      Logger.warning("parse failed: #{inspect(reply.error)}")
+    end
+    {:ok, reply.path_aliases, st0}
+  else
+    err -> raise "failed to successfully call melbyr: #{inspect(err)}"
   end
 end
 #+end_src
