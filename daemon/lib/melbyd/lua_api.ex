@@ -624,7 +624,7 @@ defmodule Melbyd.LuaSdk do
   
     # Call out to melbyr over gRPC.
     addr = get_melbyr_addr()
-    with {:ok, channel} <- GRPC.Stub.connect(addr),
+    with {:ok, channel} <- GRPC.Stub.connect(addr, adapter_opts: [retry_timeout: 5]),
          {:ok, reply} <- MelbyRenderer.Renderer.Stub.render_widgets(channel, req, timeout: 200) do
       GRPC.Stub.disconnect(channel)
       {:ok, reply.widgets_rendered, st0}
@@ -768,7 +768,7 @@ defmodule Melbyd.LuaSdk do
   
     # Call out to melbyr over gRPC.
     addr = get_melbyr_addr()
-    with {:ok, channel} <- GRPC.Stub.connect(addr),
+    with {:ok, channel} <- GRPC.Stub.connect(addr, adapter_opts: [retry_timeout: 5]),
          {:ok, reply} <- MelbyRenderer.Renderer.Stub.parse_path_aliases(
            channel, req, timeout: 200) do
       GRPC.Stub.disconnect(channel)
@@ -793,7 +793,7 @@ defmodule Melbyd.LuaSdk do
     Logger.debug("elixir req was: #{inspect(req)}")
   
     addr = get_melbyr_addr()
-    with {:ok, channel} <- GRPC.Stub.connect(addr),
+    with {:ok, channel} <- GRPC.Stub.connect(addr, adapter_opts: [retry_timeout: 5]),
          {:ok, reply} <- channel |> MelbyRenderer.Renderer.Stub.get_colorized_git_sha(req, timeout: 200) do
       GRPC.Stub.disconnect(channel)
       {:ok, reply.sha_colorized, st0}

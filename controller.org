@@ -862,7 +862,7 @@ def_lua_func render([widgets_list_ref, delimiter_ref], st0) do
 
   # Call out to melbyr over gRPC.
   addr = get_melbyr_addr()
-  with {:ok, channel} <- GRPC.Stub.connect(addr),
+  with {:ok, channel} <- GRPC.Stub.connect(addr, adapter_opts: [retry_timeout: 5]),
        {:ok, reply} <- MelbyRenderer.Renderer.Stub.render_widgets(channel, req, timeout: 200) do
     GRPC.Stub.disconnect(channel)
     {:ok, reply.widgets_rendered, st0}
@@ -1012,7 +1012,7 @@ def get_path_aliases_helper(path_aliases_raw, st0) do
 
   # Call out to melbyr over gRPC.
   addr = get_melbyr_addr()
-  with {:ok, channel} <- GRPC.Stub.connect(addr),
+  with {:ok, channel} <- GRPC.Stub.connect(addr, adapter_opts: [retry_timeout: 5]),
        {:ok, reply} <- MelbyRenderer.Renderer.Stub.parse_path_aliases(
          channel, req, timeout: 200) do
     GRPC.Stub.disconnect(channel)
@@ -1043,7 +1043,7 @@ def_lua_func get_colorized_sha([sha, sha_length, pad_left, pad_right], st0) do
   Logger.debug("elixir req was: #{inspect(req)}")
 
   addr = get_melbyr_addr()
-  with {:ok, channel} <- GRPC.Stub.connect(addr),
+  with {:ok, channel} <- GRPC.Stub.connect(addr, adapter_opts: [retry_timeout: 5]),
        {:ok, reply} <- channel |> MelbyRenderer.Renderer.Stub.get_colorized_git_sha(req, timeout: 200) do
     GRPC.Stub.disconnect(channel)
     {:ok, reply.sha_colorized, st0}
