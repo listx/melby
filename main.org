@@ -38,7 +38,8 @@ Also see https://orgmode.org/manual/Comment-Lines.html.
 * Introduction
 
 #+begin_sidenote
-The name /melby/ comes from "물", a Korean word meaning "water".
+The name /melby/ comes from /Melbourne/, the capital city of the state of
+Victoria, Australia.
 #+end_sidenote
 
 Melby is a configurable *shell prompt generation system*. Typically, users
