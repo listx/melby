@@ -114,17 +114,9 @@ of the underlying system, and finally end with a look at the "View" to
 understand how this component arranges the final output for consumption by the
 client.
 
-* Controller
+* Internals
 
-#+include: "controller.org" :lines "16-"
-
-* Model
-
-#+include: "model.org" :lines "16-"
-
-* View
-
-#+include: "view.org" :lines "16-"
+#+include: "internals.org" :lines "16-"
 
 * Installation
 

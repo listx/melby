@@ -65,9 +65,7 @@ build-literate-org:
 tangle-sources: client-org \
 		client-rust-org \
 		daemon-org \
-		controller-org \
-		model-org \
-		view-org \
+		internals-org \
 		user-manual-org \
 		image-org \
 		build-packaging-org
@@ -85,12 +83,8 @@ client-rust-org: build-literate-org
 	$(call run_emacs,(org-babel-tangle),client-rust.org)
 daemon-org: build-literate-org
 	$(call run_emacs,(org-babel-tangle),daemon.org)
-controller-org: build-literate-org
-	$(call run_emacs,(org-babel-tangle),controller.org)
-model-org: build-literate-org
-	$(call run_emacs,(org-babel-tangle),model.org)
-view-org: build-literate-org
-	$(call run_emacs,(org-babel-tangle),view.org)
+internals-org: build-literate-org
+	$(call run_emacs,(org-babel-tangle),internals.org)
 user-manual-org: build-literate-org
 	$(call run_emacs,(org-babel-tangle),user-manual.org)
 
@@ -100,9 +94,7 @@ user-manual-org: build-literate-org
 .PHONY: client-org
 .PHONY: client-rust-org
 .PHONY: daemon-org
-.PHONY: controller-org
-.PHONY: model-org
-.PHONY: view-org
+.PHONY: internals-org
 .PHONY: user-manual-org
 .PHONY: image-org
 
@@ -131,7 +123,7 @@ main.html: developer-manual.html image.html main.org
 	#$(call run_emacs,(lilac-gen-css-and-exit),main.org)
 	$(call run_emacs,(lilac-publish),main.org)
 
-developer-manual.html: developer-manual.org daemon.org model.org view.org controller.org build-literate.org build-packaging.org
+developer-manual.html: developer-manual.org daemon.org internals.org build-literate.org build-packaging.org
 	$(call run_emacs,(lilac-publish),developer-manual.org)
 
 user-manual.html: user-manual.org developer-manual.html
