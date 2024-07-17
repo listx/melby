@@ -37,7 +37,7 @@ getView conn configPath' config' shell_pid' = do
   response <- conn ^. fromLabel @"GetView" $ req
   let term = case response of
         GRpcOk a -> Right a
-        x -> Left $ T.pack ("unrecognized server response: " <> (show x))
+        x -> Left $ T.pack ("unrecognized daemon response: " <> (show x))
   case term of
     Left err -> do
       T.hPutStrLn stderr err
@@ -102,7 +102,7 @@ viewOptsP
 optsHandler :: Opts -> IO ()
 optsHandler (Opts subcommand' oMelbydPort') = do
   -- FIXME: configure the domain and port to be configurable through TOML or
-  -- yaml in a shared location with the server. The server should configure its
+  -- yaml in a shared location with the daemon. The daemon should configure its
   -- port with it. The precedence of settings (where later mechanisms override
   -- earlier ones) is: (1) the configuration file (in TOML) converted to a
   -- native Haskell type (with sane defaults) with tomland
@@ -126,7 +126,7 @@ main = do
     <*> versionOption
     <*> optionsP
   infoMod = fullDesc
-    <> header "melbyc - CLI for interacting with the melby server (melbyd)"
+    <> header "melbyc - CLI for interacting with the melby daemon (melbyd)"
   versionOption = infoOption
     (concat [showVersion version, "-g", $(gitVersion)])
     (long "version" <> short 'v' <> help "Show version")

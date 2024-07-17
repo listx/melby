@@ -8,7 +8,7 @@ service View {
 }
 
 message ViewRequest {
-  // Path to Lua configuration. Delegates reading the config to the server.
+  // Path to Lua configuration. Delegates reading the config to the daemon.
   string config_path = 1;
 
   // Lua configuration that is given directly. Currently unusued by the daemon.

@@ -214,7 +214,7 @@ async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
     let mut client = ViewClient::connect(url).await?;
 
     // FIXME: Instead of slurping up everything, only slurp up
-    // an "allowlist" of known ENV vars we want to feed into the server. This
+    // an "allowlist" of known ENV vars we want to feed into the daemon. This
     // allowlist could be defined in settings.yml or even as an additive list of
     // flags. We could do the additive list of flags first and then move to
     // settings.yml in the future if there are just too many flags.

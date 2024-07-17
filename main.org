@@ -116,7 +116,15 @@ to Melby" in the Developer Manual]].
 
 Melby uses a client/server architecture. There are two main parts:
 
-1. =melbyd=: The server, which itself is composed of two smaller pieces:
+#+begin_sidenote
+=melbyd= is the daemon, which acts as a server in the client/server
+architecture. We call it a daemon because it is expected to have direct access
+to the local machine which is relevant to the client. This is unlike typical web
+servers where the local machine characteristics of such servers are irrelevant
+to clients.
+#+end_sidenote
+
+1. =melbyd=: The daemon (server), which itself is composed of two smaller pieces:
    a. The controller written in Elixir and Rust.
    b. The viewer written in Haskell. This is a separate server in its own right
       (a microservice).
@@ -127,7 +135,7 @@ You may notice that the two parts of =melbyd= are the controller and viewer.
 These parts are named this way to refer to the common [[https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller][Model-View-Controller]]
 (MVC) pattern. One unusual deviation from the MVC pattern is that the client is
 fully responsible for sending in the "template" for the view, as well as asking
-the server what kind of data (Model) it would like to work with. The client does
+the daemon what kind of data (Model) it would like to work with. The client does
 this by sending in a Lua script.
 
 So the entire flow is:

@@ -338,7 +338,7 @@
 <li><a href="#h-Architectural-overview">5.2. Architectural overview</a></li>
 <li><a href="#h-Design-by-contract">5.3. Design by contract</a>
 <ul>
-<li><a href="#h-Talking-to-the-server">5.3.1. Talking to the server</a>
+<li><a href="#h-Talking-to-the-daemon">5.3.1. Talking to the daemon</a>
 <ul>
 <li><a href="#h-Lua-1">5.3.1.1. Lua</a></li>
 <li><a href="#h-Proto">5.3.1.2. Proto</a></li>
@@ -1597,7 +1597,7 @@ see how it all works.
 <div class="outline-text-3" id="text-h-Purpose">
 <p>
 <code>melby-client</code> is a client for Melby. It allows users to interact with melby (the
-server).
+daemon).
 </p>
 </div>
 </div>
@@ -1619,8 +1619,8 @@ We would like our client to observe the following behaviors.
 </p>
 
 <ol class="org-ol">
-<li>Allow users to talk to the server.</li>
-<li>Run very quickly (the synchronous call to the server should finish in under
+<li>Allow users to talk to the daemon.</li>
+<li>Run very quickly (the synchronous call to the daemon should finish in under
 500 milliseconds).</li>
 <li>Have basic command-line argument handling.</li>
 </ol>
@@ -1631,9 +1631,9 @@ about. We look at each of these requirements below.
 </p>
 </div>
 
-<div id="outline-container-h-Talking-to-the-server" class="outline-4">
-<h4 id="h-Talking-to-the-server"><span class="section-number-4">5.3.1.</span> Talking to the server</h4>
-<div class="outline-text-4" id="text-h-Talking-to-the-server">
+<div id="outline-container-h-Talking-to-the-daemon" class="outline-4">
+<h4 id="h-Talking-to-the-daemon"><span class="section-number-4">5.3.1.</span> Talking to the daemon</h4>
+<div class="outline-text-4" id="text-h-Talking-to-the-daemon">
 <p>
 We talk to melbyd using gRPC. This is rather straightforward as it just involves
 a single unary (that is, non-streaming) gRPC call.
@@ -1658,13 +1658,13 @@ customizes the pieces themselves). To this
 <div class="outline-text-5" id="text-h-Proto">
 <p>
 For concreteness, this is the actual protobuf file we use to define melbyc's
-behavior when it talks to the server.
+behavior when it talks to the daemon.
 </p>
 
 <p>
 This is the protobuf definition that we need to generate the Haskell client
-stub. We also use it to generate the Elixir server stubs. FIXME: add link to
-where it's used in Elixir.
+stub. We also use it to generate the Elixir server stubs (used by the daemon).
+FIXME: add link to where it's used in Elixir.
 </p>
 
 <div class="org-src-container"><pre class="src src-protobuf" id="nil-3">syntax = <span class="org-string">"proto3"</span>;
@@ -1677,7 +1677,7 @@ where it's used in Elixir.
 }
 
 <span class="org-keyword">message</span> <span class="org-type">ViewRequest</span> {
-  <span class="org-comment-delimiter">// </span><span class="org-comment">Path to Lua configuration. Delegates reading the config to the server.</span>
+  <span class="org-comment-delimiter">// </span><span class="org-comment">Path to Lua configuration. Delegates reading the config to the daemon.</span>
   <span class="org-type">string</span> <span class="org-variable-name">config_path</span> = 1;
 
   <span class="org-comment-delimiter">// </span><span class="org-comment">Lua configuration that is given directly. Currently unusued by the daemon.</span>
@@ -1727,7 +1727,7 @@ without waiting for any of its internal calculations to finish.
 </p>
 
 <p>
-Because this is a server-side concern, there isn't much for us to do here.
+Because this is a daemon-side concern, there isn't much for us to do here.
 </p>
 </div>
 </div>
@@ -1845,7 +1845,7 @@ Lastly we need to render the view to the user from the response.
 
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__melbyc_getView">melbyc_getView_handle_payload</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyc_getView_handle_payload">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyc_getView_handle_payload"><span class="org-haskell-keyword">let</span> term <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">case</span> response <span class="org-haskell-keyword">of</span>
       <span class="org-haskell-constructor">GRpcOk</span> a <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-constructor">Right</span> a
-      x <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-constructor">Left</span> <span class="org-haskell-operator">$</span> T.pack (<span class="org-string">"unrecognized server response: "</span> <span class="org-haskell-operator">&lt;&gt;</span> (show x))
+      x <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-constructor">Left</span> <span class="org-haskell-operator">$</span> T.pack (<span class="org-string">"unrecognized daemon response: "</span> <span class="org-haskell-operator">&lt;&gt;</span> (show x))
 <span class="org-haskell-keyword">case</span> term <span class="org-haskell-keyword">of</span>
   <span class="org-haskell-constructor">Left</span> err <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-keyword">do</span>
     T.hPutStrLn stderr err
@@ -1949,7 +1949,7 @@ successful parse of command line arguments) to the business logic.
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__melbyc_option_handling">melbyc_option_handling_dispatcher</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyc_option_handling_dispatcher">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyc_option_handling_dispatcher"><span class="org-haskell-definition">optsHandler</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">Opts</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">IO</span> <span class="org-haskell-constructor">()</span>
 <span class="org-haskell-definition">optsHandler</span> (<span class="org-haskell-constructor">Opts</span> subcommand' oMelbydPort') <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">do</span>
   <span class="org-comment-delimiter">-- </span><span class="org-comment">FIXME: configure the domain and port to be configurable through TOML or</span>
-  <span class="org-comment-delimiter">-- </span><span class="org-comment">yaml in a shared location with the server. The server should configure its</span>
+  <span class="org-comment-delimiter">-- </span><span class="org-comment">yaml in a shared location with the daemon. The daemon should configure its</span>
   <span class="org-comment-delimiter">-- </span><span class="org-comment">port with it. The precedence of settings (where later mechanisms override</span>
   <span class="org-comment-delimiter">-- </span><span class="org-comment">earlier ones) is: (1) the configuration file (in TOML) converted to a</span>
   <span class="org-comment-delimiter">-- </span><span class="org-comment">native Haskell type (with sane defaults) with tomland</span>
@@ -1980,7 +1980,7 @@ successful parse of command line arguments) to the business logic.
     <span class="org-haskell-operator">&lt;*&gt;</span> versionOption
     <span class="org-haskell-operator">&lt;*&gt;</span> optionsP
   infoMod <span class="org-haskell-operator">=</span> fullDesc
-    <span class="org-haskell-operator">&lt;&gt;</span> header <span class="org-string">"melbyc - CLI for interacting with the melby server (melbyd)"</span>
+    <span class="org-haskell-operator">&lt;&gt;</span> header <span class="org-string">"melbyc - CLI for interacting with the melby daemon (melbyd)"</span>
   <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_gitVersion">melbyc_gitVersion</a></span>
 </pre></div></div>
 </div>
@@ -2625,7 +2625,7 @@ View the output of running the Lua configuration inside melbyd.
     <span class="org-keyword">let</span> <span class="org-keyword">mut</span> <span class="org-variable-name">client</span> = <span class="org-type">ViewClient</span>::connect(url).<span class="org-keyword">await</span><span class="org-rust-question-mark">?</span>;
 
     <span class="org-comment-delimiter">// </span><span class="org-comment">FIXME: Instead of slurping up everything, only slurp up</span>
-    <span class="org-comment-delimiter">// </span><span class="org-comment">an "allowlist" of known ENV vars we want to feed into the server. This</span>
+    <span class="org-comment-delimiter">// </span><span class="org-comment">an "allowlist" of known ENV vars we want to feed into the daemon. This</span>
     <span class="org-comment-delimiter">// </span><span class="org-comment">allowlist could be defined in settings.yml or even as an additive list of</span>
     <span class="org-comment-delimiter">// </span><span class="org-comment">flags. We could do the additive list of flags first and then move to</span>
     <span class="org-comment-delimiter">// </span><span class="org-comment">settings.yml in the future if there are just too many flags.</span>
@@ -7720,7 +7720,7 @@ without waiting for any of its internal calculations to finish.
 </p>
 
 <p>
-Because this is a server-side concern, there isn't much for us to do here.
+Because this is a daemon-side concern, there isn't much for us to do here.
 </p>
 </div>
 </div>

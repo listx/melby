@@ -4686,7 +4686,7 @@ delay with the =TMOUT= variable).
 The basic way we ensure this is that we make melbyd return whatever it has
 without waiting for any of its internal calculations to finish.
 
-Because this is a server-side concern, there isn't much for us to do here.
+Because this is a daemon-side concern, there isn't much for us to do here.
 
 ** Command line argument handling
 

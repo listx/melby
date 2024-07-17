@@ -18,7 +18,7 @@
 * Purpose
 
 =melby-client= is a client for Melby. It allows users to interact with melby (the
-server).
+daemon).
 
 * Architectural overview
 
@@ -28,15 +28,15 @@ server).
 
 We would like our client to observe the following behaviors.
 
-1. Allow users to talk to the server.
-2. Run very quickly (the synchronous call to the server should finish in under
+1. Allow users to talk to the daemon.
+2. Run very quickly (the synchronous call to the daemon should finish in under
    500 milliseconds).
 3. Have basic command-line argument handling.
 
 These points are the main things (or problems) that our program has to worry
 about. We look at each of these requirements below.
 
-** Talking to the server
+** Talking to the daemon
 
 We talk to melbyd using gRPC. This is rather straightforward as it just involves
 a single unary (that is, non-streaming) gRPC call.
@@ -52,11 +52,11 @@ customizes the pieces themselves). To this
 *** Proto
 
 For concreteness, this is the actual protobuf file we use to define melbyc's
-behavior when it talks to the server.
+behavior when it talks to the daemon.
 
 This is the protobuf definition that we need to generate the Haskell client
-stub. We also use it to generate the Elixir server stubs. FIXME: add link to
-where it's used in Elixir.
+stub. We also use it to generate the Elixir server stubs (used by the daemon).
+FIXME: add link to where it's used in Elixir.
 
 #+name: melbyproto_melby_client
 #+begin_src protobuf :tangle melby_client.proto
@@ -70,7 +70,7 @@ service View {
 }
 
 message ViewRequest {
-  // Path to Lua configuration. Delegates reading the config to the server.
+  // Path to Lua configuration. Delegates reading the config to the daemon.
   string config_path = 1;
 
   // Lua configuration that is given directly. Currently unusued by the daemon.
@@ -111,7 +111,7 @@ delay with the =TMOUT= variable).
 The basic way we ensure this is that we make melbyd return whatever it has
 without waiting for any of its internal calculations to finish.
 
-Because this is a server-side concern, there isn't much for us to do here.
+Because this is a daemon-side concern, there isn't much for us to do here.
 
 ** Command line argument handling
 
@@ -214,7 +214,7 @@ Lastly we need to render the view to the user from the response.
 #+begin_src haskell
 let term = case response of
       GRpcOk a -> Right a
-      x -> Left $ T.pack ("unrecognized server response: " <> (show x))
+      x -> Left $ T.pack ("unrecognized daemon response: " <> (show x))
 case term of
   Left err -> do
     T.hPutStrLn stderr err
@@ -323,7 +323,7 @@ successful parse of command line arguments) to the business logic.
 optsHandler :: Opts -> IO ()
 optsHandler (Opts subcommand' oMelbydPort') = do
   -- FIXME: configure the domain and port to be configurable through TOML or
-  -- yaml in a shared location with the server. The server should configure its
+  -- yaml in a shared location with the daemon. The daemon should configure its
   -- port with it. The precedence of settings (where later mechanisms override
   -- earlier ones) is: (1) the configuration file (in TOML) converted to a
   -- native Haskell type (with sane defaults) with tomland
@@ -353,7 +353,7 @@ main = do
     <*> versionOption
     <*> optionsP
   infoMod = fullDesc
-    <> header "melbyc - CLI for interacting with the melby server (melbyd)"
+    <> header "melbyc - CLI for interacting with the melby daemon (melbyd)"
   __NREF__melbyc_gitVersion
 #+end_src
 
