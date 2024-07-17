@@ -155,6 +155,7 @@ struct Cli {
 
     /// Inline Lua config if you want to test out small(er) snippets of code
     /// directly without having to write a LUA_CONFIG_FILE on disk somewhere.
+    /// Currently ignored by the daemon.
     #[arg(short = 'r', long,
           value_name = "RAW_INLINE_LUA_CONFIG", default_value = "")]
     config_raw: String,

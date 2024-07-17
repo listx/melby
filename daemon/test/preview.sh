@@ -12,7 +12,7 @@ MELBY_DIR="${SCRIPT_ROOT}/sample"
 LUA_PATH="${SCRIPT_ROOT}/sample/?.lua"
 MELBYC_PATH="${SCRIPT_ROOT}/../../client/melbyc"
 
-# 50052 is the port used for the development environment (run_dev).
+# 50052 is the port used for the development environment (run-dev).
 MELBYD_PORT="${MELBYD_PORT:-50052}"
 
 usage()

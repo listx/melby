@@ -17,16 +17,15 @@
 
 * Purpose
 
-=melbyd= is a the daemon for Melby. It serves requests to =melbyc= (the client).
+=melbyd= is the daemon for Melby. It is written in Elixir and serves requests to
+=melbyc= (the client). The daemon is the heart of the project because it's where
+most of the interesting things happen.
 
 * Architectural overview
 
 FIXME: add diagram
 
 * Proto
-
-FIXME: we should probably break this up into smaller noweb bits (=__NREF__...=)
-and combine it into a =melbyd.proto=.
 
 #+name: =melby.proto=
 #+begin_src protobuf :tangle melby.proto
@@ -40,79 +39,40 @@ import "melby_daemon.proto";
 import "melby_renderer.proto";
 #+end_src
 
-* Design principles
+* Tech stack
 
-FIXME: this should be a couple paragrapsh max.
+The configuration language for shell prompts (the interface to using Melby for
+end users) is Lua. This Lua configuration is used to set up Luerl VMs inside
+Elixir, where one VM corresponds to one shell PID's prompt.
 
-We want melbyd to be as fault-tolerant as possible, and for this reason we use
-Elixir as the foundation. We use NIFs written in Rust for any complicated
-business logic, to help catch bugs early. In addition, we use a small functional
-core written in Haskell (which will run as a separate server) for any bits that
-are too ugly to put in a NIF.
+Elixir is the heart of the stack. There is a bit of Rust (as NIFs in Elixir), as
+well as some Haskell for the renderer (melbyr). We use gRPC for all
+communication across services.
 
-New business logic should ideally reside in Haskell or as a Rust NIF. In this
-way Elixir is only really used as a glue language to tie everything together.
+The client (melbyc) communicates with the Elixir daemon (melbyd). Currently
+there are two implementations of the client, one in Haskell and another in Rust.
+As the client is rather thin, the choice of language doesn't matter so much
+here.
 
-WRT whether to put business logic in a Rust NIF or Haskell, basically it's a
-matter of simplicity. If the task is simple, we can do it in a Rust NIF to avoid
-the extra network roundtrip to Haskell. If the task is complicated (soop...),
-then we should do it in Haskell for additional correctness guarantees. Hmm, or
-actually maybe the delineation is just: Elixir/Rust for data generation and
-Haskell for data formatting (rendering)
+* Life of a request to render a shell prompt
 
-The Haskell part is the "prism" and acts as a sort of "rendering" layer to
-present the data back to the client in a nice way. Think of it as
-"server-side-rendering". We do this because we want to make melbyc (the client)
-as thin as possible.
+Keep in mind that in order to create a request, the user must first define Lua
+configuration that describes what sort of data we want in the prompt, as well as
+how to present it (colors, padding, etc). We have sample configuration that the
+user can use in our test folder.
 
-The Lua code sent by melbyc can call into the *melbyc "prism" SDK*, which is made
-up of a set of Elixir functions (luerl) that call into Haskell (via gRPC) to do
-the actual heavy lifting.
+With that out of the way, let's look at the flow of a request:
 
-FIXME: insert diagram
-
-The goal is to let the user customize their view of data with Lua, and the SDK
-will allow things like outputting equivalent data (colorized prompt strings) in
-Zsh as well as Bash, without the user having to touch any shell code (they can
-just stay inside the SDK). This is the ultimate goal --- we want to let users
-avoid having to write bespoke shell code, which can get pretty ugly, to display
-the data in a format that they would aesthetically prefer.
-
-* Code overview
-
-FIXME: This section could act as a kind of "table of contents" of the most
-important pieces of code. Maybe group certain tangled files together and add a
-blurb about them.
-
-NOTE: melby SDK is a set of exposed Elixir functions to Lua that call various
-Elixir functions. The soop SDK is essentially a subset of the melby SDK. Maybe we
-should just drop the "soop SDK" phrase altogether.
-
-It might make sense to explain things from a "life of a request" point of view.
-Something like:
-
-1. GetView rpc called by melbyc
-2. interpret the Lua payload (which contains calls to the melby SDK), which has
-   calls to *generate data* (melbyd) and calls to *format/render* that data
-   (soop)
-3. call some functions to generate data
-4. call some functions to format that data
-5. return formatted data as a ViewResponse
-
-Conceptually, melbyd is just a system that can collect data from the computer so
-that it can be viewed by the user, with some extra code that that takes user
-(client) input and presents the user a view (based on the data from the model).
-This more or less fits into the Model-View-Controller (MVC) software
-architecture pattern. In our case, the Model is just the code that collects
-information from the host computer where melbyd is running. The View is what the
-client sees, and finally the Controller is responsible for handling user input
-(client calls) presenting them with the View.
-
-We'll look at the "Controller", and see how user requests come into melbyd. Then
-we'll look at the "Model" to understand the kinds of data we collect/parse out
-of the underlying system, and finally end with a look at the "View" to
-understand how this component arranges the final output for consumption by the
-client.
+1. GetView gRPC method called by melbyc (client): The client sends the path to
+   the main Lua configuration file on disk.
+2. Melbyd (daemon) reads the Lua configuration and interprets it. The Lua code
+   contains calls to the Melby SDK. That is, the Lua code is allowed to call
+   into melbyd (Elixir) to *generate data* (melbyd), as well as *format/render*
+   that data (ultimately through melbyr).
+3. The formatted data is returned as a ViewResponse. Currently the response is
+   just inline shell code which can be sourced directly by the shell. The inline
+   code assigns values to certain shell variables, and these shell variables are
+   meant to be combined into the user's =PS1= shell variable.
 
 * Internals
 
@@ -120,100 +80,9 @@ client.
 
 * Installation
 
-** Start script
+We use Nix for both Linux and Mac (via https://github.com/LnL7/nix-darwin).
 
-This script starts melbyd.
-
-#+begin_src shell :eval no :tangle daemon/melbyd :shebang "#!/usr/bin/env bash"
-set -euo pipefail
-
-SCRIPT_ROOT="$(dirname "$(realpath "$0")")"
-
-cd "${SCRIPT_ROOT}"
-
-# Daemonize with the "-d" flag.
-if [[ "${1:-}" == -d ]]; then
-    nix-shell --command "nohup elixir --sname melbyd \
-        --erl '-kernel inet_dist_listen_min 33001 inet_dist_listen_max 33001' \
-        -S mix run --no-halt >/dev/null & disown"
-else
-    nix-shell --command "elixir --sname melbyd \
-        --erl '-kernel inet_dist_listen_min 33001 inet_dist_listen_max 33001' \
-        -S mix run --no-halt"
-fi
-#+end_src
-
-** Platforms
-
-The stuff here should probably instead be in the User Guide (or Setup Guide).
-
-*** Mac
-
-#+begin_src shell :eval no :tangle daemon/install/launchctl.sh :shebang "#!/usr/bin/env bash"
-set -euo pipefail
-
-SCRIPT_ROOT="$(dirname "$(realpath "$0")")"
-
-pushd "${HOME}/Library/LaunchAgents"
-
-filename=com.melby.daemon.plist
-
-launchctl unload "${filename}" || true
-
-cat <<EOF > "${filename}"
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
-                "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-  <dict>
-
-    <key>Label</key>
-    <string>${filename}</string>
-
-    <key>EnvironmentVariables</key>
-    <dict>
-      <key>PATH</key>
-      <string><![CDATA[${PATH}]]></string>
-    </dict>
-
-    <key>Program</key>
-    <string>${SCRIPT_ROOT}/melbyd</string>
-
-    <key>KeepAlive</key>
-    <true/>
-
-  </dict>
-</plist>
-
-EOF
-
-launchctl load "${filename}"
-#+end_src
-
-*** Linux
-
-We use zsh from the nix profile because this way we get access to the various
-other components (erlang, etc) that are installed via nix
-
-We can use =/bin/sh= and a script. In the script we can pull in the PATH set in
-the user's default shell (there must be some way to do this).
-
-As for the Git checkout path of Melby, we can do what the "pass" utility does and
-just refer to a dotfile directory in the HOME (example: =~/.melby=).
-
-FIXME: Start using melbyd by adding melby configuration into our =~/syscfg= and
-symlinking it to =~/.melby= (new folder).
-
-FIXME: Fix unit tests (make them work again!).
-
-FIXME: Add Darwin support, by using https://github.com/LnL7/nix-darwin. It may
-be that the code needed would ideally sit outside this repo, but even then we
-should at least document how to use our =release.nix= file with that outside
-code. If we're lucky this might be as simple as invoking
-https://daiderd.com/nix-darwin/manual/index.html#opt-environment.launchAgents in
-a bare-bones nix-darwin config. We should probably do some editing of the
-launchd config file to use the nix path, just like how we mod the path for
-systemd for Linux.
+** Linux
 
 #+begin_src text :tangle daemon/install/melby.service
 [Unit]
@@ -294,9 +163,9 @@ compile-prod:
 	MIX_ENV=prod mix compile
 compile-dev:
 	MIX_ENV=dev mix compile
-run_dev: compile-dev
+run-dev: compile-dev
 	MIX_ENV=dev elixir --sname melbyd-dev -S mix run --no-compile --no-halt
-run_prod: compile-prod
+run-prod: compile-prod
 	MIX_ENV=prod elixir --sname melbyd-prod -S mix run --no-compile --no-halt
 test: fix-rustler
 	mix test
@@ -796,7 +665,6 @@ config :melbyd,
 config :tzdata, :data_dir, Path.expand("~/.melby/tzdata")
 #+end_src
 
-
 ** Rust NIFs integration
 
 In order to expose our Rust code to Elixir, we have to write some wrappers for
@@ -880,7 +748,11 @@ Cargo.lock
 
 ** Haskell (melbyr)
 
+See (FIXME: add link) for the build system for melbyr.
+
 *** Set up GHCi environment
+
+These are development defaults for interacting with GHCi.
 
 #+begin_src text :tangle daemon/lib/melbyd/renderer/.ghci
 :set -XOverloadedStrings

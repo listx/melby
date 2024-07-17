@@ -394,8 +394,8 @@
 <li><a href="#h-Purpose-1">6.1. Purpose</a></li>
 <li><a href="#h-Architectural-overview-1">6.2. Architectural overview</a></li>
 <li><a href="#h-Proto-1">6.3. Proto</a></li>
-<li><a href="#h-Design-principles">6.4. Design principles</a></li>
-<li><a href="#h-Code-overview-2">6.5. Code overview</a></li>
+<li><a href="#h-Tech-stack">6.4. Tech stack</a></li>
+<li><a href="#h-Life-of-a-request-to-render-a-shell-prompt">6.5. Life of a request to render a shell prompt</a></li>
 <li><a href="#h-Internals">6.6. Internals</a>
 <ul>
 <li><a href="#h-Standard-Resource-Server">6.6.1. Standard Resource Server</a>
@@ -489,7 +489,7 @@
 <li><a href="#h-Command-line-argument-handling-1">6.6.10.3. Command line argument handling</a></li>
 </ul>
 </li>
-<li><a href="#h-Code-overview-3">6.6.11. Code overview</a>
+<li><a href="#h-Code-overview-2">6.6.11. Code overview</a>
 <ul>
 <li><a href="#h-Overall-structure-1">6.6.11.1. Overall structure</a></li>
 </ul>
@@ -547,13 +547,7 @@
 </li>
 <li><a href="#h-Installation">6.7. Installation</a>
 <ul>
-<li><a href="#h-Start-script">6.7.1. Start script</a></li>
-<li><a href="#h-Platforms">6.7.2. Platforms</a>
-<ul>
-<li><a href="#h-Mac">6.7.2.1. Mac</a></li>
-<li><a href="#h-Linux">6.7.2.2. Linux</a></li>
-</ul>
-</li>
+<li><a href="#h-Linux">6.7.1. Linux</a></li>
 </ul>
 </li>
 <li><a href="#h-Build-system-2">6.8. Build system</a>
@@ -1530,7 +1524,7 @@ cd daemon &amp;&amp; make run_dev
 </pre>
 
 <p>
-There is also a <code>run_prod</code> rule but this won't work if you are already running a
+There is also a <code>run-prod</code> rule but this won't work if you are already running a
 packaged version of <code>melbyd</code> in your system, because they will both try to use
 the same TCP port. So in that case you have to first stop the packaged version
 you are running.
@@ -1686,8 +1680,7 @@ where it's used in Elixir.
   <span class="org-comment-delimiter">// </span><span class="org-comment">Path to Lua configuration. Delegates reading the config to the server.</span>
   <span class="org-type">string</span> <span class="org-variable-name">config_path</span> = 1;
 
-  <span class="org-comment-delimiter">// </span><span class="org-comment">Lua configuration that is given directly. Overrides config_path if not</span>
-  <span class="org-comment-delimiter">// </span><span class="org-comment">empty.</span>
+  <span class="org-comment-delimiter">// </span><span class="org-comment">Lua configuration that is given directly. Currently unusued by the daemon.</span>
   <span class="org-type">string</span> <span class="org-variable-name">config</span> = 2;
 
   <span class="org-comment-delimiter">// </span><span class="org-comment">Environment variables ((name, value) pairs) of interest.</span>
@@ -2579,6 +2572,7 @@ Global options.
 
     <span class="org-doc">/// Inline Lua config if you want to test out small(er) snippets of code</span>
     <span class="org-doc">/// directly without having to write a LUA_CONFIG_FILE on disk somewhere.</span>
+    <span class="org-doc">/// Currently ignored by the daemon.</span>
     <span class="org-preprocessor">#[arg(short = </span><span class="org-string">'r'</span><span class="org-preprocessor">, long,</span>
 <span class="org-preprocessor">          value_name = </span><span class="org-string">"RAW_INLINE_LUA_CONFIG"</span><span class="org-preprocessor">, default_value = </span><span class="org-string">""</span><span class="org-preprocessor">)]</span>
     <span class="org-variable-name">config_raw</span>: <span class="org-type">String</span>,
@@ -2706,7 +2700,9 @@ View the output of running the Lua configuration inside melbyd.
 <h3 id="h-Purpose-1"><span class="section-number-3">6.1.</span> Purpose</h3>
 <div class="outline-text-3" id="text-h-Purpose-1">
 <p>
-<code>melbyd</code> is a the daemon for Melby. It serves requests to <code>melbyc</code> (the client).
+<code>melbyd</code> is the daemon for Melby. It is written in Elixir and serves requests to
+<code>melbyc</code> (the client). The daemon is the heart of the project because it's where
+most of the interesting things happen.
 </p>
 </div>
 </div>
@@ -2723,11 +2719,6 @@ FIXME: add diagram
 <div id="outline-container-h-Proto-1" class="outline-3">
 <h3 id="h-Proto-1"><span class="section-number-3">6.3.</span> Proto</h3>
 <div class="outline-text-3" id="text-h-Proto-1">
-<p>
-FIXME: we should probably break this up into smaller noweb bits (<code>__NREF__...</code>)
-and combine it into a <code>melbyd.proto</code>.
-</p>
-
 <div class="org-src-container"><pre class="src src-protobuf" id="nil-13">syntax = <span class="org-string">"proto3"</span>;
 
 <span class="org-keyword">package</span> <span class="org-type">melby</span>;
@@ -2740,111 +2731,56 @@ and combine it into a <code>melbyd.proto</code>.
 </div>
 </div>
 
-<div id="outline-container-h-Design-principles" class="outline-3">
-<h3 id="h-Design-principles"><span class="section-number-3">6.4.</span> Design principles</h3>
-<div class="outline-text-3" id="text-h-Design-principles">
+<div id="outline-container-h-Tech-stack" class="outline-3">
+<h3 id="h-Tech-stack"><span class="section-number-3">6.4.</span> Tech stack</h3>
+<div class="outline-text-3" id="text-h-Tech-stack">
 <p>
-FIXME: this should be a couple paragrapsh max.
+The configuration language for shell prompts (the interface to using Melby for
+end users) is Lua. This Lua configuration is used to set up Luerl VMs inside
+Elixir, where one VM corresponds to one shell PID's prompt.
 </p>
 
 <p>
-We want melbyd to be as fault-tolerant as possible, and for this reason we use
-Elixir as the foundation. We use NIFs written in Rust for any complicated
-business logic, to help catch bugs early. In addition, we use a small functional
-core written in Haskell (which will run as a separate server) for any bits that
-are too ugly to put in a NIF.
+Elixir is the heart of the stack. There is a bit of Rust (as NIFs in Elixir), as
+well as some Haskell for the renderer (melbyr). We use gRPC for all
+communication across services.
 </p>
 
 <p>
-New business logic should ideally reside in Haskell or as a Rust NIF. In this
-way Elixir is only really used as a glue language to tie everything together.
-</p>
-
-<p>
-WRT whether to put business logic in a Rust NIF or Haskell, basically it's a
-matter of simplicity. If the task is simple, we can do it in a Rust NIF to avoid
-the extra network roundtrip to Haskell. If the task is complicated (soop&#x2026;),
-then we should do it in Haskell for additional correctness guarantees. Hmm, or
-actually maybe the delineation is just: Elixir/Rust for data generation and
-Haskell for data formatting (rendering)
-</p>
-
-<p>
-The Haskell part is the "prism" and acts as a sort of "rendering" layer to
-present the data back to the client in a nice way. Think of it as
-"server-side-rendering". We do this because we want to make melbyc (the client)
-as thin as possible.
-</p>
-
-<p>
-The Lua code sent by melbyc can call into the <b>melbyc "prism" SDK</b>, which is made
-up of a set of Elixir functions (luerl) that call into Haskell (via gRPC) to do
-the actual heavy lifting.
-</p>
-
-<p>
-FIXME: insert diagram
-</p>
-
-<p>
-The goal is to let the user customize their view of data with Lua, and the SDK
-will allow things like outputting equivalent data (colorized prompt strings) in
-Zsh as well as Bash, without the user having to touch any shell code (they can
-just stay inside the SDK). This is the ultimate goal &#x2014; we want to let users
-avoid having to write bespoke shell code, which can get pretty ugly, to display
-the data in a format that they would aesthetically prefer.
+The client (melbyc) communicates with the Elixir daemon (melbyd). Currently
+there are two implementations of the client, one in Haskell and another in Rust.
+As the client is rather thin, the choice of language doesn't matter so much
+here.
 </p>
 </div>
 </div>
 
-<div id="outline-container-h-Code-overview-2" class="outline-3">
-<h3 id="h-Code-overview-2"><span class="section-number-3">6.5.</span> Code overview</h3>
-<div class="outline-text-3" id="text-h-Code-overview-2">
+<div id="outline-container-h-Life-of-a-request-to-render-a-shell-prompt" class="outline-3">
+<h3 id="h-Life-of-a-request-to-render-a-shell-prompt"><span class="section-number-3">6.5.</span> Life of a request to render a shell prompt</h3>
+<div class="outline-text-3" id="text-h-Life-of-a-request-to-render-a-shell-prompt">
 <p>
-FIXME: This section could act as a kind of "table of contents" of the most
-important pieces of code. Maybe group certain tangled files together and add a
-blurb about them.
+Keep in mind that in order to create a request, the user must first define Lua
+configuration that describes what sort of data we want in the prompt, as well as
+how to present it (colors, padding, etc). We have sample configuration that the
+user can use in our test folder.
 </p>
 
 <p>
-NOTE: melby SDK is a set of exposed Elixir functions to Lua that call various
-Elixir functions. The soop SDK is essentially a subset of the melby SDK. Maybe we
-should just drop the "soop SDK" phrase altogether.
-</p>
-
-<p>
-It might make sense to explain things from a "life of a request" point of view.
-Something like:
+With that out of the way, let's look at the flow of a request:
 </p>
 
 <ol class="org-ol">
-<li>GetView rpc called by melbyc</li>
-<li>interpret the Lua payload (which contains calls to the melby SDK), which has
-calls to <b>generate data</b> (melbyd) and calls to <b>format/render</b> that data
-(soop)</li>
-<li>call some functions to generate data</li>
-<li>call some functions to format that data</li>
-<li>return formatted data as a ViewResponse</li>
+<li>GetView gRPC method called by melbyc (client): The client sends the path to
+the main Lua configuration file on disk.</li>
+<li>Melbyd (daemon) reads the Lua configuration and interprets it. The Lua code
+contains calls to the Melby SDK. That is, the Lua code is allowed to call
+into melbyd (Elixir) to <b>generate data</b> (melbyd), as well as <b>format/render</b>
+that data (ultimately through melbyr).</li>
+<li>The formatted data is returned as a ViewResponse. Currently the response is
+just inline shell code which can be sourced directly by the shell. The inline
+code assigns values to certain shell variables, and these shell variables are
+meant to be combined into the user's <code>PS1</code> shell variable.</li>
 </ol>
-
-<p>
-Conceptually, melbyd is just a system that can collect data from the computer so
-that it can be viewed by the user, with some extra code that that takes user
-(client) input and presents the user a view (based on the data from the model).
-This more or less fits into the Model-View-Controller (MVC) software
-architecture pattern. In our case, the Model is just the code that collects
-information from the host computer where melbyd is running. The View is what the
-client sees, and finally the Controller is responsible for handling user input
-(client calls) presenting them with the View.
-</p>
-
-<p>
-We'll look at the "Controller", and see how user requests come into melbyd. Then
-we'll look at the "Model" to understand the kinds of data we collect/parse out
-of the underlying system, and finally end with a look at the "View" to
-understand how this component arranges the final output for consumption by the
-client.
-</p>
 </div>
 </div>
 
@@ -7801,9 +7737,9 @@ that we will be using.
 </div>
 </div>
 
-<div id="outline-container-h-Code-overview-3" class="outline-4">
-<h4 id="h-Code-overview-3"><span class="section-number-4">6.6.11.</span> Code overview</h4>
-<div class="outline-text-4" id="text-h-Code-overview-3">
+<div id="outline-container-h-Code-overview-2" class="outline-4">
+<h4 id="h-Code-overview-2"><span class="section-number-4">6.6.11.</span> Code overview</h4>
+<div class="outline-text-4" id="text-h-Code-overview-2">
 <p>
 This walkthrough is written for the future maintainers of this codebase.
 </p>
@@ -9159,127 +9095,15 @@ melbyr
 <div id="outline-container-h-Installation" class="outline-3">
 <h3 id="h-Installation"><span class="section-number-3">6.7.</span> Installation</h3>
 <div class="outline-text-3" id="text-h-Installation">
-</div>
-
-<div id="outline-container-h-Start-script" class="outline-4">
-<h4 id="h-Start-script"><span class="section-number-4">6.7.1.</span> Start script</h4>
-<div class="outline-text-4" id="text-h-Start-script">
 <p>
-This script starts melbyd.
-</p>
-
-<div class="org-src-container"><pre class="src src-shell" id="nil-44"><span class="org-builtin">set</span> -euo pipefail
-
-<span class="org-variable-name">SCRIPT_ROOT</span>=<span class="org-string">"$(</span><span class="org-sh-quoted-exec">dirname "$(realpath "$0"</span><span class="org-string">)")"</span>
-
-<span class="org-builtin">cd</span> <span class="org-string">"${SCRIPT_ROOT}"</span>
-
-<span class="org-comment-delimiter"># </span><span class="org-comment">Daemonize with the "-d" flag.</span>
-<span class="org-keyword">if</span> [[ <span class="org-string">"${1:-}"</span> == -d ]]; <span class="org-keyword">then</span>
-    nix-shell --command <span class="org-string">"nohup elixir --sname melbyd \</span>
-<span class="org-string">        --erl '-kernel inet_dist_listen_min 33001 inet_dist_listen_max 33001' \</span>
-<span class="org-string">        -S mix run --no-halt &gt;/dev/null &amp; disown"</span>
-<span class="org-keyword">else</span>
-    nix-shell --command <span class="org-string">"elixir --sname melbyd \</span>
-<span class="org-string">        --erl '-kernel inet_dist_listen_min 33001 inet_dist_listen_max 33001' \</span>
-<span class="org-string">        -S mix run --no-halt"</span>
-<span class="org-keyword">fi</span>
-</pre></div>
-</div>
-</div>
-
-<div id="outline-container-h-Platforms" class="outline-4">
-<h4 id="h-Platforms"><span class="section-number-4">6.7.2.</span> Platforms</h4>
-<div class="outline-text-4" id="text-h-Platforms">
-<p>
-The stuff here should probably instead be in the User Guide (or Setup Guide).
+We use Nix for both Linux and Mac (via <a href="https://github.com/LnL7/nix-darwin">https://github.com/LnL7/nix-darwin</a>).
 </p>
 </div>
 
-<div id="outline-container-h-Mac" class="outline-5">
-<h5 id="h-Mac"><span class="section-number-5">6.7.2.1.</span> Mac</h5>
-<div class="outline-text-5" id="text-h-Mac">
-<div class="org-src-container"><pre class="src src-shell" id="nil-45"><span class="org-builtin">set</span> -euo pipefail
-
-<span class="org-variable-name">SCRIPT_ROOT</span>=<span class="org-string">"$(</span><span class="org-sh-quoted-exec">dirname "$(realpath "$0"</span><span class="org-string">)")"</span>
-
-<span class="org-builtin">pushd</span> <span class="org-string">"${HOME}/Library/LaunchAgents"</span>
-
-<span class="org-variable-name">filename</span>=com.melby.daemon.plist
-
-launchctl unload <span class="org-string">"${filename}"</span> || true
-
-cat &lt;&lt;EOF &gt; <span class="org-string">"${filename}"</span>
-<span class="org-sh-heredoc">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span>
-<span class="org-sh-heredoc">&lt;!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"</span>
-<span class="org-sh-heredoc">                "http://www.apple.com/DTDs/PropertyList-1.0.dtd"&gt;</span>
-<span class="org-sh-heredoc">&lt;plist version="1.0"&gt;</span>
-<span class="org-sh-heredoc">  &lt;dict&gt;</span>
-
-<span class="org-sh-heredoc">    &lt;key&gt;Label&lt;/key&gt;</span>
-<span class="org-sh-heredoc">    &lt;string&gt;${filename}&lt;/string&gt;</span>
-
-<span class="org-sh-heredoc">    &lt;key&gt;EnvironmentVariables&lt;/key&gt;</span>
-<span class="org-sh-heredoc">    &lt;dict&gt;</span>
-<span class="org-sh-heredoc">      &lt;key&gt;PATH&lt;/key&gt;</span>
-<span class="org-sh-heredoc">      &lt;string&gt;&lt;![CDATA[${PATH}]]&gt;&lt;/string&gt;</span>
-<span class="org-sh-heredoc">    &lt;/dict&gt;</span>
-
-<span class="org-sh-heredoc">    &lt;key&gt;Program&lt;/key&gt;</span>
-<span class="org-sh-heredoc">    &lt;string&gt;${SCRIPT_ROOT}/melbyd&lt;/string&gt;</span>
-
-<span class="org-sh-heredoc">    &lt;key&gt;KeepAlive&lt;/key&gt;</span>
-<span class="org-sh-heredoc">    &lt;true/&gt;</span>
-
-<span class="org-sh-heredoc">  &lt;/dict&gt;</span>
-<span class="org-sh-heredoc">&lt;/plist&gt;</span>
-
-<span class="org-sh-heredoc">EOF</span>
-
-launchctl load <span class="org-string">"${filename}"</span>
-</pre></div>
-</div>
-</div>
-
-<div id="outline-container-h-Linux" class="outline-5">
-<h5 id="h-Linux"><span class="section-number-5">6.7.2.2.</span> Linux</h5>
-<div class="outline-text-5" id="text-h-Linux">
-<p>
-We use zsh from the nix profile because this way we get access to the various
-other components (erlang, etc) that are installed via nix
-</p>
-
-<p>
-We can use <code>/bin/sh</code> and a script. In the script we can pull in the PATH set in
-the user's default shell (there must be some way to do this).
-</p>
-
-<p>
-As for the Git checkout path of Melby, we can do what the "pass" utility does and
-just refer to a dotfile directory in the HOME (example: <code>~/.melby</code>).
-</p>
-
-<p>
-FIXME: Start using melbyd by adding melby configuration into our <code>~/syscfg</code> and
-symlinking it to <code>~/.melby</code> (new folder).
-</p>
-
-<p>
-FIXME: Fix unit tests (make them work again!).
-</p>
-
-<p>
-FIXME: Add Darwin support, by using <a href="https://github.com/LnL7/nix-darwin">https://github.com/LnL7/nix-darwin</a>. It may
-be that the code needed would ideally sit outside this repo, but even then we
-should at least document how to use our <code>release.nix</code> file with that outside
-code. If we're lucky this might be as simple as invoking
-<a href="https://daiderd.com/nix-darwin/manual/index.html#opt-environment.launchAgents">https://daiderd.com/nix-darwin/manual/index.html#opt-environment.launchAgents</a> in
-a bare-bones nix-darwin config. We should probably do some editing of the
-launchd config file to use the nix path, just like how we mod the path for
-systemd for Linux.
-</p>
-
-<div class="org-src-container"><pre class="src src-text" id="nil-46">[Unit]
+<div id="outline-container-h-Linux" class="outline-4">
+<h4 id="h-Linux"><span class="section-number-4">6.7.1.</span> Linux</h4>
+<div class="outline-text-4" id="text-h-Linux">
+<div class="org-src-container"><pre class="src src-text" id="nil-44">[Unit]
 Description=melby service
 After=network.target
 StartLimitIntervalSec=0
@@ -9293,7 +9117,6 @@ Restart=always
 RestartSec=1
 Type=simple
 </pre></div>
-</div>
 </div>
 </div>
 </div>
@@ -9366,9 +9189,9 @@ endif
     <span class="org-variable-name">MIX_ENV</span>=prod mix compile
 <span class="org-makefile-targets">compile-dev</span>:
     <span class="org-variable-name">MIX_ENV</span>=dev mix compile
-<span class="org-makefile-targets">run_dev</span>: compile-dev
+<span class="org-makefile-targets">run-dev</span>: compile-dev
     <span class="org-variable-name">MIX_ENV</span>=dev elixir --sname melbyd-dev -S mix run --no-compile --no-halt
-<span class="org-makefile-targets">run_prod</span>: compile-prod
+<span class="org-makefile-targets">run-prod</span>: compile-prod
     <span class="org-variable-name">MIX_ENV</span>=prod elixir --sname melbyd-prod -S mix run --no-compile --no-halt
 <span class="org-makefile-targets">test</span>: fix-rustler
     mix test
@@ -9390,7 +9213,7 @@ lib/melbyd/nifs/Cargo.toml diff
 <div id="outline-container-h-Mix-tool-configuration" class="outline-5">
 <h5 id="h-Mix-tool-configuration"><span class="section-number-5">6.8.1.3.</span> Mix tool configuration</h5>
 <div class="outline-text-5" id="text-h-Mix-tool-configuration">
-<div class="org-src-container"><pre class="src src-elixir" id="nil-47"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.MixProject</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-45"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.MixProject</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">Mix.Project</span>
 
   <span class="org-keyword">def</span> <span class="org-function-name">project</span> <span class="org-keyword">do</span>
@@ -9448,7 +9271,7 @@ lib/melbyd/nifs/Cargo.toml diff
 <div id="outline-container-h-gitignore-4" class="outline-5">
 <h5 id="h-gitignore-4"><span class="section-number-5">6.8.1.4.</span> .gitignore</h5>
 <div class="outline-text-5" id="text-h-gitignore-4">
-<div class="org-src-container"><pre class="src src-text" id="nil-48"># The directory Mix will write compiled artifacts to.
+<div class="org-src-container"><pre class="src src-text" id="nil-46"># The directory Mix will write compiled artifacts to.
 /_build/
 
 # If you run "mix test --cover", coverage assets end up here.
@@ -9487,7 +9310,7 @@ melby-*.tar
 <div id="outline-container-h-Formatter" class="outline-5">
 <h5 id="h-Formatter"><span class="section-number-5">6.8.1.5.</span> Formatter</h5>
 <div class="outline-text-5" id="text-h-Formatter">
-<div class="org-src-container"><pre class="src src-elixir" id="nil-49"><span class="org-comment-delimiter"># </span><span class="org-comment">Used by "mix format"</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-47"><span class="org-comment-delimiter"># </span><span class="org-comment">Used by "mix format"</span>
 [
   <span class="org-elixir-atom">inputs:</span> [<span class="org-string">"{mix,.formatter}.exs"</span>, <span class="org-string">"{config,lib,test}/**/*.{ex,exs}"</span>]
 ]
@@ -9504,7 +9327,7 @@ package it ourselves by writing our own derivation. This allows us to have a
 working <code>nix-shell</code> where we can generate Elixir code from <code>*.proto</code> files.
 </p>
 
-<div class="org-src-container"><pre class="src src-nix" id="nil-50">{ sources ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">./nix/sources.nix</span>
+<div class="org-src-container"><pre class="src src-nix" id="nil-48">{ sources ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">./nix/sources.nix</span>
 , pkgs ? <span class="org-nix-builtin">import</span> sources.nixpkgs {} }:
 <span class="org-nix-keyword">let</span>
   <span class="org-nix-attribute">packages</span> = pkgs.beam.packagesWith pkgs.beam.interpreters.erlangR26;
@@ -9766,7 +9589,7 @@ We package up <code>melbyd</code> as a standalone "package".
 Build our Rust library (<code>melbyd_nifs</code>).
 </p>
 
-<div class="org-src-container"><pre class="src src-nix" id="nil-51">{ sources ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../../../../package/nix/sources.nix</span> }:
+<div class="org-src-container"><pre class="src src-nix" id="nil-49">{ sources ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../../../../package/nix/sources.nix</span> }:
 <span class="org-nix-keyword">let</span>
   <span class="org-nix-attribute">files</span> = [
     <span class="org-nix-constant">./Cargo.toml</span>
@@ -9812,7 +9635,7 @@ Build our Rust library (<code>melbyd_nifs</code>).
 <div id="outline-container-h-Additional-application-configuration" class="outline-5">
 <h5 id="h-Additional-application-configuration"><span class="section-number-5">6.8.1.8.</span> Additional application configuration</h5>
 <div class="outline-text-5" id="text-h-Additional-application-configuration">
-<div class="org-src-container"><pre class="src src-elixir" id="nil-52"><span class="org-keyword">import</span> <span class="org-type">Config</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-50"><span class="org-keyword">import</span> <span class="org-type">Config</span>
 
 config <span class="org-elixir-atom">:logger</span>, <span class="org-elixir-atom">:console</span>,
   <span class="org-elixir-atom">format:</span> <span class="org-string">"$time [$level] $metadata $message\n"</span>,
@@ -9827,15 +9650,15 @@ config <span class="org-elixir-atom">:elixir</span>, <span class="org-elixir-ato
 <span class="org-comment-delimiter"># </span><span class="org-comment">This imports config/test.exs when we run unit tests. Otherwise that</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">configuration (used during "mix test", called by "make test") is not used.</span>
 import_config <span class="org-string">"</span><span class="org-variable-name">#{config_env()}</span><span class="org-string">.exs"</span>
-</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-53"><span class="org-comment-delimiter"># </span><span class="org-comment">Stub.</span>
-</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-54"><span class="org-keyword">import</span> <span class="org-type">Config</span>
+</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-51"><span class="org-comment-delimiter"># </span><span class="org-comment">Stub.</span>
+</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-52"><span class="org-keyword">import</span> <span class="org-type">Config</span>
 
 config <span class="org-elixir-atom">:logger</span>,
   <span class="org-elixir-atom">backends:</span> [<span class="org-elixir-atom">:console</span>],
   <span class="org-elixir-atom">compile_time_purge_matching:</span> [
     [<span class="org-elixir-atom">level_lower_than:</span> <span class="org-elixir-atom">:info</span>]
   ]
-</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-55"><span class="org-keyword">import</span> <span class="org-type">Config</span>
+</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-53"><span class="org-keyword">import</span> <span class="org-type">Config</span>
 
 config <span class="org-elixir-atom">:melbyd</span>,
   <span class="org-elixir-atom">env:</span> config_env(),
@@ -9877,7 +9700,6 @@ config <span class="org-elixir-atom">:tzdata</span>, <span class="org-elixir-ato
 </div>
 </div>
 
-
 <div id="outline-container-h-Rust-NIFs-integration" class="outline-4">
 <h4 id="h-Rust-NIFs-integration"><span class="section-number-4">6.8.2.</span> Rust NIFs integration</h4>
 <div class="outline-text-4" id="text-h-Rust-NIFs-integration">
@@ -9890,7 +9712,7 @@ both the Elixir and Rust side.
 <div id="outline-container-h-Elixir-wrapper" class="outline-5">
 <h5 id="h-Elixir-wrapper"><span class="section-number-5">6.8.2.1.</span> Elixir wrapper</h5>
 <div class="outline-text-5" id="text-h-Elixir-wrapper">
-<div class="org-src-container"><pre class="src src-elixir" id="nil-56"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Nifs</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-54"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Nifs</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">Rustler</span>,
     <span class="org-elixir-atom">otp_app:</span> <span class="org-elixir-atom">:melbyd</span>,
     <span class="org-elixir-atom">crate:</span> <span class="org-elixir-atom">:melbyd_nifs</span>,
@@ -9910,7 +9732,7 @@ both the Elixir and Rust side.
 <div id="outline-container-h-Rust-wrapper" class="outline-5">
 <h5 id="h-Rust-wrapper"><span class="section-number-5">6.8.2.2.</span> Rust wrapper</h5>
 <div class="outline-text-5" id="text-h-Rust-wrapper">
-<div class="org-src-container"><pre class="src src-rust" id="nil-57"><span class="org-keyword">pub</span> <span class="org-keyword">mod</span> <span class="org-constant">color</span>;
+<div class="org-src-container"><pre class="src src-rust" id="nil-55"><span class="org-keyword">pub</span> <span class="org-keyword">mod</span> <span class="org-constant">color</span>;
 <span class="org-keyword">pub</span> <span class="org-keyword">mod</span> <span class="org-constant">path_shorten</span>;
 
 <span class="org-constant">rustler</span>::<span class="org-preprocessor">init!</span>(
@@ -9932,7 +9754,7 @@ both the Elixir and Rust side.
 <div id="outline-container-h-Makefile-4" class="outline-6">
 <h6 id="h-Makefile-4"><span class="section-number-6">6.8.2.3.1.</span> Makefile</h6>
 <div class="outline-text-6" id="text-h-Makefile-4">
-<div class="org-src-container"><pre class="src src-makefile" id="nil-58"><span class="org-makefile-targets">test</span>:
+<div class="org-src-container"><pre class="src src-makefile" id="nil-56"><span class="org-makefile-targets">test</span>:
     cargo test
 </pre></div>
 </div>
@@ -9941,7 +9763,7 @@ both the Elixir and Rust side.
 <div id="outline-container-h-Cargo" class="outline-6">
 <h6 id="h-Cargo"><span class="section-number-6">6.8.2.3.2.</span> Cargo</h6>
 <div class="outline-text-6" id="text-h-Cargo">
-<div class="org-src-container"><pre class="src src-makefile" id="nil-59">[package]
+<div class="org-src-container"><pre class="src src-makefile" id="nil-57">[package]
 <span class="org-variable-name">name</span> = <span class="org-string">"melbyd_nifs"</span>
 <span class="org-variable-name">version</span> = <span class="org-string">"0.1.0"</span>
 <span class="org-variable-name">authors</span> = []
@@ -9970,7 +9792,7 @@ We ignore Cargo.lock for libraries. See
 <a href="https://doc.rust-lang.org/cargo/faq.html#why-do-binaries-have-cargolock-in-version-control-but-not-libraries">https://doc.rust-lang.org/cargo/faq.html#why-do-binaries-have-cargolock-in-version-control-but-not-libraries</a>.
 </p>
 
-<div class="org-src-container"><pre class="src src-text" id="nil-60">/target
+<div class="org-src-container"><pre class="src src-text" id="nil-58">/target
 Cargo.lock
 
 .cargo
@@ -9983,12 +9805,19 @@ Cargo.lock
 <div id="outline-container-h-Haskell--melbyr" class="outline-4">
 <h4 id="h-Haskell--melbyr"><span class="section-number-4">6.8.3.</span> Haskell (melbyr)</h4>
 <div class="outline-text-4" id="text-h-Haskell--melbyr">
+<p>
+See (FIXME: add link) for the build system for melbyr.
+</p>
 </div>
 
 <div id="outline-container-h-Set-up-GHCi-environment" class="outline-5">
 <h5 id="h-Set-up-GHCi-environment"><span class="section-number-5">6.8.3.1.</span> Set up GHCi environment</h5>
 <div class="outline-text-5" id="text-h-Set-up-GHCi-environment">
-<div class="org-src-container"><pre class="src src-text" id="nil-61">:set -XOverloadedStrings
+<p>
+These are development defaults for interacting with GHCi.
+</p>
+
+<div class="org-src-container"><pre class="src src-text" id="nil-59">:set -XOverloadedStrings
 </pre></div>
 </div>
 </div>
@@ -10003,7 +9832,7 @@ This probably should be in a separate file, as it requires a pretty big context
 switch.
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-62"><span class="org-comment-delimiter"># </span><span class="org-comment">Instead of printing logs, capture them. Only print them for tests that fail.</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-60"><span class="org-comment-delimiter"># </span><span class="org-comment">Instead of printing logs, capture them. Only print them for tests that fail.</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">See https://hashrocket.com/blog/posts/silence-logger-messages-in-exunit.</span>
 <span class="org-type">ExUnit</span>.start(<span class="org-elixir-atom">capture_log:</span> <span class="org-elixir-atom">true</span>)
 </pre></div>

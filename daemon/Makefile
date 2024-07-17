@@ -53,9 +53,9 @@ compile-prod:
 	MIX_ENV=prod mix compile
 compile-dev:
 	MIX_ENV=dev mix compile
-run_dev: compile-dev
+run-dev: compile-dev
 	MIX_ENV=dev elixir --sname melbyd-dev -S mix run --no-compile --no-halt
-run_prod: compile-prod
+run-prod: compile-prod
 	MIX_ENV=prod elixir --sname melbyd-prod -S mix run --no-compile --no-halt
 test: fix-rustler
 	mix test

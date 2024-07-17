@@ -81,7 +81,7 @@ And then to run the daemon, do
 cd daemon && make run_dev
 #+end_example
 
-There is also a =run_prod= rule but this won't work if you are already running a
+There is also a =run-prod= rule but this won't work if you are already running a
 packaged version of =melbyd= in your system, because they will both try to use
 the same TCP port. So in that case you have to first stop the packaged version
 you are running.
