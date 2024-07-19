@@ -876,7 +876,7 @@ endef
 <span class="org-makefile-space">    #</span><span class="org-comment">$(</span><span class="org-comment"><span class="org-variable-name">call</span></span><span class="org-comment"> run_emacs,(lilac-gen-css-and-exit),main.org)</span>
     $(<span class="org-variable-name">call</span> run_emacs,(lilac-publish),main.org)
 
-<span class="org-makefile-targets">developer-manual.html</span>: developer-manual.org daemon.org internals.org build-literate.org build-packaging.org
+<span class="org-makefile-targets">developer-manual.html</span>: developer-manual.org daemon.org build-literate.org build-packaging.org
     $(<span class="org-variable-name">call</span> run_emacs,(lilac-publish),developer-manual.org)
 
 <span class="org-makefile-targets">user-manual.html</span>: user-manual.org developer-manual.html
@@ -1053,7 +1053,6 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
 <span class="org-makefile-targets">tangle-sources</span>: client-org \
         client-rust-org \
         daemon-org \
-        internals-org \
         user-manual-org \
         image-org \
         build-packaging-org
@@ -1071,8 +1070,6 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),client-rust.org)
 <span class="org-makefile-targets">daemon-org</span>: build-literate-org
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),daemon.org)
-<span class="org-makefile-targets">internals-org</span>: build-literate-org
-    $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),internals.org)
 <span class="org-makefile-targets">user-manual-org</span>: build-literate-org
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),user-manual.org)
 
@@ -1082,7 +1079,6 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
 <span class="org-makefile-targets">.PHONY</span>: client-org
 <span class="org-makefile-targets">.PHONY</span>: client-rust-org
 <span class="org-makefile-targets">.PHONY</span>: daemon-org
-<span class="org-makefile-targets">.PHONY</span>: internals-org
 <span class="org-makefile-targets">.PHONY</span>: user-manual-org
 <span class="org-makefile-targets">.PHONY</span>: image-org
 </pre></div></div>
@@ -9203,7 +9199,6 @@ melbyr
 </div>
 </div>
 </div>
-
 <div id="outline-container-h-Installation" class="outline-3">
 <h3 id="h-Installation"><span class="section-number-3">8.7.</span> Installation</h3>
 <div class="outline-text-3" id="text-h-Installation">
