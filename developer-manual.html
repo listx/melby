@@ -258,349 +258,461 @@
 
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#h-Overview">1. Overview</a></li>
-<li><a href="#h-Build-System-for-Literate-Programming">2. Build System for Literate Programming</a>
+<li><a href="#h-Tech-stack">1. Tech stack</a></li>
+<li><a href="#h-Lay-of-the-land">2. Lay of the land</a></li>
+<li><a href="#h-Overview-of-this-manual">3. Overview of this manual</a></li>
+<li><a href="#h-Build-System-for-Literate-Programming">4. Build System for Literate Programming</a>
 <ul>
-<li><a href="#h-Overview-of-how-LP-is-used-in-this-project">2.1. Overview of how LP is used in this project</a></li>
-<li><a href="#h-Weaving--generating-the-docs">2.2. Weaving (generating the docs)</a>
+<li><a href="#h-Overview-of-how-LP-is-used-in-this-project">4.1. Overview of how LP is used in this project</a></li>
+<li><a href="#h-Weaving--generating-the-docs">4.2. Weaving (generating the docs)</a>
 <ul>
-<li><a href="#h-Emacs-customizations">2.2.1. Emacs customizations</a></li>
-<li><a href="#h-Diagrams">2.2.2. Diagrams</a></li>
-<li><a href="#h-Ignore-woven-HTML-from--git-diff">2.2.3. Ignore woven HTML from <code>git diff</code></a>
+<li><a href="#h-Emacs-customizations">4.2.1. Emacs customizations</a></li>
+<li><a href="#h-Diagrams">4.2.2. Diagrams</a></li>
+<li><a href="#h-Ignore-woven-HTML-from--git-diff">4.2.3. Ignore woven HTML from <code>git diff</code></a>
 <ul>
-<li><a href="#h-git-add--p">2.2.3.1. <code>git add -p</code></a></li>
+<li><a href="#h-git-add--p">4.2.3.1. <code>git add -p</code></a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#h-Tangling--generating-the-source-code">2.3. Tangling (generating the source code)</a>
+<li><a href="#h-Tangling--generating-the-source-code">4.3. Tangling (generating the source code)</a>
 <ul>
-<li><a href="#h-Copyright-headers">2.3.1. Copyright headers</a></li>
-<li><a href="#h-gitignore">2.3.2. .gitignore</a></li>
-<li><a href="#h-Post-tangled-phase">2.3.3. Post-tangled phase</a>
+<li><a href="#h-Copyright-headers">4.3.1. Copyright headers</a></li>
+<li><a href="#h-gitignore">4.3.2. .gitignore</a></li>
+<li><a href="#h-Post-tangled-phase">4.3.3. Post-tangled phase</a>
 <ul>
-<li><a href="#h-Elixir">2.3.3.1. Elixir</a></li>
-<li><a href="#h-Rust">2.3.3.2. Rust</a></li>
-<li><a href="#h-Haskell">2.3.3.3. Haskell</a></li>
-<li><a href="#h-Lua">2.3.3.4. Lua</a></li>
+<li><a href="#h-Elixir">4.3.3.1. Elixir</a></li>
+<li><a href="#h-Rust">4.3.3.2. Rust</a></li>
+<li><a href="#h-Haskell">4.3.3.3. Haskell</a></li>
+<li><a href="#h-Lua">4.3.3.4. Lua</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#h-Glossary">2.4. Glossary</a></li>
+<li><a href="#h-Glossary">4.4. Glossary</a></li>
 </ul>
 </li>
-<li><a href="#h-Build-System-for-Packaging-Melby">3. Build System for Packaging Melby</a>
+<li><a href="#h-Build-System-for-Packaging-Melby">5. Build System for Packaging Melby</a>
 <ul>
-<li><a href="#h-Introduction">3.1. Introduction</a>
+<li><a href="#h-Introduction">5.1. Introduction</a>
 <ul>
-<li><a href="#h-What-we-must-build">3.1.1. What we must build</a></li>
+<li><a href="#h-What-we-must-build">5.1.1. What we must build</a></li>
 </ul>
 </li>
-<li><a href="#h-Development-environment">3.2. Development environment</a>
+<li><a href="#h-Development-environment">5.2. Development environment</a>
 <ul>
-<li><a href="#h-Nix-shell">3.2.1. Nix shell</a>
+<li><a href="#h-Nix-shell">5.2.1. Nix shell</a>
 <ul>
-<li><a href="#h-Make-Stack-understand-Nix">3.2.1.1. Make Stack understand Nix</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#h-Packaging">3.3. Packaging</a>
-<ul>
-<li><a href="#h-Releasing">3.3.1. Releasing</a></li>
-<li><a href="#h-Makefile">3.3.2. Makefile</a></li>
-<li><a href="#h-gitignore-1">3.3.3. .gitignore</a></li>
+<li><a href="#h-Make-Stack-understand-Nix">5.2.1.1. Make Stack understand Nix</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#h-How-to-hack-on-this-project">4. How to hack on this project</a>
+<li><a href="#h-Packaging">5.3. Packaging</a>
 <ul>
-<li><a href="#h-Building-each-component">4.1. Building each component</a>
-<ul>
-<li><a href="#h-melbyr---renderer--required-by-daemon">4.1.1. <code>melbyr</code> (renderer; required by daemon)</a></li>
-<li><a href="#h-melbyd---daemon">4.1.2. <code>melbyd</code> (daemon)</a></li>
-</ul>
-</li>
-<li><a href="#h-melbyc---client">4.2. <code>melbyc</code> (client)</a></li>
-<li><a href="#h-Testing-local-changes">4.3. Testing local changes</a></li>
-<li><a href="#h-Common-scenarios">4.4. Common scenarios</a>
-<ul>
-<li><a href="#h-Hacking-on-the-Lua-config">4.4.1. Hacking on the Lua config</a></li>
+<li><a href="#h-Releasing">5.3.1. Releasing</a></li>
+<li><a href="#h-Makefile">5.3.2. Makefile</a></li>
+<li><a href="#h-gitignore-1">5.3.3. .gitignore</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#h-melbyc">5. melbyc</a>
+<li><a href="#h-How-to-hack-on-this-project">6. How to hack on this project</a>
 <ul>
-<li><a href="#h-Purpose">5.1. Purpose</a></li>
-<li><a href="#h-Architectural-overview">5.2. Architectural overview</a></li>
-<li><a href="#h-Design-by-contract">5.3. Design by contract</a>
+<li><a href="#h-Building-each-component">6.1. Building each component</a>
 <ul>
-<li><a href="#h-Talking-to-the-daemon">5.3.1. Talking to the daemon</a>
-<ul>
-<li><a href="#h-Lua-1">5.3.1.1. Lua</a></li>
-<li><a href="#h-Proto">5.3.1.2. Proto</a></li>
+<li><a href="#h-melbyr---renderer--required-by-daemon">6.1.1. <code>melbyr</code> (renderer; required by daemon)</a></li>
+<li><a href="#h-melbyd---daemon">6.1.2. <code>melbyd</code> (daemon)</a></li>
 </ul>
 </li>
-<li><a href="#h-Running-very-quickly">5.3.2. Running very quickly</a></li>
-<li><a href="#h-Command-line-argument-handling">5.3.3. Command line argument handling</a></li>
-</ul>
-</li>
-<li><a href="#h-Code-overview">5.4. Code overview</a>
+<li><a href="#h-melbyc---client">6.2. <code>melbyc</code> (client)</a></li>
+<li><a href="#h-Testing-local-changes">6.3. Testing local changes</a></li>
+<li><a href="#h-Common-scenarios">6.4. Common scenarios</a>
 <ul>
-<li><a href="#h-Overall-structure">5.4.1. Overall structure</a></li>
-</ul>
-</li>
-<li><a href="#h-Business-logic">5.5. Business logic</a></li>
-<li><a href="#h-Boilerplate">5.6. Boilerplate</a>
-<ul>
-<li><a href="#h-Option-handling">5.6.1. Option handling</a></li>
-<li><a href="#h-Main">5.6.2. Main</a></li>
-<li><a href="#h-gRPC-schema">5.6.3. gRPC schema</a></li>
-<li><a href="#h-Other">5.6.4. Other</a>
-<ul>
-<li><a href="#h-Pragmas">5.6.4.1. Pragmas</a></li>
-<li><a href="#h-Imports">5.6.4.2. Imports</a></li>
-<li><a href="#h-Git-versioning">5.6.4.3. Git versioning</a></li>
+<li><a href="#h-Hacking-on-the-Lua-config">6.4.1. Hacking on the Lua config</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#h-Build-system">5.7. Build system</a>
+<li><a href="#h-melbyc">7. melbyc</a>
 <ul>
-<li><a href="#h-Makefile-1">5.7.1. Makefile</a></li>
-<li><a href="#h-Cabal">5.7.2. Cabal</a></li>
-<li><a href="#h-melbyc-nix">5.7.3. melbyc.nix</a></li>
-<li><a href="#h-Stack">5.7.4. Stack</a></li>
-<li><a href="#h-gitignore-2">5.7.5. .gitignore</a></li>
+<li><a href="#h-Purpose">7.1. Purpose</a></li>
+<li><a href="#h-Architectural-overview">7.2. Architectural overview</a></li>
+<li><a href="#h-Design-by-contract">7.3. Design by contract</a>
+<ul>
+<li><a href="#h-Talking-to-the-daemon">7.3.1. Talking to the daemon</a>
+<ul>
+<li><a href="#h-Lua-1">7.3.1.1. Lua</a></li>
+<li><a href="#h-Proto">7.3.1.2. Proto</a></li>
 </ul>
 </li>
-<li><a href="#h-Rust-client">5.8. Rust client</a>
-<ul>
-<li><a href="#h-Code-overview-1">5.8.1. Code overview</a>
-<ul>
-<li><a href="#h-Main-function">5.8.1.1. Main function</a></li>
+<li><a href="#h-Running-very-quickly">7.3.2. Running very quickly</a></li>
+<li><a href="#h-Command-line-argument-handling">7.3.3. Command line argument handling</a></li>
 </ul>
 </li>
-<li><a href="#h-Packaging-1">5.8.2. Packaging</a></li>
+<li><a href="#h-Code-overview">7.4. Code overview</a>
+<ul>
+<li><a href="#h-Overall-structure">7.4.1. Overall structure</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a href="#h-melbyd">6. melbyd</a>
+<li><a href="#h-Business-logic">7.5. Business logic</a></li>
+<li><a href="#h-Boilerplate">7.6. Boilerplate</a>
 <ul>
-<li><a href="#h-Purpose-1">6.1. Purpose</a></li>
-<li><a href="#h-Architectural-overview-1">6.2. Architectural overview</a></li>
-<li><a href="#h-Proto-1">6.3. Proto</a></li>
-<li><a href="#h-Tech-stack">6.4. Tech stack</a></li>
-<li><a href="#h-Life-of-a-request-to-render-a-shell-prompt">6.5. Life of a request to render a shell prompt</a></li>
-<li><a href="#h-Internals">6.6. Internals</a>
+<li><a href="#h-Option-handling">7.6.1. Option handling</a></li>
+<li><a href="#h-Main">7.6.2. Main</a></li>
+<li><a href="#h-gRPC-schema">7.6.3. gRPC schema</a></li>
+<li><a href="#h-Other">7.6.4. Other</a>
 <ul>
-<li><a href="#h-Standard-Resource-Server">6.6.1. Standard Resource Server</a>
-<ul>
-<li><a href="#h-Proto-2">6.6.1.1. Proto</a></li>
-<li><a href="#h-Implementation">6.6.1.2. Implementation</a></li>
-<li><a href="#h-Tick">6.6.1.3. Tick</a></li>
-<li><a href="#h-Marking-staleness">6.6.1.4. Marking staleness</a>
-<ul>
-<li><a href="#h-Filesystem-based-staleness">6.6.1.4.1. Filesystem-based staleness</a></li>
-<li><a href="#h-Duration-based-staleness--polling">6.6.1.4.2. Duration-based staleness (polling)</a></li>
-</ul>
-</li>
-<li><a href="#h-Graceful-shutdown">6.6.1.5. Graceful shutdown</a></li>
-<li><a href="#h-Client-interface">6.6.1.6. Client interface</a></li>
-<li><a href="#h-Supervisor">6.6.1.7. Supervisor</a></li>
-</ul>
-</li>
-<li><a href="#h-Shell-Process-Service">6.6.2. Shell Process Service</a>
-<ul>
-<li><a href="#h-Tick-1">6.6.2.1. Tick</a></li>
-<li><a href="#h-Handle-PubSub-messages">6.6.2.2. Handle PubSub messages</a></li>
-<li><a href="#h-Graceful-shutdown-1">6.6.2.3. Graceful shutdown</a></li>
-<li><a href="#h-Client-interface-1">6.6.2.4. Client interface</a></li>
-<li><a href="#h-Supervisor-1">6.6.2.5. Supervisor</a></li>
-</ul>
-</li>
-<li><a href="#h-Current-path--path-shortening">6.6.3. Current path (path shortening)</a>
-<ul>
-<li><a href="#h-Path">6.6.3.1. Path</a></li>
-<li><a href="#h-Caching">6.6.3.2. Caching</a></li>
-</ul>
-</li>
-<li><a href="#h-Colors">6.6.4. Colors</a></li>
-<li><a href="#h-Entrypoint-for-client">6.6.5. Entrypoint for client</a>
-<ul>
-<li><a href="#h-melbyr-dependency">6.6.5.1. melbyr dependency</a></li>
-</ul>
-</li>
-<li><a href="#h-gRPC-services">6.6.6. gRPC services</a>
-<ul>
-<li><a href="#h-View--melbyr-interface">6.6.6.1. View (melbyr interface)</a></li>
-<li><a href="#h-Standard-Resource-Service">6.6.6.2. Standard Resource Service</a>
-<ul>
-<li><a href="#h-Motivation">6.6.6.2.1. Motivation</a></li>
+<li><a href="#h-Pragmas">7.6.4.1. Pragmas</a></li>
+<li><a href="#h-Imports">7.6.4.2. Imports</a></li>
+<li><a href="#h-Git-versioning">7.6.4.3. Git versioning</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li><a href="#h-Lua-API">6.6.7. Lua API</a>
+<li><a href="#h-Build-system">7.7. Build system</a>
 <ul>
-<li><a href="#h-Melbyd-LuaInterop">6.6.7.1. <code>Melbyd.LuaInterop</code></a>
+<li><a href="#h-Makefile-1">7.7.1. Makefile</a></li>
+<li><a href="#h-Cabal">7.7.2. Cabal</a></li>
+<li><a href="#h-melbyc-nix">7.7.3. melbyc.nix</a></li>
+<li><a href="#h-Stack">7.7.4. Stack</a></li>
+<li><a href="#h-gitignore-2">7.7.5. .gitignore</a></li>
+</ul>
+</li>
+<li><a href="#h-Rust-client">7.8. Rust client</a>
 <ul>
-<li><a href="#h-Validation">6.6.7.1.1. Validation</a></li>
-</ul>
-</li>
-<li><a href="#h-Auto-loaded-Elixir-module-exposed-to-Lua---Melbyd-LuaSdk-">6.6.7.2. Auto-loaded Elixir module exposed to Lua (<code>Melbyd.LuaSdk</code>)</a>
+<li><a href="#h-Code-overview-1">7.8.1. Code overview</a>
 <ul>
-<li><a href="#h-Render-widgets--convert-string--objects--into-strings-with-ANSI-escape-codes">6.6.7.2.1. Render widgets (convert string "objects" into strings with ANSI escape codes)</a></li>
-<li><a href="#h-Pretty-paths">6.6.7.2.2. Pretty paths</a></li>
-<li><a href="#h-Colorized-Git-SHA">6.6.7.2.3. Colorized Git SHA</a></li>
-<li><a href="#h-Time">6.6.7.2.4. Time</a></li>
-<li><a href="#h-Export-to-shell-script">6.6.7.2.5. Export to shell script</a></li>
-<li><a href="#h-Expected-functions-in-the-Lua-file-for-SRS">6.6.7.2.6. Expected functions in the Lua file for SRS</a></li>
-<li><a href="#h-Messaging">6.6.7.2.7. Messaging</a></li>
-<li><a href="#h-Other-1">6.6.7.2.8. Other</a></li>
+<li><a href="#h-Main-function">7.8.1.1. Main function</a></li>
 </ul>
 </li>
-<li><a href="#h-Boilerplate-1">6.6.7.3. Boilerplate</a></li>
-<li><a href="#h-Luerl-util">6.6.7.4. Luerl util</a>
+<li><a href="#h-Packaging-1">7.8.2. Packaging</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#h-melbyd">8. melbyd</a>
 <ul>
-<li><a href="#h-Reading-from-Lua-tables-returned-by-Luerl">6.6.7.4.1. Reading from Lua tables returned by Luerl</a></li>
-<li><a href="#h-Array-to-native-list">6.6.7.4.2. Array to native list</a></li>
-<li><a href="#h-Table-to-native-map">6.6.7.4.3. Table to native map</a></li>
-<li><a href="#h-Lua-tables-to-Elixir-maps">6.6.7.4.4. Lua tables to Elixir maps</a></li>
-</ul>
-</li>
-<li><a href="#h-Tests">6.6.7.5. Tests</a></li>
-</ul>
-</li>
-<li><a href="#h-Purpose-2">6.6.8. Purpose</a></li>
-<li><a href="#h-Architectural-overview-2">6.6.9. Architectural overview</a></li>
-<li><a href="#h-Design-by-contract-1">6.6.10. Design by contract</a>
+<li><a href="#h-Purpose-1">8.1. Purpose</a></li>
+<li><a href="#h-Architectural-overview-1">8.2. Architectural overview</a></li>
+<li><a href="#h-Proto-1">8.3. Proto</a></li>
+<li><a href="#h-Tech-stack-1">8.4. Tech stack</a></li>
+<li><a href="#h-Life-of-a-request-to-render-a-shell-prompt">8.5. Life of a request to render a shell prompt</a></li>
+<li><a href="#h-Internals">8.6. Internals</a>
 <ul>
-<li><a href="#h-Communication-between-melbyd-and-melbyr">6.6.10.1. Communication between melbyd and melbyr</a>
+<li><a href="#h-Standard-Resource-Server">8.6.1. Standard Resource Server</a>
 <ul>
-<li><a href="#h-Proto-3">6.6.10.1.1. Proto</a></li>
-</ul>
-</li>
-<li><a href="#h-Running-very-quickly-1">6.6.10.2. Running very quickly</a></li>
-<li><a href="#h-Command-line-argument-handling-1">6.6.10.3. Command line argument handling</a></li>
-</ul>
-</li>
-<li><a href="#h-Code-overview-2">6.6.11. Code overview</a>
+<li><a href="#h-Proto-2">8.6.1.1. Proto</a></li>
+<li><a href="#h-Implementation">8.6.1.2. Implementation</a></li>
+<li><a href="#h-Tick">8.6.1.3. Tick</a></li>
+<li><a href="#h-Marking-staleness">8.6.1.4. Marking staleness</a>
 <ul>
-<li><a href="#h-Overall-structure-1">6.6.11.1. Overall structure</a></li>
+<li><a href="#h-Filesystem-based-staleness">8.6.1.4.1. Filesystem-based staleness</a></li>
+<li><a href="#h-Duration-based-staleness--polling">8.6.1.4.2. Duration-based staleness (polling)</a></li>
 </ul>
 </li>
-<li><a href="#h-Business-logic-1">6.6.12. Business logic</a>
+<li><a href="#h-Graceful-shutdown">8.6.1.5. Graceful shutdown</a></li>
+<li><a href="#h-Client-interface">8.6.1.6. Client interface</a></li>
+<li><a href="#h-Supervisor">8.6.1.7. Supervisor</a></li>
+</ul>
+</li>
+<li><a href="#h-Shell-Process-Service">8.6.2. Shell Process Service</a>
 <ul>
-<li><a href="#h-Widget-Rendering-System">6.6.12.1. Widget Rendering System</a>
+<li><a href="#h-Tick-1">8.6.2.1. Tick</a></li>
+<li><a href="#h-Handle-PubSub-messages">8.6.2.2. Handle PubSub messages</a></li>
+<li><a href="#h-Graceful-shutdown-1">8.6.2.3. Graceful shutdown</a></li>
+<li><a href="#h-Client-interface-1">8.6.2.4. Client interface</a></li>
+<li><a href="#h-Supervisor-1">8.6.2.5. Supervisor</a></li>
+</ul>
+</li>
+<li><a href="#h-Current-path--path-shortening">8.6.3. Current path (path shortening)</a>
 <ul>
-<li><a href="#h-Widget-field-reference">6.6.12.1.1. Widget field reference</a></li>
-<li><a href="#h-Optional-widget-delimiters">6.6.12.1.2. Optional widget delimiters</a></li>
-<li><a href="#h-Implementation-1">6.6.12.1.3. Implementation</a></li>
+<li><a href="#h-Path">8.6.3.1. Path</a></li>
+<li><a href="#h-Caching">8.6.3.2. Caching</a></li>
 </ul>
 </li>
-<li><a href="#h-Colorized-Git-SHA-1">6.6.12.2. Colorized Git SHA</a>
+<li><a href="#h-Colors">8.6.4. Colors</a></li>
+<li><a href="#h-Entrypoint-for-client">8.6.5. Entrypoint for client</a>
 <ul>
-<li><a href="#h-Overview-1">6.6.12.2.1. Overview</a></li>
-<li><a href="#h-24-bit-colors">6.6.12.2.2. 24-bit colors</a></li>
+<li><a href="#h-melbyr-dependency">8.6.5.1. melbyr dependency</a></li>
 </ul>
 </li>
-<li><a href="#h-Parse-path-aliases">6.6.12.3. Parse path aliases</a></li>
-</ul>
-</li>
-<li><a href="#h-Boilerplate-2">6.6.13. Boilerplate</a>
+<li><a href="#h-gRPC-services">8.6.6. gRPC services</a>
 <ul>
-<li><a href="#h-Option-handling-1">6.6.13.1. Option handling</a></li>
-<li><a href="#h-Main-1">6.6.13.2. Main</a></li>
-<li><a href="#h-gRPC-schema-1">6.6.13.3. gRPC schema</a>
+<li><a href="#h-View--melbyr-interface">8.6.6.1. View (melbyr interface)</a></li>
+<li><a href="#h-Standard-Resource-Service">8.6.6.2. Standard Resource Service</a>
 <ul>
-<li><a href="#h-Colorized-Git-SHA-2">6.6.13.3.1. Colorized Git SHA</a></li>
-<li><a href="#h-Render-options">6.6.13.3.2. Render options</a></li>
-<li><a href="#h-Widgets">6.6.13.3.3. Widgets</a></li>
-<li><a href="#h-Parse-path-aliases-1">6.6.13.3.4. Parse path aliases</a></li>
+<li><a href="#h-Motivation">8.6.6.2.1. Motivation</a></li>
 </ul>
 </li>
-<li><a href="#h-Logging">6.6.13.4. Logging</a></li>
-<li><a href="#h-Other-2">6.6.13.5. Other</a>
+</ul>
+</li>
+<li><a href="#h-Lua-API">8.6.7. Lua API</a>
 <ul>
-<li><a href="#h-Pragmas-1">6.6.13.5.1. Pragmas</a></li>
-<li><a href="#h-Imports-1">6.6.13.5.2. Imports</a></li>
-<li><a href="#h-Git-versioning-1">6.6.13.5.3. Git versioning</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#h-Build-system-1">6.6.14. Build system</a>
+<li><a href="#h-Melbyd-LuaInterop">8.6.7.1. <code>Melbyd.LuaInterop</code></a>
 <ul>
-<li><a href="#h-Makefile-2">6.6.14.1. Makefile</a></li>
-<li><a href="#h-Cabal-1">6.6.14.2. Cabal</a></li>
-<li><a href="#h-Nix">6.6.14.3. Nix</a></li>
-<li><a href="#h-Stack-1">6.6.14.4. Stack</a></li>
-<li><a href="#h-gitignore-3">6.6.14.5. .gitignore</a></li>
+<li><a href="#h-Validation">8.6.7.1.1. Validation</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a href="#h-Installation">6.7. Installation</a>
+<li><a href="#h-Auto-loaded-Elixir-module-exposed-to-Lua---Melbyd-LuaSdk-">8.6.7.2. Auto-loaded Elixir module exposed to Lua (<code>Melbyd.LuaSdk</code>)</a>
 <ul>
-<li><a href="#h-Linux">6.7.1. Linux</a></li>
+<li><a href="#h-Render-widgets--convert-string--objects--into-strings-with-ANSI-escape-codes">8.6.7.2.1. Render widgets (convert string "objects" into strings with ANSI escape codes)</a></li>
+<li><a href="#h-Pretty-paths">8.6.7.2.2. Pretty paths</a></li>
+<li><a href="#h-Colorized-Git-SHA">8.6.7.2.3. Colorized Git SHA</a></li>
+<li><a href="#h-Time">8.6.7.2.4. Time</a></li>
+<li><a href="#h-Export-to-shell-script">8.6.7.2.5. Export to shell script</a></li>
+<li><a href="#h-Expected-functions-in-the-Lua-file-for-SRS">8.6.7.2.6. Expected functions in the Lua file for SRS</a></li>
+<li><a href="#h-Messaging">8.6.7.2.7. Messaging</a></li>
+<li><a href="#h-Other-1">8.6.7.2.8. Other</a></li>
 </ul>
 </li>
-<li><a href="#h-Build-system-2">6.8. Build system</a>
+<li><a href="#h-Boilerplate-1">8.6.7.3. Boilerplate</a></li>
+<li><a href="#h-Luerl-util">8.6.7.4. Luerl util</a>
 <ul>
-<li><a href="#h-Elixir-1">6.8.1. Elixir</a>
+<li><a href="#h-Reading-from-Lua-tables-returned-by-Luerl">8.6.7.4.1. Reading from Lua tables returned by Luerl</a></li>
+<li><a href="#h-Array-to-native-list">8.6.7.4.2. Array to native list</a></li>
+<li><a href="#h-Table-to-native-map">8.6.7.4.3. Table to native map</a></li>
+<li><a href="#h-Lua-tables-to-Elixir-maps">8.6.7.4.4. Lua tables to Elixir maps</a></li>
+</ul>
+</li>
+<li><a href="#h-Tests">8.6.7.5. Tests</a></li>
+</ul>
+</li>
+<li><a href="#h-Purpose-2">8.6.8. Purpose</a></li>
+<li><a href="#h-Architectural-overview-2">8.6.9. Architectural overview</a></li>
+<li><a href="#h-Design-by-contract-1">8.6.10. Design by contract</a>
 <ul>
-<li><a href="#h-Makefile-3">6.8.1.1. Makefile</a></li>
-<li><a href="#h-gitattributes">6.8.1.2. gitattributes</a></li>
-<li><a href="#h-Mix-tool-configuration">6.8.1.3. Mix tool configuration</a></li>
-<li><a href="#h-gitignore-4">6.8.1.4. .gitignore</a></li>
-<li><a href="#h-Formatter">6.8.1.5. Formatter</a></li>
-<li><a href="#h-protoc-gen-elixir-nix">6.8.1.6. protoc-gen-elixir.nix</a></li>
-<li><a href="#h-Mix-release">6.8.1.7. Mix release</a></li>
-<li><a href="#h-Additional-application-configuration">6.8.1.8. Additional application configuration</a></li>
-</ul>
-</li>
-<li><a href="#h-Rust-NIFs-integration">6.8.2. Rust NIFs integration</a>
+<li><a href="#h-Communication-between-melbyd-and-melbyr">8.6.10.1. Communication between melbyd and melbyr</a>
 <ul>
-<li><a href="#h-Elixir-wrapper">6.8.2.1. Elixir wrapper</a></li>
-<li><a href="#h-Rust-wrapper">6.8.2.2. Rust wrapper</a></li>
-<li><a href="#h-Boilerplate-3">6.8.2.3. Boilerplate</a>
+<li><a href="#h-Proto-3">8.6.10.1.1. Proto</a></li>
+</ul>
+</li>
+<li><a href="#h-Running-very-quickly-1">8.6.10.2. Running very quickly</a></li>
+<li><a href="#h-Command-line-argument-handling-1">8.6.10.3. Command line argument handling</a></li>
+</ul>
+</li>
+<li><a href="#h-Code-overview-2">8.6.11. Code overview</a>
 <ul>
-<li><a href="#h-Makefile-4">6.8.2.3.1. Makefile</a></li>
-<li><a href="#h-Cargo">6.8.2.3.2. Cargo</a></li>
-<li><a href="#h-gitignore-5">6.8.2.3.3. .gitignore</a></li>
+<li><a href="#h-Overall-structure-1">8.6.11.1. Overall structure</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a href="#h-Haskell--melbyr">6.8.3. Haskell (melbyr)</a>
+<li><a href="#h-Business-logic-1">8.6.12. Business logic</a>
 <ul>
-<li><a href="#h-Set-up-GHCi-environment">6.8.3.1. Set up GHCi environment</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#h-Tests-1">6.9. Tests</a></li>
-</ul>
-</li>
-<li><a href="#h-Contributing-to-Melby">7. Contributing to Melby</a>
+<li><a href="#h-Widget-Rendering-System">8.6.12.1. Widget Rendering System</a>
 <ul>
-<li><a href="#h-Code-of-conduct">7.1. Code of conduct</a></li>
-<li><a href="#h-Where-to-make-changes">7.2. Where to make changes</a></li>
-<li><a href="#h-Focus-on-prose--not-code">7.3. Focus on prose, not code</a></li>
+<li><a href="#h-Widget-field-reference">8.6.12.1.1. Widget field reference</a></li>
+<li><a href="#h-Optional-widget-delimiters">8.6.12.1.2. Optional widget delimiters</a></li>
+<li><a href="#h-Implementation-1">8.6.12.1.3. Implementation</a></li>
+</ul>
+</li>
+<li><a href="#h-Colorized-Git-SHA-1">8.6.12.2. Colorized Git SHA</a>
+<ul>
+<li><a href="#h-Overview">8.6.12.2.1. Overview</a></li>
+<li><a href="#h-24-bit-colors">8.6.12.2.2. 24-bit colors</a></li>
+</ul>
+</li>
+<li><a href="#h-Parse-path-aliases">8.6.12.3. Parse path aliases</a></li>
+</ul>
+</li>
+<li><a href="#h-Boilerplate-2">8.6.13. Boilerplate</a>
+<ul>
+<li><a href="#h-Option-handling-1">8.6.13.1. Option handling</a></li>
+<li><a href="#h-Main-1">8.6.13.2. Main</a></li>
+<li><a href="#h-gRPC-schema-1">8.6.13.3. gRPC schema</a>
+<ul>
+<li><a href="#h-Colorized-Git-SHA-2">8.6.13.3.1. Colorized Git SHA</a></li>
+<li><a href="#h-Render-options">8.6.13.3.2. Render options</a></li>
+<li><a href="#h-Widgets">8.6.13.3.3. Widgets</a></li>
+<li><a href="#h-Parse-path-aliases-1">8.6.13.3.4. Parse path aliases</a></li>
+</ul>
+</li>
+<li><a href="#h-Logging">8.6.13.4. Logging</a></li>
+<li><a href="#h-Other-2">8.6.13.5. Other</a>
+<ul>
+<li><a href="#h-Pragmas-1">8.6.13.5.1. Pragmas</a></li>
+<li><a href="#h-Imports-1">8.6.13.5.2. Imports</a></li>
+<li><a href="#h-Git-versioning-1">8.6.13.5.3. Git versioning</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#h-Build-system-1">8.6.14. Build system</a>
+<ul>
+<li><a href="#h-Makefile-2">8.6.14.1. Makefile</a></li>
+<li><a href="#h-Cabal-1">8.6.14.2. Cabal</a></li>
+<li><a href="#h-Nix">8.6.14.3. Nix</a></li>
+<li><a href="#h-Stack-1">8.6.14.4. Stack</a></li>
+<li><a href="#h-gitignore-3">8.6.14.5. .gitignore</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#h-Installation">8.7. Installation</a>
+<ul>
+<li><a href="#h-Linux">8.7.1. Linux</a></li>
+</ul>
+</li>
+<li><a href="#h-Build-system-2">8.8. Build system</a>
+<ul>
+<li><a href="#h-Elixir-1">8.8.1. Elixir</a>
+<ul>
+<li><a href="#h-Makefile-3">8.8.1.1. Makefile</a></li>
+<li><a href="#h-gitattributes">8.8.1.2. gitattributes</a></li>
+<li><a href="#h-Mix-tool-configuration">8.8.1.3. Mix tool configuration</a></li>
+<li><a href="#h-gitignore-4">8.8.1.4. .gitignore</a></li>
+<li><a href="#h-Formatter">8.8.1.5. Formatter</a></li>
+<li><a href="#h-protoc-gen-elixir-nix">8.8.1.6. protoc-gen-elixir.nix</a></li>
+<li><a href="#h-Mix-release">8.8.1.7. Mix release</a></li>
+<li><a href="#h-Additional-application-configuration">8.8.1.8. Additional application configuration</a></li>
+</ul>
+</li>
+<li><a href="#h-Rust-NIFs-integration">8.8.2. Rust NIFs integration</a>
+<ul>
+<li><a href="#h-Elixir-wrapper">8.8.2.1. Elixir wrapper</a></li>
+<li><a href="#h-Rust-wrapper">8.8.2.2. Rust wrapper</a></li>
+<li><a href="#h-Boilerplate-3">8.8.2.3. Boilerplate</a>
+<ul>
+<li><a href="#h-Makefile-4">8.8.2.3.1. Makefile</a></li>
+<li><a href="#h-Cargo">8.8.2.3.2. Cargo</a></li>
+<li><a href="#h-gitignore-5">8.8.2.3.3. .gitignore</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#h-Haskell--melbyr">8.8.3. Haskell (melbyr)</a>
+<ul>
+<li><a href="#h-Set-up-GHCi-environment">8.8.3.1. Set up GHCi environment</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#h-Tests-1">8.9. Tests</a></li>
+</ul>
+</li>
+<li><a href="#h-Contributing-to-Melby">9. Contributing to Melby</a>
+<ul>
+<li><a href="#h-Code-of-conduct">9.1. Code of conduct</a></li>
+<li><a href="#h-Where-to-make-changes">9.2. Where to make changes</a></li>
+<li><a href="#h-Focus-on-prose--not-code">9.3. Focus on prose, not code</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
 
-<div id="outline-container-h-Overview" class="outline-2">
-<h2 id="h-Overview"><span class="section-number-2">1.</span> Overview</h2>
-<div class="outline-text-2" id="text-h-Overview">
+<div id="outline-container-h-Tech-stack" class="outline-2">
+<h2 id="h-Tech-stack"><span class="section-number-2">1.</span> Tech stack</h2>
+<div class="outline-text-2" id="text-h-Tech-stack">
+<p>
+We use several programming languages: Elixir, Lua, Rust, and Haskell.
+</p>
+
+<ul class="org-ul">
+<li><b>Elixir</b>: Elixir is the main language used in this project because of it
+leverages the famed Erlang runtime, known for its world-class reliability.
+Elixir is used for programming the base system, as well as testing all of the
+components together.</li>
+<li><b>Lua</b>: Lua is used as our configuration language, because of its power and
+flexibility. Users must create a Lua configuration file in order to use Melby.</li>
+<li><b>Rust</b>: Rust is used in some places where static typing and performance might
+come in handy. Typically it's used for smaller, pure (lacking side effects)
+functions.</li>
+<li><b>Haskell</b>: Haskell is used for the Melby client binary <code>melbyc</code>, and also the
+<code>melbyr</code> rendering service. Haskell maximizes code maintainability and
+stability, and so it is the preferred language for building smaller
+independent components outside of the base (Elixir) system.</li>
+</ul>
+
+<p>
+We also use <a href="https://en.wikipedia.org/wiki/Literate_programming">Literate Programming</a> (LP). To this end, we use Emacs Org mode
+(<code>*.org</code> files) as the source of truth. These files are <i>tangled</i> into the above
+languages for the application binaries. These same files are <i>woven</i> to produce
+HTML files for documentation (what you are reading now). We use several
+languages for weaving:
+</p>
+
+<ul class="org-ul">
+<li><b>Emacs Lisp</b>: We use Emacs Lisp to tame Emacs Org mode for LP. Emacs Org mode
+is used for LP in this project because it is probably the most flexible and
+widely-used LP system out there. LaTeX + Noweb is another possibility, but it
+was not chosen because Org mode by default looks reasonable in plaintext.</li>
+<li><b>TikZ</b>: <a href="https://en.wikipedia.org/wiki/PGF/TikZ">PGF/TikZ</a> is used for writing all of the diagrams and figures used for
+documentation. This is because TikZ is extremely stable, powerful, and
+flexible for creating diagrams of all sorts. It is also able to produce SVG
+files, which are required to generate diagrams of the highest quality.</li>
+<li><b>HTML/CSS</b>: HTML and CSS power the documentation. Although PDF output can be
+very beautiful, HTML is simply more accessible and also does not require code
+listings to be broken across multiple pages.</li>
+</ul>
+
+<p>
+If you are interested in helping to contribute back to Melby, see <a href="developer-manual.html#h-Contributing-to-Melby">"Contributing
+to Melby" in the Developer Manual</a>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-h-Lay-of-the-land" class="outline-2">
+<h2 id="h-Lay-of-the-land"><span class="section-number-2">2.</span> Lay of the land</h2>
+<div class="outline-text-2" id="text-h-Lay-of-the-land">
+
+<div id="org0000000" class="figure">
+<p><img src="./image/architecture-overall.svg" alt="architecture-overall.svg" class="org-svg">
+</p>
+</div>
+
+<p>
+Melby uses a client/server architecture. There are two main parts:
+</p>
+
+<div class="sidenote" id="org0000001">
+<p>
+<code>melbyd</code> is the daemon, which acts as a server in the client/server
+architecture. We call it a daemon because it is expected to have direct access
+to the local machine which is relevant to the client. This is unlike typical web
+servers where the local machine characteristics of such servers are irrelevant
+to clients.
+</p>
+
+</div>
+
+<ol class="org-ol">
+<li><code>melbyd</code>: The daemon (server), which itself is composed of two smaller pieces:
+a. The controller written in Elixir and Rust.
+b. The viewer written in Haskell. This is a separate server in its own right
+   (a microservice).</li>
+<li><code>melbyc</code>: The client, written in Haskell. The client sends a request and
+receives a "view".</li>
+</ol>
+
+<p>
+You may notice that the two parts of <code>melbyd</code> are the controller and viewer.
+These parts are named this way to refer to the common <a href="https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller">Model-View-Controller</a>
+(MVC) pattern. One unusual deviation from the MVC pattern is that the client is
+fully responsible for sending in the "template" for the view, as well as asking
+the daemon what kind of data (Model) it would like to work with. The client does
+this by sending in a Lua script.
+</p>
+
+<p>
+So the entire flow is:
+</p>
+
+<ol class="org-ol">
+<li>User writes a Lua script to specify what pieces of information it wants, and
+how it should be presented.</li>
+<li><code>melbyc</code> sends this script to <code>melbyd</code> for processing.</li>
+<li>The <code>melbyd</code> controller gathers the necessary data (e.g., Git status) and
+sends it to the <code>melbyd</code> viewer (Haskell service) for generating the final
+view.</li>
+<li>The view is sent back to <code>melbyc</code>, which then prints it to STDOUT.</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-h-Overview-of-this-manual" class="outline-2">
+<h2 id="h-Overview-of-this-manual"><span class="section-number-2">3.</span> Overview of this manual</h2>
+<div class="outline-text-2" id="text-h-Overview-of-this-manual">
 <p>
 The developer manual consists of multiple parts for the following areas:
 </p>
@@ -630,12 +742,12 @@ below and prefixed with <code>Developer Manual: ...</code>.
 </div>
 
 <div id="outline-container-h-Build-System-for-Literate-Programming" class="outline-2">
-<h2 id="h-Build-System-for-Literate-Programming"><span class="section-number-2">2.</span> Build System for Literate Programming</h2>
+<h2 id="h-Build-System-for-Literate-Programming"><span class="section-number-2">4.</span> Build System for Literate Programming</h2>
 <div class="outline-text-2" id="text-h-Build-System-for-Literate-Programming">
 </div>
 
 <div id="outline-container-h-Overview-of-how-LP-is-used-in-this-project" class="outline-3">
-<h3 id="h-Overview-of-how-LP-is-used-in-this-project"><span class="section-number-3">2.1.</span> Overview of how LP is used in this project</h3>
+<h3 id="h-Overview-of-how-LP-is-used-in-this-project"><span class="section-number-3">4.1.</span> Overview of how LP is used in this project</h3>
 <div class="outline-text-3" id="text-h-Overview-of-how-LP-is-used-in-this-project">
 <p>
 Melby uses <a href="https://github.com/listx/lilac">Lilac</a>, a literate programming tool.
@@ -644,7 +756,7 @@ Melby uses <a href="https://github.com/listx/lilac">Lilac</a>, a literate progra
 </div>
 
 <div id="outline-container-h-Weaving--generating-the-docs" class="outline-3">
-<h3 id="h-Weaving--generating-the-docs"><span class="section-number-3">2.2.</span> Weaving (generating the docs)</h3>
+<h3 id="h-Weaving--generating-the-docs"><span class="section-number-3">4.2.</span> Weaving (generating the docs)</h3>
 <div class="outline-text-3" id="text-h-Weaving--generating-the-docs">
 <p>
 Weaving is conceptually simpler than tangling because there is no extra step &#x2014;
@@ -782,7 +894,7 @@ endef
 </div>
 
 <div id="outline-container-h-Emacs-customizations" class="outline-4">
-<h4 id="h-Emacs-customizations"><span class="section-number-4">2.2.1.</span> Emacs customizations</h4>
+<h4 id="h-Emacs-customizations"><span class="section-number-4">4.2.1.</span> Emacs customizations</h4>
 <div class="outline-text-4" id="text-h-Emacs-customizations">
 <p>
 Because Lilac does not come with built-in support for syntax highlighting for
@@ -837,7 +949,7 @@ highlighting that we need.
 </div>
 
 <div id="outline-container-h-Diagrams" class="outline-4">
-<h4 id="h-Diagrams"><span class="section-number-4">2.2.2.</span> Diagrams</h4>
+<h4 id="h-Diagrams"><span class="section-number-4">4.2.2.</span> Diagrams</h4>
 <div class="outline-text-4" id="text-h-Diagrams">
 <p>
 The code used to generate the diagrams used in this doc is <a href="image.html">here</a>. We don't
@@ -847,7 +959,7 @@ discuss that code in this doc because it would make this doc even more verbose.
 </div>
 
 <div id="outline-container-h-Ignore-woven-HTML-from--git-diff" class="outline-4">
-<h4 id="h-Ignore-woven-HTML-from--git-diff"><span class="section-number-4">2.2.3.</span> Ignore woven HTML from <code>git diff</code></h4>
+<h4 id="h-Ignore-woven-HTML-from--git-diff"><span class="section-number-4">4.2.3.</span> Ignore woven HTML from <code>git diff</code></h4>
 <div class="outline-text-4" id="text-h-Ignore-woven-HTML-from--git-diff">
 <p>
 Typically we only need to look at the rendered HTML output in a web browser as
@@ -868,7 +980,7 @@ In order to still show the HTML textual diff, we can run <code>git diff --text</
 </div>
 
 <div id="outline-container-h-git-add--p" class="outline-5">
-<h5 id="h-git-add--p"><span class="section-number-5">2.2.3.1.</span> <code>git add -p</code></h5>
+<h5 id="h-git-add--p"><span class="section-number-5">4.2.3.1.</span> <code>git add -p</code></h5>
 <div class="outline-text-5" id="text-h-git-add--p">
 <p>
 Note that the above setting to treat HTML files as binary data prevents them
@@ -881,7 +993,7 @@ instead.
 </div>
 
 <div id="outline-container-h-Tangling--generating-the-source-code" class="outline-3">
-<h3 id="h-Tangling--generating-the-source-code"><span class="section-number-3">2.3.</span> Tangling (generating the source code)</h3>
+<h3 id="h-Tangling--generating-the-source-code"><span class="section-number-3">4.3.</span> Tangling (generating the source code)</h3>
 <div class="outline-text-3" id="text-h-Tangling--generating-the-source-code">
 <p>
 Tangling is simply the act of collecting the <code>#+begin_src ... #+end_src</code> blocks
@@ -977,7 +1089,7 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
 </div>
 
 <div id="outline-container-h-Copyright-headers" class="outline-4">
-<h4 id="h-Copyright-headers"><span class="section-number-4">2.3.1.</span> Copyright headers</h4>
+<h4 id="h-Copyright-headers"><span class="section-number-4">4.3.1.</span> Copyright headers</h4>
 <div class="outline-text-4" id="text-h-Copyright-headers">
 <p>
 We used to use a utility called <code>ptu</code> ("post-tangle utility") to prepend
@@ -997,7 +1109,7 @@ Because of these issues, the utility has been removed.
 </div>
 
 <div id="outline-container-h-gitignore" class="outline-4">
-<h4 id="h-gitignore"><span class="section-number-4">2.3.2.</span> .gitignore</h4>
+<h4 id="h-gitignore"><span class="section-number-4">4.3.2.</span> .gitignore</h4>
 <div class="outline-text-4" id="text-h-gitignore">
 <div class="org-src-container"><pre class="src src-text" id="nil-2">.stack-work
 deps/
@@ -1009,7 +1121,7 @@ image/*uncropped*
 </div>
 
 <div id="outline-container-h-Post-tangled-phase" class="outline-4">
-<h4 id="h-Post-tangled-phase"><span class="section-number-4">2.3.3.</span> Post-tangled phase</h4>
+<h4 id="h-Post-tangled-phase"><span class="section-number-4">4.3.3.</span> Post-tangled phase</h4>
 <div class="outline-text-4" id="text-h-Post-tangled-phase">
 <p>
 Here we discuss the various programming languages and their required build
@@ -1018,7 +1130,7 @@ environments.
 </div>
 
 <div id="outline-container-h-Elixir" class="outline-5">
-<h5 id="h-Elixir"><span class="section-number-5">2.3.3.1.</span> Elixir</h5>
+<h5 id="h-Elixir"><span class="section-number-5">4.3.3.1.</span> Elixir</h5>
 <div class="outline-text-5" id="text-h-Elixir">
 <p>
 We use Elixir 1.13.4+.
@@ -1027,13 +1139,13 @@ We use Elixir 1.13.4+.
 </div>
 
 <div id="outline-container-h-Rust" class="outline-5">
-<h5 id="h-Rust"><span class="section-number-5">2.3.3.2.</span> Rust</h5>
+<h5 id="h-Rust"><span class="section-number-5">4.3.3.2.</span> Rust</h5>
 <div class="outline-text-5" id="text-h-Rust">
 </div>
 </div>
 
 <div id="outline-container-h-Haskell" class="outline-5">
-<h5 id="h-Haskell"><span class="section-number-5">2.3.3.3.</span> Haskell</h5>
+<h5 id="h-Haskell"><span class="section-number-5">4.3.3.3.</span> Haskell</h5>
 <div class="outline-text-5" id="text-h-Haskell">
 <p>
 We use stack for reproducibility, although we should probably also think of
@@ -1048,7 +1160,7 @@ with GHC 9+.
 </div>
 
 <div id="outline-container-h-Lua" class="outline-5">
-<h5 id="h-Lua"><span class="section-number-5">2.3.3.4.</span> Lua</h5>
+<h5 id="h-Lua"><span class="section-number-5">4.3.3.4.</span> Lua</h5>
 <div class="outline-text-5" id="text-h-Lua">
 <p>
 We use luerl (add link), which uses Lua 5.2 with some 5.3 support.
@@ -1059,7 +1171,7 @@ We use luerl (add link), which uses Lua 5.2 with some 5.3 support.
 </div>
 
 <div id="outline-container-h-Glossary" class="outline-3">
-<h3 id="h-Glossary"><span class="section-number-3">2.4.</span> Glossary</h3>
+<h3 id="h-Glossary"><span class="section-number-3">4.4.</span> Glossary</h3>
 <div class="outline-text-3" id="text-h-Glossary">
 <ul class="org-ul">
 <li><b>Melby component</b>: a modular piece of software used to deliver the Melby user
@@ -1070,12 +1182,12 @@ experience.</li>
 </div>
 
 <div id="outline-container-h-Build-System-for-Packaging-Melby" class="outline-2">
-<h2 id="h-Build-System-for-Packaging-Melby"><span class="section-number-2">3.</span> Build System for Packaging Melby</h2>
+<h2 id="h-Build-System-for-Packaging-Melby"><span class="section-number-2">5.</span> Build System for Packaging Melby</h2>
 <div class="outline-text-2" id="text-h-Build-System-for-Packaging-Melby">
 </div>
 
 <div id="outline-container-h-Introduction" class="outline-3">
-<h3 id="h-Introduction"><span class="section-number-3">3.1.</span> Introduction</h3>
+<h3 id="h-Introduction"><span class="section-number-3">5.1.</span> Introduction</h3>
 <div class="outline-text-3" id="text-h-Introduction">
 <p>
 We use Nix for the build system. Nix allows us to package up Melby into an
@@ -1085,7 +1197,7 @@ environment capable of building Melby from scratch.
 </div>
 
 <div id="outline-container-h-What-we-must-build" class="outline-4">
-<h4 id="h-What-we-must-build"><span class="section-number-4">3.1.1.</span> What we must build</h4>
+<h4 id="h-What-we-must-build"><span class="section-number-4">5.1.1.</span> What we must build</h4>
 <div class="outline-text-4" id="text-h-What-we-must-build">
 <p>
 There are several pieces of software we need to build (compile from source):
@@ -1102,7 +1214,7 @@ There are several pieces of software we need to build (compile from source):
 </div>
 
 <div id="outline-container-h-Development-environment" class="outline-3">
-<h3 id="h-Development-environment"><span class="section-number-3">3.2.</span> Development environment</h3>
+<h3 id="h-Development-environment"><span class="section-number-3">5.2.</span> Development environment</h3>
 <div class="outline-text-3" id="text-h-Development-environment">
 <p>
 Developing is intimately tied to releasing. And of course, development must come
@@ -1115,7 +1227,7 @@ We use Nix to set up the environment.
 </div>
 
 <div id="outline-container-h-Nix-shell" class="outline-4">
-<h4 id="h-Nix-shell"><span class="section-number-4">3.2.1.</span> Nix shell</h4>
+<h4 id="h-Nix-shell"><span class="section-number-4">5.2.1.</span> Nix shell</h4>
 <div class="outline-text-4" id="text-h-Nix-shell">
 <p>
 This is taken from <a href="https://github.com/tweag/haskell-stack-nix-example/blob/b9383e35416a2b0e21fbc97ed079538f9f395b6a/shell.nix#L1">here</a>.
@@ -1280,7 +1392,7 @@ pkgs.mkShell ({
 </div>
 
 <div id="outline-container-h-Make-Stack-understand-Nix" class="outline-5">
-<h5 id="h-Make-Stack-understand-Nix"><span class="section-number-5">3.2.1.1.</span> Make Stack understand Nix</h5>
+<h5 id="h-Make-Stack-understand-Nix"><span class="section-number-5">5.2.1.1.</span> Make Stack understand Nix</h5>
 <div class="outline-text-5" id="text-h-Make-Stack-understand-Nix">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">package/nix/stack.nix</label><span class="lilac-caption-link-symbol"><a href="#package-nix-stack-nix">&#x1f517;</a></span></div><pre class="src src-nix" id="package-nix-stack-nix"><span class="org-nix-keyword">let</span>
   <span class="org-nix-attribute">sources</span> = <span class="org-nix-builtin">import</span> <span class="org-nix-constant">./sources.nix</span>;
@@ -1315,12 +1427,12 @@ pkgs.haskell.lib.buildStackProject {
 </div>
 
 <div id="outline-container-h-Packaging" class="outline-3">
-<h3 id="h-Packaging"><span class="section-number-3">3.3.</span> Packaging</h3>
+<h3 id="h-Packaging"><span class="section-number-3">5.3.</span> Packaging</h3>
 <div class="outline-text-3" id="text-h-Packaging">
 </div>
 
 <div id="outline-container-h-Releasing" class="outline-4">
-<h4 id="h-Releasing"><span class="section-number-4">3.3.1.</span> Releasing</h4>
+<h4 id="h-Releasing"><span class="section-number-4">5.3.1.</span> Releasing</h4>
 <div class="outline-text-4" id="text-h-Releasing">
 <p>
 We use Nix to package everything up. The main thing to note here is that we
@@ -1392,7 +1504,7 @@ to not conflict with the dev environment. Even better, add these settings in our
 Elixir code so that the user does not (normally) have to configure them.
 </p>
 
-<pre class="example" id="org0000012">
+<pre class="example" id="org0000014">
 RELEASE_COOKIE=path/to/cookie
 </pre>
 
@@ -1400,7 +1512,7 @@ RELEASE_COOKIE=path/to/cookie
 Then populate <code>path/to/cookie</code> with a random text string like this:
 </p>
 
-<pre class="example" id="org0000013">
+<pre class="example" id="org0000015">
 $ cd ~/.melby
 $ openssl rand -base64 48 &gt; cookie
 $ chmod 600 cookie
@@ -1409,7 +1521,7 @@ $ chmod 600 cookie
 </div>
 
 <div id="outline-container-h-Makefile" class="outline-4">
-<h4 id="h-Makefile"><span class="section-number-4">3.3.2.</span> Makefile</h4>
+<h4 id="h-Makefile"><span class="section-number-4">5.3.2.</span> Makefile</h4>
 <div class="outline-text-4" id="text-h-Makefile">
 <p>
 FIXME: reduce repetition by using a build rule (akin to run_emacs)
@@ -1459,7 +1571,7 @@ endef
 </div>
 
 <div id="outline-container-h-gitignore-1" class="outline-4">
-<h4 id="h-gitignore-1"><span class="section-number-4">3.3.3.</span> .gitignore</h4>
+<h4 id="h-gitignore-1"><span class="section-number-4">5.3.3.</span> .gitignore</h4>
 <div class="outline-text-4" id="text-h-gitignore-1">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">package/.gitignore</label><span class="lilac-caption-link-symbol"><a href="#package--gitignore">&#x1f517;</a></span></div><pre class="src src-text" id="package--gitignore">melby-client
 melby-client-rust
@@ -1474,7 +1586,7 @@ result*
 </div>
 
 <div id="outline-container-h-How-to-hack-on-this-project" class="outline-2">
-<h2 id="h-How-to-hack-on-this-project"><span class="section-number-2">4.</span> How to hack on this project</h2>
+<h2 id="h-How-to-hack-on-this-project"><span class="section-number-2">6.</span> How to hack on this project</h2>
 <div class="outline-text-2" id="text-h-How-to-hack-on-this-project">
 <p>
 First realize that this project uses literate programming. Because of this, you
@@ -1495,23 +1607,23 @@ You then need to stand up each individual Melby component.
 </div>
 
 <div id="outline-container-h-Building-each-component" class="outline-3">
-<h3 id="h-Building-each-component"><span class="section-number-3">4.1.</span> Building each component</h3>
+<h3 id="h-Building-each-component"><span class="section-number-3">6.1.</span> Building each component</h3>
 <div class="outline-text-3" id="text-h-Building-each-component">
 </div>
 
 <div id="outline-container-h-melbyr---renderer--required-by-daemon" class="outline-4">
-<h4 id="h-melbyr---renderer--required-by-daemon"><span class="section-number-4">4.1.1.</span> <code>melbyr</code> (renderer; required by daemon)</h4>
+<h4 id="h-melbyr---renderer--required-by-daemon"><span class="section-number-4">6.1.1.</span> <code>melbyr</code> (renderer; required by daemon)</h4>
 <div class="outline-text-4" id="text-h-melbyr---renderer--required-by-daemon">
-<pre class="example" id="org0000018">
+<pre class="example" id="org000001a">
 cd daemon/lib/melbyd/renderer; make
 </pre>
 </div>
 </div>
 
 <div id="outline-container-h-melbyd---daemon" class="outline-4">
-<h4 id="h-melbyd---daemon"><span class="section-number-4">4.1.2.</span> <code>melbyd</code> (daemon)</h4>
+<h4 id="h-melbyd---daemon"><span class="section-number-4">6.1.2.</span> <code>melbyd</code> (daemon)</h4>
 <div class="outline-text-4" id="text-h-melbyd---daemon">
-<pre class="example" id="org0000019">
+<pre class="example" id="org000001b">
 cd daemon &amp;&amp; make
 </pre>
 
@@ -1519,7 +1631,7 @@ cd daemon &amp;&amp; make
 And then to run the daemon, do
 </p>
 
-<pre class="example" id="org000001a">
+<pre class="example" id="org000001c">
 cd daemon &amp;&amp; make run_dev
 </pre>
 
@@ -1534,9 +1646,9 @@ you are running.
 </div>
 
 <div id="outline-container-h-melbyc---client" class="outline-3">
-<h3 id="h-melbyc---client"><span class="section-number-3">4.2.</span> <code>melbyc</code> (client)</h3>
+<h3 id="h-melbyc---client"><span class="section-number-3">6.2.</span> <code>melbyc</code> (client)</h3>
 <div class="outline-text-3" id="text-h-melbyc---client">
-<pre class="example" id="org000001b">
+<pre class="example" id="org000001d">
 cd client; make
 </pre>
 
@@ -1557,7 +1669,7 @@ environment.
 </div>
 
 <div id="outline-container-h-Testing-local-changes" class="outline-3">
-<h3 id="h-Testing-local-changes"><span class="section-number-3">4.3.</span> Testing local changes</h3>
+<h3 id="h-Testing-local-changes"><span class="section-number-3">6.3.</span> Testing local changes</h3>
 <div class="outline-text-3" id="text-h-Testing-local-changes">
 <p>
 FIXME: How to do testing? What about integration tests? How to invoke tests? <code>mix test</code>?
@@ -1566,12 +1678,12 @@ FIXME: How to do testing? What about integration tests? How to invoke tests? <co
 </div>
 
 <div id="outline-container-h-Common-scenarios" class="outline-3">
-<h3 id="h-Common-scenarios"><span class="section-number-3">4.4.</span> Common scenarios</h3>
+<h3 id="h-Common-scenarios"><span class="section-number-3">6.4.</span> Common scenarios</h3>
 <div class="outline-text-3" id="text-h-Common-scenarios">
 </div>
 
 <div id="outline-container-h-Hacking-on-the-Lua-config" class="outline-4">
-<h4 id="h-Hacking-on-the-Lua-config"><span class="section-number-4">4.4.1.</span> Hacking on the Lua config</h4>
+<h4 id="h-Hacking-on-the-Lua-config"><span class="section-number-4">6.4.1.</span> Hacking on the Lua config</h4>
 <div class="outline-text-4" id="text-h-Hacking-on-the-Lua-config">
 <p>
 Make sure to use fakes, and to add validation tests. FIXME show examples.
@@ -1582,7 +1694,7 @@ Make sure to use fakes, and to add validation tests. FIXME show examples.
 </div>
 
 <div id="outline-container-h-melbyc" class="outline-2">
-<h2 id="h-melbyc"><span class="section-number-2">5.</span> melbyc</h2>
+<h2 id="h-melbyc"><span class="section-number-2">7.</span> melbyc</h2>
 <div class="outline-text-2" id="text-h-melbyc">
 <p>
 We first examine the client to get a sense of how things work from the
@@ -1593,7 +1705,7 @@ see how it all works.
 </div>
 
 <div id="outline-container-h-Purpose" class="outline-3">
-<h3 id="h-Purpose"><span class="section-number-3">5.1.</span> Purpose</h3>
+<h3 id="h-Purpose"><span class="section-number-3">7.1.</span> Purpose</h3>
 <div class="outline-text-3" id="text-h-Purpose">
 <p>
 <code>melby-client</code> is a client for Melby. It allows users to interact with melby (the
@@ -1603,7 +1715,7 @@ daemon).
 </div>
 
 <div id="outline-container-h-Architectural-overview" class="outline-3">
-<h3 id="h-Architectural-overview"><span class="section-number-3">5.2.</span> Architectural overview</h3>
+<h3 id="h-Architectural-overview"><span class="section-number-3">7.2.</span> Architectural overview</h3>
 <div class="outline-text-3" id="text-h-Architectural-overview">
 <p>
 (Insert diagram &#x2014; write tikz and export as SVG.)
@@ -1612,7 +1724,7 @@ daemon).
 </div>
 
 <div id="outline-container-h-Design-by-contract" class="outline-3">
-<h3 id="h-Design-by-contract"><span class="section-number-3">5.3.</span> Design by contract</h3>
+<h3 id="h-Design-by-contract"><span class="section-number-3">7.3.</span> Design by contract</h3>
 <div class="outline-text-3" id="text-h-Design-by-contract">
 <p>
 We would like our client to observe the following behaviors.
@@ -1632,7 +1744,7 @@ about. We look at each of these requirements below.
 </div>
 
 <div id="outline-container-h-Talking-to-the-daemon" class="outline-4">
-<h4 id="h-Talking-to-the-daemon"><span class="section-number-4">5.3.1.</span> Talking to the daemon</h4>
+<h4 id="h-Talking-to-the-daemon"><span class="section-number-4">7.3.1.</span> Talking to the daemon</h4>
 <div class="outline-text-4" id="text-h-Talking-to-the-daemon">
 <p>
 We talk to melbyd using gRPC. This is rather straightforward as it just involves
@@ -1641,7 +1753,7 @@ a single unary (that is, non-streaming) gRPC call.
 </div>
 
 <div id="outline-container-h-Lua-1" class="outline-5">
-<h5 id="h-Lua-1"><span class="section-number-5">5.3.1.1.</span> Lua</h5>
+<h5 id="h-Lua-1"><span class="section-number-5">7.3.1.1.</span> Lua</h5>
 <div class="outline-text-5" id="text-h-Lua-1">
 <p>
 The more interesting thing here is that we send melbyd some Lua code to give the
@@ -1654,7 +1766,7 @@ customizes the pieces themselves). To this
 </div>
 
 <div id="outline-container-h-Proto" class="outline-5">
-<h5 id="h-Proto"><span class="section-number-5">5.3.1.2.</span> Proto</h5>
+<h5 id="h-Proto"><span class="section-number-5">7.3.1.2.</span> Proto</h5>
 <div class="outline-text-5" id="text-h-Proto">
 <p>
 For concreteness, this is the actual protobuf file we use to define melbyc's
@@ -1713,7 +1825,7 @@ FIXME: add link to where it's used in Elixir.
 </div>
 
 <div id="outline-container-h-Running-very-quickly" class="outline-4">
-<h4 id="h-Running-very-quickly"><span class="section-number-4">5.3.2.</span> Running very quickly</h4>
+<h4 id="h-Running-very-quickly"><span class="section-number-4">7.3.2.</span> Running very quickly</h4>
 <div class="outline-text-4" id="text-h-Running-very-quickly">
 <p>
 We don't want the client to block too long, because it is expected to be called
@@ -1733,7 +1845,7 @@ Because this is a daemon-side concern, there isn't much for us to do here.
 </div>
 
 <div id="outline-container-h-Command-line-argument-handling" class="outline-4">
-<h4 id="h-Command-line-argument-handling"><span class="section-number-4">5.3.3.</span> Command line argument handling</h4>
+<h4 id="h-Command-line-argument-handling"><span class="section-number-4">7.3.3.</span> Command line argument handling</h4>
 <div class="outline-text-4" id="text-h-Command-line-argument-handling">
 <p>
 This is somewhat "boring" and we actually don't have much to design here. Much
@@ -1745,7 +1857,7 @@ that we will be using.
 </div>
 
 <div id="outline-container-h-Code-overview" class="outline-3">
-<h3 id="h-Code-overview"><span class="section-number-3">5.4.</span> Code overview</h3>
+<h3 id="h-Code-overview"><span class="section-number-3">7.4.</span> Code overview</h3>
 <div class="outline-text-3" id="text-h-Code-overview">
 <p>
 This walkthrough is written for the future maintainers of this codebase.
@@ -1753,7 +1865,7 @@ This walkthrough is written for the future maintainers of this codebase.
 </div>
 
 <div id="outline-container-h-Overall-structure" class="outline-4">
-<h4 id="h-Overall-structure"><span class="section-number-4">5.4.1.</span> Overall structure</h4>
+<h4 id="h-Overall-structure"><span class="section-number-4">7.4.1.</span> Overall structure</h4>
 <div class="outline-text-4" id="text-h-Overall-structure">
 <p>
 All of the business logic lies in the <code>melby-client.hs</code> file, which has the
@@ -1783,7 +1895,7 @@ code.
 </div>
 
 <div id="outline-container-h-Business-logic" class="outline-3">
-<h3 id="h-Business-logic"><span class="section-number-3">5.5.</span> Business logic</h3>
+<h3 id="h-Business-logic"><span class="section-number-3">7.5.</span> Business logic</h3>
 <div class="outline-text-3" id="text-h-Business-logic">
 <p>
 Recall in section FIXME that we said we wanted to pass in some Lua code. So
@@ -1875,12 +1987,12 @@ something like:
 </div>
 
 <div id="outline-container-h-Boilerplate" class="outline-3">
-<h3 id="h-Boilerplate"><span class="section-number-3">5.6.</span> Boilerplate</h3>
+<h3 id="h-Boilerplate"><span class="section-number-3">7.6.</span> Boilerplate</h3>
 <div class="outline-text-3" id="text-h-Boilerplate">
 </div>
 
 <div id="outline-container-h-Option-handling" class="outline-4">
-<h4 id="h-Option-handling"><span class="section-number-4">5.6.1.</span> Option handling</h4>
+<h4 id="h-Option-handling"><span class="section-number-4">7.6.1.</span> Option handling</h4>
 <div class="outline-text-4" id="text-h-Option-handling">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-client-hs--code">melbyc_option_handling</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyc_option_handling">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyc_option_handling"><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_option_handling_types">melbyc_option_handling_types</a></span>
 <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_option_handling_parsers">melbyc_option_handling_parsers</a></span>
@@ -1968,7 +2080,7 @@ successful parse of command line arguments) to the business logic.
 </div>
 
 <div id="outline-container-h-Main" class="outline-4">
-<h4 id="h-Main"><span class="section-number-4">5.6.2.</span> Main</h4>
+<h4 id="h-Main"><span class="section-number-4">7.6.2.</span> Main</h4>
 <div class="outline-text-4" id="text-h-Main">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-client-hs--code">melbyc_main</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyc_main">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyc_main"><span class="org-haskell-definition">main</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">IO</span> <span class="org-haskell-constructor">()</span>
 <span class="org-haskell-definition">main</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">do</span>
@@ -1987,7 +2099,7 @@ successful parse of command line arguments) to the business logic.
 </div>
 
 <div id="outline-container-h-gRPC-schema" class="outline-4">
-<h4 id="h-gRPC-schema"><span class="section-number-4">5.6.3.</span> gRPC schema</h4>
+<h4 id="h-gRPC-schema"><span class="section-number-4">7.6.3.</span> gRPC schema</h4>
 <div class="outline-text-4" id="text-h-gRPC-schema">
 <p>
 This is the code that helps melbyc understand how to encode and decode the raw
@@ -2066,11 +2178,11 @@ FIXME: break this up into smaller chunks
 </div>
 
 <div id="outline-container-h-Other" class="outline-4">
-<h4 id="h-Other"><span class="section-number-4">5.6.4.</span> Other</h4>
+<h4 id="h-Other"><span class="section-number-4">7.6.4.</span> Other</h4>
 <div class="outline-text-4" id="text-h-Other">
 </div>
 <div id="outline-container-h-Pragmas" class="outline-5">
-<h5 id="h-Pragmas"><span class="section-number-5">5.6.4.1.</span> Pragmas</h5>
+<h5 id="h-Pragmas"><span class="section-number-5">7.6.4.1.</span> Pragmas</h5>
 <div class="outline-text-5" id="text-h-Pragmas">
 <p>
 The language pragmas are not that interesting, as their purpose is to basically
@@ -2088,7 +2200,7 @@ turn on the various GHC extensions that allow us to use the libraries we use.
 </div>
 
 <div id="outline-container-h-Imports" class="outline-5">
-<h5 id="h-Imports"><span class="section-number-5">5.6.4.2.</span> Imports</h5>
+<h5 id="h-Imports"><span class="section-number-5">7.6.4.2.</span> Imports</h5>
 <div class="outline-text-5" id="text-h-Imports">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-client-hs--code">melbyc_imports</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyc_imports">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyc_imports"><span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Data.Map.Strict</span> <span class="org-haskell-keyword">qualified</span> <span class="org-haskell-keyword">as</span> <span class="org-haskell-constructor">M</span>
 <span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Data.Text</span> <span class="org-haskell-keyword">qualified</span> <span class="org-haskell-keyword">as</span> <span class="org-haskell-constructor">T</span>
@@ -2112,7 +2224,7 @@ turn on the various GHC extensions that allow us to use the libraries we use.
 </div>
 
 <div id="outline-container-h-Git-versioning" class="outline-5">
-<h5 id="h-Git-versioning"><span class="section-number-5">5.6.4.3.</span> Git versioning</h5>
+<h5 id="h-Git-versioning"><span class="section-number-5">7.6.4.3.</span> Git versioning</h5>
 <div class="outline-text-5" id="text-h-Git-versioning">
 <p>
 We want to store the git hash of the project into the melbyc binary itself (this
@@ -2183,12 +2295,12 @@ The underlying plumbing that handles this is done in FIXME path:
 </div>
 
 <div id="outline-container-h-Build-system" class="outline-3">
-<h3 id="h-Build-system"><span class="section-number-3">5.7.</span> Build system</h3>
+<h3 id="h-Build-system"><span class="section-number-3">7.7.</span> Build system</h3>
 <div class="outline-text-3" id="text-h-Build-system">
 </div>
 
 <div id="outline-container-h-Makefile-1" class="outline-4">
-<h4 id="h-Makefile-1"><span class="section-number-4">5.7.1.</span> Makefile</h4>
+<h4 id="h-Makefile-1"><span class="section-number-4">7.7.1.</span> Makefile</h4>
 <div class="outline-text-4" id="text-h-Makefile-1">
 <div class="org-src-container"><pre class="src src-makefile" id="nil-6"><span class="org-comment-delimiter"># </span><span class="org-comment">NOTE: Below is an installation rule for a Nix + Cabal workflow. It may be</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">useful to do this in case stack doesn't work for some reason. Originally we</span>
@@ -2230,7 +2342,7 @@ because Git will still figure out how to run <code>git describe</code>. We just 
 </div>
 
 <div id="outline-container-h-Cabal" class="outline-4">
-<h4 id="h-Cabal"><span class="section-number-4">5.7.2.</span> Cabal</h4>
+<h4 id="h-Cabal"><span class="section-number-4">7.7.2.</span> Cabal</h4>
 <div class="outline-text-4" id="text-h-Cabal">
 <div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-7"><span class="org-keyword">name</span>: melby-client
 <span class="org-keyword">version</span>: 1.0.0.0
@@ -2321,7 +2433,7 @@ because Git will still figure out how to run <code>git describe</code>. We just 
 </div>
 
 <div id="outline-container-h-melbyc-nix" class="outline-4">
-<h4 id="h-melbyc-nix"><span class="section-number-4">5.7.3.</span> melbyc.nix</h4>
+<h4 id="h-melbyc-nix"><span class="section-number-4">7.7.3.</span> melbyc.nix</h4>
 <div class="outline-text-4" id="text-h-melbyc-nix">
 <p>
 We use Stack for building our Haskell binaries. The biggest reason we do this is
@@ -2393,7 +2505,7 @@ pkgs.haskell.lib.buildStackProject {
 </div>
 
 <div id="outline-container-h-Stack" class="outline-4">
-<h4 id="h-Stack"><span class="section-number-4">5.7.4.</span> Stack</h4>
+<h4 id="h-Stack"><span class="section-number-4">7.7.4.</span> Stack</h4>
 <div class="outline-text-4" id="text-h-Stack">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">client/stack.yaml</label><span class="lilac-caption-link-symbol"><a href="#client-stack-yaml">&#x1f517;</a></span></div><pre class="src src-yaml" id="client-stack-yaml"><span class="org-variable-name">resolver</span>: lts-18.28
 <span class="org-variable-name">allow-newer</span>: <span class="org-constant">true</span>
@@ -2428,7 +2540,7 @@ pkgs.haskell.lib.buildStackProject {
 </div>
 
 <div id="outline-container-h-gitignore-2" class="outline-4">
-<h4 id="h-gitignore-2"><span class="section-number-4">5.7.5.</span> .gitignore</h4>
+<h4 id="h-gitignore-2"><span class="section-number-4">7.7.5.</span> .gitignore</h4>
 <div class="outline-text-4" id="text-h-gitignore-2">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">client/.gitignore</label><span class="lilac-caption-link-symbol"><a href="#client--gitignore">&#x1f517;</a></span></div><pre class="src src-text" id="client--gitignore">dist-newstyle
 melbyc
@@ -2439,12 +2551,12 @@ melbyc
 </div>
 
 <div id="outline-container-h-Rust-client" class="outline-3">
-<h3 id="h-Rust-client"><span class="section-number-3">5.8.</span> Rust client</h3>
+<h3 id="h-Rust-client"><span class="section-number-3">7.8.</span> Rust client</h3>
 <div class="outline-text-3" id="text-h-Rust-client">
 </div>
 
 <div id="outline-container-h-Code-overview-1" class="outline-4">
-<h4 id="h-Code-overview-1"><span class="section-number-4">5.8.1.</span> Code overview</h4>
+<h4 id="h-Code-overview-1"><span class="section-number-4">7.8.1.</span> Code overview</h4>
 <div class="outline-text-4" id="text-h-Code-overview-1">
 <p>
 While the Haskell client above does work, the <a href="https://github.com/higherkindness/mu-haskell"><code>mu-haskell</code></a> library it depends on
@@ -2536,7 +2648,7 @@ package. We do that below.
 </div>
 
 <div id="outline-container-h-Main-function" class="outline-5">
-<h5 id="h-Main-function"><span class="section-number-5">5.8.1.1.</span> Main function</h5>
+<h5 id="h-Main-function"><span class="section-number-5">7.8.1.1.</span> Main function</h5>
 <div class="outline-text-5" id="text-h-Main-function">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">main.rs for client-rust</label><span class="lilac-caption-link-symbol"><a href="#main-rs-for-client-rust">&#x1f517;</a></span></div><pre class="src src-rust" id="main-rs-for-client-rust"><span class="lilac-child-link-from-parent"><a href="#__NREF__client-rust--imports-1">client-rust--imports</a></span>
 <span class="lilac-child-link-from-parent"><a href="#__NREF__client-rust--option-handling-1">client-rust--option-handling</a></span>
@@ -2654,7 +2766,7 @@ View the output of running the Lua configuration inside melbyd.
 </div>
 
 <div id="outline-container-h-Packaging-1" class="outline-4">
-<h4 id="h-Packaging-1"><span class="section-number-4">5.8.2.</span> Packaging</h4>
+<h4 id="h-Packaging-1"><span class="section-number-4">7.8.2.</span> Packaging</h4>
 <div class="outline-text-4" id="text-h-Packaging-1">
 <div class="org-src-container"><pre class="src src-nix" id="nil-12">{ sources ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../package/nix/sources.nix</span> }:
 <span class="org-nix-keyword">let</span>
@@ -2692,12 +2804,12 @@ View the output of running the Lua configuration inside melbyd.
 </div>
 
 <div id="outline-container-h-melbyd" class="outline-2">
-<h2 id="h-melbyd"><span class="section-number-2">6.</span> melbyd</h2>
+<h2 id="h-melbyd"><span class="section-number-2">8.</span> melbyd</h2>
 <div class="outline-text-2" id="text-h-melbyd">
 </div>
 
 <div id="outline-container-h-Purpose-1" class="outline-3">
-<h3 id="h-Purpose-1"><span class="section-number-3">6.1.</span> Purpose</h3>
+<h3 id="h-Purpose-1"><span class="section-number-3">8.1.</span> Purpose</h3>
 <div class="outline-text-3" id="text-h-Purpose-1">
 <p>
 <code>melbyd</code> is the daemon for Melby. It is written in Elixir and serves requests to
@@ -2708,7 +2820,7 @@ most of the interesting things happen.
 </div>
 
 <div id="outline-container-h-Architectural-overview-1" class="outline-3">
-<h3 id="h-Architectural-overview-1"><span class="section-number-3">6.2.</span> Architectural overview</h3>
+<h3 id="h-Architectural-overview-1"><span class="section-number-3">8.2.</span> Architectural overview</h3>
 <div class="outline-text-3" id="text-h-Architectural-overview-1">
 <p>
 FIXME: add diagram
@@ -2717,7 +2829,7 @@ FIXME: add diagram
 </div>
 
 <div id="outline-container-h-Proto-1" class="outline-3">
-<h3 id="h-Proto-1"><span class="section-number-3">6.3.</span> Proto</h3>
+<h3 id="h-Proto-1"><span class="section-number-3">8.3.</span> Proto</h3>
 <div class="outline-text-3" id="text-h-Proto-1">
 <div class="org-src-container"><pre class="src src-protobuf" id="nil-13">syntax = <span class="org-string">"proto3"</span>;
 
@@ -2731,9 +2843,9 @@ FIXME: add diagram
 </div>
 </div>
 
-<div id="outline-container-h-Tech-stack" class="outline-3">
-<h3 id="h-Tech-stack"><span class="section-number-3">6.4.</span> Tech stack</h3>
-<div class="outline-text-3" id="text-h-Tech-stack">
+<div id="outline-container-h-Tech-stack-1" class="outline-3">
+<h3 id="h-Tech-stack-1"><span class="section-number-3">8.4.</span> Tech stack</h3>
+<div class="outline-text-3" id="text-h-Tech-stack-1">
 <p>
 The configuration language for shell prompts (the interface to using Melby for
 end users) is Lua. This Lua configuration is used to set up Luerl VMs inside
@@ -2756,7 +2868,7 @@ here.
 </div>
 
 <div id="outline-container-h-Life-of-a-request-to-render-a-shell-prompt" class="outline-3">
-<h3 id="h-Life-of-a-request-to-render-a-shell-prompt"><span class="section-number-3">6.5.</span> Life of a request to render a shell prompt</h3>
+<h3 id="h-Life-of-a-request-to-render-a-shell-prompt"><span class="section-number-3">8.5.</span> Life of a request to render a shell prompt</h3>
 <div class="outline-text-3" id="text-h-Life-of-a-request-to-render-a-shell-prompt">
 <p>
 Keep in mind that in order to create a request, the user must first define Lua
@@ -2785,12 +2897,12 @@ meant to be combined into the user's <code>PS1</code> shell variable.</li>
 </div>
 
 <div id="outline-container-h-Internals" class="outline-3">
-<h3 id="h-Internals"><span class="section-number-3">6.6.</span> Internals</h3>
+<h3 id="h-Internals"><span class="section-number-3">8.6.</span> Internals</h3>
 <div class="outline-text-3" id="text-h-Internals">
 </div>
 
 <div id="outline-container-h-Standard-Resource-Server" class="outline-4">
-<h4 id="h-Standard-Resource-Server"><span class="section-number-4">6.6.1.</span> Standard Resource Server</h4>
+<h4 id="h-Standard-Resource-Server"><span class="section-number-4">8.6.1.</span> Standard Resource Server</h4>
 <div class="outline-text-4" id="text-h-Standard-Resource-Server">
 <p>
 This section describes the implementation of the Standard Resource Server, a
@@ -2833,7 +2945,7 @@ down this process.
 </div>
 
 <div id="outline-container-h-Proto-2" class="outline-5">
-<h5 id="h-Proto-2"><span class="section-number-5">6.6.1.1.</span> Proto</h5>
+<h5 id="h-Proto-2"><span class="section-number-5">8.6.1.1.</span> Proto</h5>
 <div class="outline-text-5" id="text-h-Proto-2">
 <div class="org-src-container"><pre class="src src-protobuf" id="nil-14">syntax = <span class="org-string">"proto3"</span>;
 
@@ -2859,7 +2971,7 @@ down this process.
 </div>
 
 <div id="outline-container-h-Implementation" class="outline-5">
-<h5 id="h-Implementation"><span class="section-number-5">6.6.1.2.</span> Implementation</h5>
+<h5 id="h-Implementation"><span class="section-number-5">8.6.1.2.</span> Implementation</h5>
 <div class="outline-text-5" id="text-h-Implementation">
 <div class="org-src-container"><pre class="src src-elixir" id="nil-15"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.StandardResource</span> <span class="org-keyword">do</span>
   <span class="org-comment-delimiter"># </span><span class="org-comment">If a Standard Resource Service process dies, don't restart it, because it</span>
@@ -3285,7 +3397,7 @@ down this process.
 </div>
 
 <div id="outline-container-h-Tick" class="outline-5">
-<h5 id="h-Tick"><span class="section-number-5">6.6.1.3.</span> Tick</h5>
+<h5 id="h-Tick"><span class="section-number-5">8.6.1.3.</span> Tick</h5>
 <div class="outline-text-5" id="text-h-Tick">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_tick</a></span>(1/1) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_tick">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_tick"><span class="org-comment-delimiter"># </span><span class="org-comment">Send a "tick" message to our GenServer in 1 second. See</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">https://stackoverflow.com/a/32097971/437583.</span>
@@ -3405,7 +3517,7 @@ down this process.
 </div>
 
 <div id="outline-container-h-Marking-staleness" class="outline-5">
-<h5 id="h-Marking-staleness"><span class="section-number-5">6.6.1.4.</span> Marking staleness</h5>
+<h5 id="h-Marking-staleness"><span class="section-number-5">8.6.1.4.</span> Marking staleness</h5>
 <div class="outline-text-5" id="text-h-Marking-staleness">
 <p>
 If we mark an SRS GenServer as stale, this forces the re-reading of state such
@@ -3459,7 +3571,7 @@ can be more precise with how its state is updated with a followup coordinated
 </div>
 
 <div id="outline-container-h-Filesystem-based-staleness" class="outline-6">
-<h6 id="h-Filesystem-based-staleness"><span class="section-number-6">6.6.1.4.1.</span> Filesystem-based staleness</h6>
+<h6 id="h-Filesystem-based-staleness"><span class="section-number-6">8.6.1.4.1.</span> Filesystem-based staleness</h6>
 <div class="outline-text-6" id="text-h-Filesystem-based-staleness">
 <p>
 We want to be able to automatically mark for staleness based on filesystem
@@ -3640,7 +3752,7 @@ the root directory (<code>/</code>) as stale.
 </div>
 
 <div id="outline-container-h-Duration-based-staleness--polling" class="outline-6">
-<h6 id="h-Duration-based-staleness--polling"><span class="section-number-6">6.6.1.4.2.</span> Duration-based staleness (polling)</h6>
+<h6 id="h-Duration-based-staleness--polling"><span class="section-number-6">8.6.1.4.2.</span> Duration-based staleness (polling)</h6>
 <div class="outline-text-6" id="text-h-Duration-based-staleness--polling">
 <p>
 Some resources should be re-read every few seconds or so. One example is
@@ -3735,7 +3847,7 @@ and is only precise to 1 whole second (sub-second durations are ignored).
 </div>
 
 <div id="outline-container-h-Graceful-shutdown" class="outline-5">
-<h5 id="h-Graceful-shutdown"><span class="section-number-5">6.6.1.5.</span> Graceful shutdown</h5>
+<h5 id="h-Graceful-shutdown"><span class="section-number-5">8.6.1.5.</span> Graceful shutdown</h5>
 <div class="outline-text-5" id="text-h-Graceful-shutdown">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_handle_info</a></span>(7/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-7">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-7"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
@@ -3775,7 +3887,7 @@ and is only precise to 1 whole second (sub-second durations are ignored).
 </div>
 
 <div id="outline-container-h-Client-interface" class="outline-5">
-<h5 id="h-Client-interface"><span class="section-number-5">6.6.1.6.</span> Client interface</h5>
+<h5 id="h-Client-interface"><span class="section-number-5">8.6.1.6.</span> Client interface</h5>
 <div class="outline-text-5" id="text-h-Client-interface">
 <p>
 The client interface is rather simple: there is just <code>read/2</code> which either
@@ -3948,7 +4060,7 @@ the <code>run_readers/2</code> private method.
 </div>
 
 <div id="outline-container-h-Supervisor" class="outline-5">
-<h5 id="h-Supervisor"><span class="section-number-5">6.6.1.7.</span> Supervisor</h5>
+<h5 id="h-Supervisor"><span class="section-number-5">8.6.1.7.</span> Supervisor</h5>
 <div class="outline-text-5" id="text-h-Supervisor">
 <p>
 Note that <code>Melbyd.StandardResource.read/4</code>, the standard client function, is the
@@ -4011,7 +4123,7 @@ one that reaches out to <code>Melbyd.StandardResourceSupervisor</code> to start 
 </div>
 
 <div id="outline-container-h-Shell-Process-Service" class="outline-4">
-<h4 id="h-Shell-Process-Service"><span class="section-number-4">6.6.2.</span> Shell Process Service</h4>
+<h4 id="h-Shell-Process-Service"><span class="section-number-4">8.6.2.</span> Shell Process Service</h4>
 <div class="outline-text-4" id="text-h-Shell-Process-Service">
 <p>
 The purpose of the Shell Process Service is to subscribe to various PubSub
@@ -4152,7 +4264,7 @@ subscribe to these topics and display these messages to the user.
 </div>
 
 <div id="outline-container-h-Tick-1" class="outline-5">
-<h5 id="h-Tick-1"><span class="section-number-5">6.6.2.1.</span> Tick</h5>
+<h5 id="h-Tick-1"><span class="section-number-5">8.6.2.1.</span> Tick</h5>
 <div class="outline-text-5" id="text-h-Tick-1">
 <p>
 This is modeled after <code>Melbyd.StandardResource.tick/2</code>.
@@ -4199,7 +4311,7 @@ This is modeled after <code>Melbyd.StandardResource.tick/2</code>.
 </div>
 
 <div id="outline-container-h-Handle-PubSub-messages" class="outline-5">
-<h5 id="h-Handle-PubSub-messages"><span class="section-number-5">6.6.2.2.</span> Handle PubSub messages</h5>
+<h5 id="h-Handle-PubSub-messages"><span class="section-number-5">8.6.2.2.</span> Handle PubSub messages</h5>
 <div class="outline-text-5" id="text-h-Handle-PubSub-messages">
 <p>
 We filter out messsages that don't apply to us. For example, if the message is
@@ -4244,7 +4356,7 @@ process) is currently located at <code>/a/b</code>, then we need to discard this
 </div>
 
 <div id="outline-container-h-Graceful-shutdown-1" class="outline-5">
-<h5 id="h-Graceful-shutdown-1"><span class="section-number-5">6.6.2.3.</span> Graceful shutdown</h5>
+<h5 id="h-Graceful-shutdown-1"><span class="section-number-5">8.6.2.3.</span> Graceful shutdown</h5>
 <div class="outline-text-5" id="text-h-Graceful-shutdown-1">
 <p>
 This is identical to the graceful shutdown logic for SRS.
@@ -4285,7 +4397,7 @@ a behaviour or protocol&#x2026;?
 </div>
 
 <div id="outline-container-h-Client-interface-1" class="outline-5">
-<h5 id="h-Client-interface-1"><span class="section-number-5">6.6.2.4.</span> Client interface</h5>
+<h5 id="h-Client-interface-1"><span class="section-number-5">8.6.2.4.</span> Client interface</h5>
 <div class="outline-text-5" id="text-h-Client-interface-1">
 <p>
 The <code>get_messages/2</code> function either retrieves all messages from this SPS
@@ -4320,7 +4432,7 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
 </div>
 
 <div id="outline-container-h-Supervisor-1" class="outline-5">
-<h5 id="h-Supervisor-1"><span class="section-number-5">6.6.2.5.</span> Supervisor</h5>
+<h5 id="h-Supervisor-1"><span class="section-number-5">8.6.2.5.</span> Supervisor</h5>
 <div class="outline-text-5" id="text-h-Supervisor-1">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_sps_supervisor</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_supervisor">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_supervisor"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.ShellProcessSupervisor</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">DynamicSupervisor</span>
@@ -4364,12 +4476,12 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
 </div>
 
 <div id="outline-container-h-Current-path--path-shortening" class="outline-4">
-<h4 id="h-Current-path--path-shortening"><span class="section-number-4">6.6.3.</span> Current path (path shortening)</h4>
+<h4 id="h-Current-path--path-shortening"><span class="section-number-4">8.6.3.</span> Current path (path shortening)</h4>
 <div class="outline-text-4" id="text-h-Current-path--path-shortening">
 </div>
 
 <div id="outline-container-h-Path" class="outline-5">
-<h5 id="h-Path"><span class="section-number-5">6.6.3.1.</span> Path</h5>
+<h5 id="h-Path"><span class="section-number-5">8.6.3.1.</span> Path</h5>
 <div class="outline-text-5" id="text-h-Path">
 <div class="org-src-container"><pre class="src src-elixir" id="nil-17"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Path</span> <span class="org-keyword">do</span>
   <span class="org-elixir-attribute">@moduledoc</span> <span class="org-doc">"""</span>
@@ -4707,7 +4819,7 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
 </div>
 
 <div id="outline-container-h-Caching" class="outline-5">
-<h5 id="h-Caching"><span class="section-number-5">6.6.3.2.</span> Caching</h5>
+<h5 id="h-Caching"><span class="section-number-5">8.6.3.2.</span> Caching</h5>
 <div class="outline-text-5" id="text-h-Caching">
 <p>
 We use caching for the path shortening logic. We avoid re-shortening a given
@@ -4746,7 +4858,7 @@ handful of directories during a typical computing session.
 </div>
 
 <div id="outline-container-h-Colors" class="outline-4">
-<h4 id="h-Colors"><span class="section-number-4">6.6.4.</span> Colors</h4>
+<h4 id="h-Colors"><span class="section-number-4">8.6.4.</span> Colors</h4>
 <div class="outline-text-4" id="text-h-Colors">
 <p>
 We use <a href="https://github.com/mazznoer/csscolorparser-rs"><code>csscolorparser</code></a> to parse a wide variety of ways to represent colors. The
@@ -4822,7 +4934,7 @@ convenience of being able to use this library.
 </div>
 
 <div id="outline-container-h-Entrypoint-for-client" class="outline-4">
-<h4 id="h-Entrypoint-for-client"><span class="section-number-4">6.6.5.</span> Entrypoint for client</h4>
+<h4 id="h-Entrypoint-for-client"><span class="section-number-4">8.6.5.</span> Entrypoint for client</h4>
 <div class="outline-text-4" id="text-h-Entrypoint-for-client">
 <p>
 This is where we start the Elixir program. There are lots of bits in here, but
@@ -4889,7 +5001,7 @@ will be deleted in the future (to be replaced entirely with gRPC calls).
 </div>
 
 <div id="outline-container-h-melbyr-dependency" class="outline-5">
-<h5 id="h-melbyr-dependency"><span class="section-number-5">6.6.5.1.</span> melbyr dependency</h5>
+<h5 id="h-melbyr-dependency"><span class="section-number-5">8.6.5.1.</span> melbyr dependency</h5>
 <div class="outline-text-5" id="text-h-melbyr-dependency">
 <p>
 Interacting with the view requires us to call into melbyr (Haskell server) from
@@ -4932,7 +5044,7 @@ output for passing tests, as per
 </div>
 
 <div id="outline-container-h-gRPC-services" class="outline-4">
-<h4 id="h-gRPC-services"><span class="section-number-4">6.6.6.</span> gRPC services</h4>
+<h4 id="h-gRPC-services"><span class="section-number-4">8.6.6.</span> gRPC services</h4>
 <div class="outline-text-4" id="text-h-gRPC-services">
 <p>
 The most important way of interaction between the client and melbyd is the
@@ -4981,7 +5093,7 @@ Notice that we define the toplevel <code>Melbyd.Endpont</code> module, which con
 </div>
 
 <div id="outline-container-h-View--melbyr-interface" class="outline-5">
-<h5 id="h-View--melbyr-interface"><span class="section-number-5">6.6.6.1.</span> View (melbyr interface)</h5>
+<h5 id="h-View--melbyr-interface"><span class="section-number-5">8.6.6.1.</span> View (melbyr interface)</h5>
 <div class="outline-text-5" id="text-h-View--melbyr-interface">
 <p>
 Below is <code>melby-client</code>'s <code>ViewRequest</code> that we handle. As part of handling this,
@@ -5052,7 +5164,7 @@ we will need to call out to the melbyr Haskell server over gRPC.
 </div>
 
 <div id="outline-container-h-Standard-Resource-Service" class="outline-5">
-<h5 id="h-Standard-Resource-Service"><span class="section-number-5">6.6.6.2.</span> Standard Resource Service</h5>
+<h5 id="h-Standard-Resource-Service"><span class="section-number-5">8.6.6.2.</span> Standard Resource Service</h5>
 <div class="outline-text-5" id="text-h-Standard-Resource-Service">
 <p>
 The Standard Resource Service (SRS) is a general-purpose Elixir GenServer with a
@@ -5082,7 +5194,7 @@ as ones over the network (e.g., email inbox, pub-sub events, etc).
 </div>
 
 <div id="outline-container-h-Motivation" class="outline-6">
-<h6 id="h-Motivation"><span class="section-number-6">6.6.6.2.1.</span> Motivation</h6>
+<h6 id="h-Motivation"><span class="section-number-6">8.6.6.2.1.</span> Motivation</h6>
 <div class="outline-text-6" id="text-h-Motivation">
 <p>
 The original motivation behind SRS was the realization that most of the
@@ -5102,7 +5214,7 @@ RESOURCE foo</code> just like how we can do <code>kubectl get RESOURCE</code>).
 </div>
 
 <div id="outline-container-h-Lua-API" class="outline-4">
-<h4 id="h-Lua-API"><span class="section-number-4">6.6.7.</span> Lua API</h4>
+<h4 id="h-Lua-API"><span class="section-number-4">8.6.7.</span> Lua API</h4>
 <div class="outline-text-4" id="text-h-Lua-API">
 <p>
 We provide a Lua API for <code>melbyc</code> (our users) because we want to make it easy to
@@ -5120,7 +5232,7 @@ wants to be exposed to the Lua environment.</dd></div>
 </div>
 
 <div id="outline-container-h-Melbyd-LuaInterop" class="outline-5">
-<h5 id="h-Melbyd-LuaInterop"><span class="section-number-5">6.6.7.1.</span> <code>Melbyd.LuaInterop</code></h5>
+<h5 id="h-Melbyd-LuaInterop"><span class="section-number-5">8.6.7.1.</span> <code>Melbyd.LuaInterop</code></h5>
 <div class="outline-text-5" id="text-h-Melbyd-LuaInterop">
 <p>
 This module extends Melbyd with Lua. It is able to read and execute Lua (5.2)
@@ -5178,7 +5290,7 @@ melbyc.
 </div>
 
 <div id="outline-container-h-Validation" class="outline-6">
-<h6 id="h-Validation"><span class="section-number-6">6.6.7.1.1.</span> Validation</h6>
+<h6 id="h-Validation"><span class="section-number-6">8.6.7.1.1.</span> Validation</h6>
 <div class="outline-text-6" id="text-h-Validation">
 <p>
 Validation of a user's Lua configuration involves running the bulk of the given
@@ -5643,7 +5755,7 @@ any overlap.
 </div>
 
 <div id="outline-container-h-Auto-loaded-Elixir-module-exposed-to-Lua---Melbyd-LuaSdk-" class="outline-5">
-<h5 id="h-Auto-loaded-Elixir-module-exposed-to-Lua---Melbyd-LuaSdk-"><span class="section-number-5">6.6.7.2.</span> Auto-loaded Elixir module exposed to Lua (<code>Melbyd.LuaSdk</code>)</h5>
+<h5 id="h-Auto-loaded-Elixir-module-exposed-to-Lua---Melbyd-LuaSdk-"><span class="section-number-5">8.6.7.2.</span> Auto-loaded Elixir module exposed to Lua (<code>Melbyd.LuaSdk</code>)</h5>
 <div class="outline-text-5" id="text-h-Auto-loaded-Elixir-module-exposed-to-Lua---Melbyd-LuaSdk-">
 <p>
 The code here is inspired by
@@ -5667,7 +5779,7 @@ variable.</li>
 The Elixir functions must all take 2 arguments: the first argument is a list
 which captures the function arguments sent from the Lua side, and the second
 argument is always the state of the Lua VM instance. This is demonstrated in the
-<code>hello_names</code> function (see section <a href="#h-Tests-1">6.9</a>).
+<code>hello_names</code> function (see section <a href="#h-Tests-1">8.9</a>).
 </p>
 
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#code-Melbyd-LuaInterop--code">melbyd_luasdk</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_luasdk">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_luasdk"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.LuaSdk</span> <span class="org-keyword">do</span>
@@ -5711,7 +5823,7 @@ argument is always the state of the Lua VM instance. This is demonstrated in the
 </div>
 
 <div id="outline-container-h-Render-widgets--convert-string--objects--into-strings-with-ANSI-escape-codes" class="outline-6">
-<h6 id="h-Render-widgets--convert-string--objects--into-strings-with-ANSI-escape-codes"><span class="section-number-6">6.6.7.2.1.</span> Render widgets (convert string "objects" into strings with ANSI escape codes)</h6>
+<h6 id="h-Render-widgets--convert-string--objects--into-strings-with-ANSI-escape-codes"><span class="section-number-6">8.6.7.2.1.</span> Render widgets (convert string "objects" into strings with ANSI escape codes)</h6>
 <div class="outline-text-6" id="text-h-Render-widgets--convert-string--objects--into-strings-with-ANSI-escape-codes">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__melbyd_luasdk">melbyd_luasdk_render</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_luasdk_render">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_luasdk_render">def_lua_func render([widgets_list_ref, delimiter_ref], st0) <span class="org-keyword">do</span>
   <span class="org-variable-name">delimiter_tuples</span> = <span class="org-type">Luerl</span>.decode(st0, delimiter_ref)
@@ -5811,7 +5923,7 @@ argument is always the state of the Lua VM instance. This is demonstrated in the
 </div>
 
 <div id="outline-container-h-Pretty-paths" class="outline-6">
-<h6 id="h-Pretty-paths"><span class="section-number-6">6.6.7.2.2.</span> Pretty paths</h6>
+<h6 id="h-Pretty-paths"><span class="section-number-6">8.6.7.2.2.</span> Pretty paths</h6>
 <div class="outline-text-6" id="text-h-Pretty-paths">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__melbyd_luasdk">melbyd_luasdk_get_path_pretty</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_luasdk_get_path_pretty">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_luasdk_get_path_pretty">def_lua_func get_path_pretty([path, options_ref], st0) <span class="org-keyword">do</span>
   <span class="org-variable-name">options</span> = <span class="org-type">Luerl</span>.decode(st0, options_ref)
@@ -5901,7 +6013,7 @@ def_lua_func get_path_aliases_fake([path_aliases_raw], st0) <span class="org-key
 </div>
 
 <div id="outline-container-h-Colorized-Git-SHA" class="outline-6">
-<h6 id="h-Colorized-Git-SHA"><span class="section-number-6">6.6.7.2.3.</span> Colorized Git SHA</h6>
+<h6 id="h-Colorized-Git-SHA"><span class="section-number-6">8.6.7.2.3.</span> Colorized Git SHA</h6>
 <div class="outline-text-6" id="text-h-Colorized-Git-SHA">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__melbyd_luasdk">melbyd_luasdk_get_colorized_sha</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_luasdk_get_colorized_sha">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_luasdk_get_colorized_sha">def_lua_func get_colorized_sha([sha, sha_length, pad_left, pad_right], st0) <span class="org-keyword">do</span>
   <span class="org-variable-name">render_options</span> = get_render_options(st0)
@@ -5927,7 +6039,7 @@ def_lua_func get_path_aliases_fake([path_aliases_raw], st0) <span class="org-key
 </div>
 
 <div id="outline-container-h-Time" class="outline-6">
-<h6 id="h-Time"><span class="section-number-6">6.6.7.2.4.</span> Time</h6>
+<h6 id="h-Time"><span class="section-number-6">8.6.7.2.4.</span> Time</h6>
 <div class="outline-text-6" id="text-h-Time">
 <p>
 FIXME: Use Timex library here also to avoid making the user use the stupid
@@ -5992,7 +6104,7 @@ def_lua_func get_unix_seconds(<span class="org-constant">_</span>, st0) <span cl
 </div>
 
 <div id="outline-container-h-Export-to-shell-script" class="outline-6">
-<h6 id="h-Export-to-shell-script"><span class="section-number-6">6.6.7.2.5.</span> Export to shell script</h6>
+<h6 id="h-Export-to-shell-script"><span class="section-number-6">8.6.7.2.5.</span> Export to shell script</h6>
 <div class="outline-text-6" id="text-h-Export-to-shell-script">
 <p>
 FIXME: This should be another NIF because the logic here is purely functional
@@ -6054,7 +6166,7 @@ it instead of running <code>cat</code> because it avoids spawning a separate OS 
 </div>
 
 <div id="outline-container-h-Expected-functions-in-the-Lua-file-for-SRS" class="outline-6">
-<h6 id="h-Expected-functions-in-the-Lua-file-for-SRS"><span class="section-number-6">6.6.7.2.6.</span> Expected functions in the Lua file for SRS</h6>
+<h6 id="h-Expected-functions-in-the-Lua-file-for-SRS"><span class="section-number-6">8.6.7.2.6.</span> Expected functions in the Lua file for SRS</h6>
 <div class="outline-text-6" id="text-h-Expected-functions-in-the-Lua-file-for-SRS">
 <p>
 We expect the Lua file to include a <code>Config.view()</code> function that will be used
@@ -6533,7 +6645,7 @@ name, truncating the last name as necessary.
 </div>
 
 <div id="outline-container-h-Messaging" class="outline-6">
-<h6 id="h-Messaging"><span class="section-number-6">6.6.7.2.7.</span> Messaging</h6>
+<h6 id="h-Messaging"><span class="section-number-6">8.6.7.2.7.</span> Messaging</h6>
 <div class="outline-text-6" id="text-h-Messaging">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__melbyd_luasdk">melbyd_luasdk_pubsub</a></span>(1/1) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_luasdk_pubsub">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_luasdk_pubsub">def_lua_func broadcast([topic, message_ref], st0) <span class="org-keyword">do</span>
   <span class="org-variable-name">message</span> = <span class="org-type">Luerl</span>.decode(st0, message_ref) <span class="org-keyword">|&gt;</span> <span class="org-type">Melbyd.LuerlUtil</span>.table_to_native_map_atomic_keys()
@@ -6585,7 +6697,7 @@ The Lua config should know what topics to subscribe to.
 </div>
 
 <div id="outline-container-h-Other-1" class="outline-6">
-<h6 id="h-Other-1"><span class="section-number-6">6.6.7.2.8.</span> Other</h6>
+<h6 id="h-Other-1"><span class="section-number-6">8.6.7.2.8.</span> Other</h6>
 <div class="outline-text-6" id="text-h-Other-1">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__melbyd_luasdk">melbyd_luasdk_misc</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_luasdk_misc">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_luasdk_misc">def_lua_func log([msg], st0) <span class="org-keyword">do</span>
   <span class="org-keyword">case</span> msg <span class="org-keyword">do</span>
@@ -6607,7 +6719,7 @@ The Lua config should know what topics to subscribe to.
 </div>
 
 <div id="outline-container-h-Boilerplate-1" class="outline-5">
-<h5 id="h-Boilerplate-1"><span class="section-number-5">6.6.7.3.</span> Boilerplate</h5>
+<h5 id="h-Boilerplate-1"><span class="section-number-5">8.6.7.3.</span> Boilerplate</h5>
 <div class="outline-text-5" id="text-h-Boilerplate-1">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#code-Melbyd-LuaInterop--code">melbyd_luasdkhelper</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_luasdkhelper">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_luasdkhelper"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.LuaSdkLoadable</span> <span class="org-keyword">do</span>
   <span class="org-keyword">require</span> <span class="org-type">Logger</span>
@@ -6736,7 +6848,7 @@ The Lua config should know what topics to subscribe to.
 </div>
 
 <div id="outline-container-h-Luerl-util" class="outline-5">
-<h5 id="h-Luerl-util"><span class="section-number-5">6.6.7.4.</span> Luerl util</h5>
+<h5 id="h-Luerl-util"><span class="section-number-5">8.6.7.4.</span> Luerl util</h5>
 <div class="outline-text-5" id="text-h-Luerl-util">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#code-Melbyd-LuaInterop--code">melbyd_luerl_util</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_luerl_util">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_luerl_util"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.LuerlUtil</span> <span class="org-keyword">do</span>
   <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luerl_util_table_lookup">melbyd_luerl_util_table_lookup</a></span>
@@ -6748,7 +6860,7 @@ The Lua config should know what topics to subscribe to.
 </div>
 
 <div id="outline-container-h-Reading-from-Lua-tables-returned-by-Luerl" class="outline-6">
-<h6 id="h-Reading-from-Lua-tables-returned-by-Luerl"><span class="section-number-6">6.6.7.4.1.</span> Reading from Lua tables returned by Luerl</h6>
+<h6 id="h-Reading-from-Lua-tables-returned-by-Luerl"><span class="section-number-6">8.6.7.4.1.</span> Reading from Lua tables returned by Luerl</h6>
 <div class="outline-text-6" id="text-h-Reading-from-Lua-tables-returned-by-Luerl">
 <p>
 Luerl returns Lua tables to Elixir as a list of tuples, where the first element
@@ -6810,7 +6922,7 @@ necessary.
 </div>
 
 <div id="outline-container-h-Array-to-native-list" class="outline-6">
-<h6 id="h-Array-to-native-list"><span class="section-number-6">6.6.7.4.2.</span> Array to native list</h6>
+<h6 id="h-Array-to-native-list"><span class="section-number-6">8.6.7.4.2.</span> Array to native list</h6>
 <div class="outline-text-6" id="text-h-Array-to-native-list">
 <p>
 Luerl returns arrays as a list of tuples, with each element being of the form
@@ -6851,7 +6963,7 @@ contiguous, ascending, and start from <code>1</code>.
 </div>
 
 <div id="outline-container-h-Table-to-native-map" class="outline-6">
-<h6 id="h-Table-to-native-map"><span class="section-number-6">6.6.7.4.3.</span> Table to native map</h6>
+<h6 id="h-Table-to-native-map"><span class="section-number-6">8.6.7.4.3.</span> Table to native map</h6>
 <div class="outline-text-6" id="text-h-Table-to-native-map">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__melbyd_luerl_util">melbyd_luerl_util_table_to_native_map</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_luerl_util_table_to_native_map">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_luerl_util_table_to_native_map"><span class="org-keyword">def</span> <span class="org-function-name">table_to_native_map</span>(t) <span class="org-keyword">do</span>
   <span class="org-type">Enum</span>.map(t, &amp;verify_table_tuple/<span class="org-elixir-number">1</span>)
@@ -6872,7 +6984,7 @@ atoms are never garbage-collected.
 </div>
 
 <div id="outline-container-h-Lua-tables-to-Elixir-maps" class="outline-6">
-<h6 id="h-Lua-tables-to-Elixir-maps"><span class="section-number-6">6.6.7.4.4.</span> Lua tables to Elixir maps</h6>
+<h6 id="h-Lua-tables-to-Elixir-maps"><span class="section-number-6">8.6.7.4.4.</span> Lua tables to Elixir maps</h6>
 <div class="outline-text-6" id="text-h-Lua-tables-to-Elixir-maps">
 <p>
 The reason why we don't convert from a Lua table to an Elixir Map or List
@@ -6885,7 +6997,7 @@ Lua &#x2014; it can represent either an empty Map or List. See
 </div>
 
 <div id="outline-container-h-Tests" class="outline-5">
-<h5 id="h-Tests"><span class="section-number-5">6.6.7.5.</span> Tests</h5>
+<h5 id="h-Tests"><span class="section-number-5">8.6.7.5.</span> Tests</h5>
 <div class="outline-text-5" id="text-h-Tests">
 <p>
 We have a Lua smoke test to check that Lua/Elixir interop is working. This tests
@@ -7515,7 +7627,7 @@ config <span class="org-elixir-atom">:logger</span>,
 </div>
 
 <div id="outline-container-h-Purpose-2" class="outline-4">
-<h4 id="h-Purpose-2"><span class="section-number-4">6.6.8.</span> Purpose</h4>
+<h4 id="h-Purpose-2"><span class="section-number-4">8.6.8.</span> Purpose</h4>
 <div class="outline-text-4" id="text-h-Purpose-2">
 <p>
 <code>melbyr</code> (the melby-renderer) converts raw data into strings that can be
@@ -7540,7 +7652,7 @@ The second step involves interpreting layout tokens such as <code>FILL</code> an
 </div>
 
 <div id="outline-container-h-Architectural-overview-2" class="outline-4">
-<h4 id="h-Architectural-overview-2"><span class="section-number-4">6.6.9.</span> Architectural overview</h4>
+<h4 id="h-Architectural-overview-2"><span class="section-number-4">8.6.9.</span> Architectural overview</h4>
 <div class="outline-text-4" id="text-h-Architectural-overview-2">
 <p>
 (Insert diagram &#x2014; write tikz and export as SVG.)
@@ -7549,7 +7661,7 @@ The second step involves interpreting layout tokens such as <code>FILL</code> an
 </div>
 
 <div id="outline-container-h-Design-by-contract-1" class="outline-4">
-<h4 id="h-Design-by-contract-1"><span class="section-number-4">6.6.10.</span> Design by contract</h4>
+<h4 id="h-Design-by-contract-1"><span class="section-number-4">8.6.10.</span> Design by contract</h4>
 <div class="outline-text-4" id="text-h-Design-by-contract-1">
 <p>
 We would like <code>melbyr</code> to observe the following behaviors.
@@ -7557,12 +7669,12 @@ We would like <code>melbyr</code> to observe the following behaviors.
 </div>
 
 <div id="outline-container-h-Communication-between-melbyd-and-melbyr" class="outline-5">
-<h5 id="h-Communication-between-melbyd-and-melbyr"><span class="section-number-5">6.6.10.1.</span> Communication between melbyd and melbyr</h5>
+<h5 id="h-Communication-between-melbyd-and-melbyr"><span class="section-number-5">8.6.10.1.</span> Communication between melbyd and melbyr</h5>
 <div class="outline-text-5" id="text-h-Communication-between-melbyd-and-melbyr">
 </div>
 
 <div id="outline-container-h-Proto-3" class="outline-6">
-<h6 id="h-Proto-3"><span class="section-number-6">6.6.10.1.1.</span> Proto</h6>
+<h6 id="h-Proto-3"><span class="section-number-6">8.6.10.1.1.</span> Proto</h6>
 <div class="outline-text-6" id="text-h-Proto-3">
 <div class="org-src-container"><pre class="src src-protobuf" id="nil-28">syntax = <span class="org-string">"proto3"</span>;
 
@@ -7706,7 +7818,7 @@ We would like <code>melbyr</code> to observe the following behaviors.
 </div>
 
 <div id="outline-container-h-Running-very-quickly-1" class="outline-5">
-<h5 id="h-Running-very-quickly-1"><span class="section-number-5">6.6.10.2.</span> Running very quickly</h5>
+<h5 id="h-Running-very-quickly-1"><span class="section-number-5">8.6.10.2.</span> Running very quickly</h5>
 <div class="outline-text-5" id="text-h-Running-very-quickly-1">
 <p>
 We don't want the client to block too long, because it is expected to be called
@@ -7726,7 +7838,7 @@ Because this is a daemon-side concern, there isn't much for us to do here.
 </div>
 
 <div id="outline-container-h-Command-line-argument-handling-1" class="outline-5">
-<h5 id="h-Command-line-argument-handling-1"><span class="section-number-5">6.6.10.3.</span> Command line argument handling</h5>
+<h5 id="h-Command-line-argument-handling-1"><span class="section-number-5">8.6.10.3.</span> Command line argument handling</h5>
 <div class="outline-text-5" id="text-h-Command-line-argument-handling-1">
 <p>
 This is somewhat "boring" and we actually don't have much to design here. Much
@@ -7738,7 +7850,7 @@ that we will be using.
 </div>
 
 <div id="outline-container-h-Code-overview-2" class="outline-4">
-<h4 id="h-Code-overview-2"><span class="section-number-4">6.6.11.</span> Code overview</h4>
+<h4 id="h-Code-overview-2"><span class="section-number-4">8.6.11.</span> Code overview</h4>
 <div class="outline-text-4" id="text-h-Code-overview-2">
 <p>
 This walkthrough is written for the future maintainers of this codebase.
@@ -7746,7 +7858,7 @@ This walkthrough is written for the future maintainers of this codebase.
 </div>
 
 <div id="outline-container-h-Overall-structure-1" class="outline-5">
-<h5 id="h-Overall-structure-1"><span class="section-number-5">6.6.11.1.</span> Overall structure</h5>
+<h5 id="h-Overall-structure-1"><span class="section-number-5">8.6.11.1.</span> Overall structure</h5>
 <div class="outline-text-5" id="text-h-Overall-structure-1">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">Layout of <code>melby-renderer.hs</code></label><span class="lilac-caption-link-symbol"><a href="#Layout-of--code-melby-renderer-hs--code">&#x1f517;</a></span></div><pre class="src src-haskell" id="Layout-of--code-melby-renderer-hs--code"><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_pragmas">melbyr_pragmas</a></span>
 
@@ -7761,12 +7873,12 @@ This walkthrough is written for the future maintainers of this codebase.
 </div>
 
 <div id="outline-container-h-Business-logic-1" class="outline-4">
-<h4 id="h-Business-logic-1"><span class="section-number-4">6.6.12.</span> Business logic</h4>
+<h4 id="h-Business-logic-1"><span class="section-number-4">8.6.12.</span> Business logic</h4>
 <div class="outline-text-4" id="text-h-Business-logic-1">
 </div>
 
 <div id="outline-container-h-Widget-Rendering-System" class="outline-5">
-<h5 id="h-Widget-Rendering-System"><span class="section-number-5">6.6.12.1.</span> Widget Rendering System</h5>
+<h5 id="h-Widget-Rendering-System"><span class="section-number-5">8.6.12.1.</span> Widget Rendering System</h5>
 <div class="outline-text-5" id="text-h-Widget-Rendering-System">
 <p>
 A "widget" object encodes a string of text that must be rendered on the
@@ -7793,7 +7905,7 @@ This uses 2 asterisks as a delimiter.
 </div>
 
 <div id="outline-container-h-Widget-field-reference" class="outline-6">
-<h6 id="h-Widget-field-reference"><span class="section-number-6">6.6.12.1.1.</span> Widget field reference</h6>
+<h6 id="h-Widget-field-reference"><span class="section-number-6">8.6.12.1.1.</span> Widget field reference</h6>
 <div class="outline-text-6" id="text-h-Widget-field-reference">
 <p>
 Widgets can have the following fields:
@@ -7853,7 +7965,7 @@ we don't yet have configuration validation.
 </div>
 
 <div id="outline-container-h-Optional-widget-delimiters" class="outline-6">
-<h6 id="h-Optional-widget-delimiters"><span class="section-number-6">6.6.12.1.2.</span> Optional widget delimiters</h6>
+<h6 id="h-Optional-widget-delimiters"><span class="section-number-6">8.6.12.1.2.</span> Optional widget delimiters</h6>
 <div class="outline-text-6" id="text-h-Optional-widget-delimiters">
 <p>
 List all widgets. If 0 or 1 in length, do nothing.
@@ -7880,7 +7992,7 @@ Actually we can do the above with just recursion. See <code>injectDelimiters</co
 </div>
 
 <div id="outline-container-h-Implementation-1" class="outline-6">
-<h6 id="h-Implementation-1"><span class="section-number-6">6.6.12.1.3.</span> Implementation</h6>
+<h6 id="h-Implementation-1"><span class="section-number-6">8.6.12.1.3.</span> Implementation</h6>
 <div class="outline-text-6" id="text-h-Implementation-1">
 <div class="org-src-container"><pre class="src src-haskell" id="nil-31"><span class="org-haskell-pragma">{-# LANGUAGE DataKinds #-}</span>
 <span class="org-haskell-pragma">{-# LANGUAGE FlexibleContexts #-}</span>
@@ -7996,7 +8108,7 @@ Actually we can do the above with just recursion. See <code>injectDelimiters</co
 </div>
 
 <div id="outline-container-h-Colorized-Git-SHA-1" class="outline-5">
-<h5 id="h-Colorized-Git-SHA-1"><span class="section-number-5">6.6.12.2.</span> Colorized Git SHA</h5>
+<h5 id="h-Colorized-Git-SHA-1"><span class="section-number-5">8.6.12.2.</span> Colorized Git SHA</h5>
 <div class="outline-text-5" id="text-h-Colorized-Git-SHA-1">
 <p>
 We want to colorized a Git SHA to make it easier to tell apart from another Git
@@ -8038,9 +8150,9 @@ and distributing these colors onto the 40 hex characters.
 </p>
 </div>
 
-<div id="outline-container-h-Overview-1" class="outline-6">
-<h6 id="h-Overview-1"><span class="section-number-6">6.6.12.2.1.</span> Overview</h6>
-<div class="outline-text-6" id="text-h-Overview-1">
+<div id="outline-container-h-Overview" class="outline-6">
+<h6 id="h-Overview"><span class="section-number-6">8.6.12.2.1.</span> Overview</h6>
+<div class="outline-text-6" id="text-h-Overview">
 <div class="org-src-container"><pre class="src src-haskell" id="nil-32"><span class="org-haskell-pragma">{-# LANGUAGE DataKinds #-}</span>
 <span class="org-haskell-pragma">{-# LANGUAGE FlexibleContexts #-}</span>
 <span class="org-haskell-pragma">{-# LANGUAGE TypeApplications #-}</span>
@@ -8091,7 +8203,7 @@ and distributing these colors onto the 40 hex characters.
 </div>
 
 <div id="outline-container-h-24-bit-colors" class="outline-6">
-<h6 id="h-24-bit-colors"><span class="section-number-6">6.6.12.2.2.</span> 24-bit colors</h6>
+<h6 id="h-24-bit-colors"><span class="section-number-6">8.6.12.2.2.</span> 24-bit colors</h6>
 <div class="outline-text-6" id="text-h-24-bit-colors">
 <p>
 The Git SHA uses SHA-1 and has 160 random bits. We want 80 extra random bits so
@@ -8237,7 +8349,7 @@ space.
 </div>
 
 <div id="outline-container-h-Parse-path-aliases" class="outline-5">
-<h5 id="h-Parse-path-aliases"><span class="section-number-5">6.6.12.3.</span> Parse path aliases</h5>
+<h5 id="h-Parse-path-aliases"><span class="section-number-5">8.6.12.3.</span> Parse path aliases</h5>
 <div class="outline-text-5" id="text-h-Parse-path-aliases">
 <div class="org-src-container"><pre class="src src-haskell" id="nil-33"><span class="org-haskell-pragma">{-# LANGUAGE FlexibleContexts #-}</span>
 
@@ -8463,12 +8575,12 @@ space.
 </div>
 
 <div id="outline-container-h-Boilerplate-2" class="outline-4">
-<h4 id="h-Boilerplate-2"><span class="section-number-4">6.6.13.</span> Boilerplate</h4>
+<h4 id="h-Boilerplate-2"><span class="section-number-4">8.6.13.</span> Boilerplate</h4>
 <div class="outline-text-4" id="text-h-Boilerplate-2">
 </div>
 
 <div id="outline-container-h-Option-handling-1" class="outline-5">
-<h5 id="h-Option-handling-1"><span class="section-number-5">6.6.13.1.</span> Option handling</h5>
+<h5 id="h-Option-handling-1"><span class="section-number-5">8.6.13.1.</span> Option handling</h5>
 <div class="outline-text-5" id="text-h-Option-handling-1">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-renderer-hs--code">melbyr_option_handling</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_option_handling">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_option_handling"><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_option_handling_types">melbyr_option_handling_types</a></span>
 <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_option_handling_parsers">melbyr_option_handling_parsers</a></span>
@@ -8523,7 +8635,7 @@ space.
 </div>
 
 <div id="outline-container-h-Main-1" class="outline-5">
-<h5 id="h-Main-1"><span class="section-number-5">6.6.13.2.</span> Main</h5>
+<h5 id="h-Main-1"><span class="section-number-5">8.6.13.2.</span> Main</h5>
 <div class="outline-text-5" id="text-h-Main-1">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-renderer-hs--code">melbyr_main</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_main">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_main"><span class="org-haskell-definition">main</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">IO</span> <span class="org-haskell-constructor">()</span>
 <span class="org-haskell-definition">main</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">do</span>
@@ -8542,7 +8654,7 @@ space.
 </div>
 
 <div id="outline-container-h-gRPC-schema-1" class="outline-5">
-<h5 id="h-gRPC-schema-1"><span class="section-number-5">6.6.13.3.</span> gRPC schema</h5>
+<h5 id="h-gRPC-schema-1"><span class="section-number-5">8.6.13.3.</span> gRPC schema</h5>
 <div class="outline-text-5" id="text-h-gRPC-schema-1">
 <p>
 FIXME: break this up into smaller chunks
@@ -8583,7 +8695,7 @@ FIXME: break this up into smaller chunks
 </div>
 
 <div id="outline-container-h-Colorized-Git-SHA-2" class="outline-6">
-<h6 id="h-Colorized-Git-SHA-2"><span class="section-number-6">6.6.13.3.1.</span> Colorized Git SHA</h6>
+<h6 id="h-Colorized-Git-SHA-2"><span class="section-number-6">8.6.13.3.1.</span> Colorized Git SHA</h6>
 <div class="outline-text-6" id="text-h-Colorized-Git-SHA-2">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-35">melbyr_schema_colorized_git_sha</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_colorized_git_sha">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_colorized_git_sha"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MColorizedGitShaRequest</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MColorizedGitShaRequest</span>
   <span class="org-comment-delimiter">-- </span><span class="org-comment">In mu-haskell, nested types must be contained in a Maybe. See</span>
@@ -8607,7 +8719,7 @@ FIXME: break this up into smaller chunks
 </div>
 
 <div id="outline-container-h-Render-options" class="outline-6">
-<h6 id="h-Render-options"><span class="section-number-6">6.6.13.3.2.</span> Render options</h6>
+<h6 id="h-Render-options"><span class="section-number-6">8.6.13.3.2.</span> Render options</h6>
 <div class="outline-text-6" id="text-h-Render-options">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-35">melbyr_schema_render_options</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_render_options">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_render_options"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MRenderOptions</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MRenderOptions</span>
   { format <span class="org-haskell-operator">::</span> <span class="org-haskell-type">MRenderFormat</span>
@@ -8635,7 +8747,7 @@ FIXME: break this up into smaller chunks
 </div>
 
 <div id="outline-container-h-Widgets" class="outline-6">
-<h6 id="h-Widgets"><span class="section-number-6">6.6.13.3.3.</span> Widgets</h6>
+<h6 id="h-Widgets"><span class="section-number-6">8.6.13.3.3.</span> Widgets</h6>
 <div class="outline-text-6" id="text-h-Widgets">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-35">melbyr_schema_widgets</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_widgets">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_widgets"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MRenderWidgetsRequest</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MRenderWidgetsRequest</span>
   { widgets <span class="org-haskell-operator">::</span> [<span class="org-haskell-type">MWidget</span>]
@@ -8705,7 +8817,7 @@ FIXME: break this up into smaller chunks
 </div>
 
 <div id="outline-container-h-Parse-path-aliases-1" class="outline-6">
-<h6 id="h-Parse-path-aliases-1"><span class="section-number-6">6.6.13.3.4.</span> Parse path aliases</h6>
+<h6 id="h-Parse-path-aliases-1"><span class="section-number-6">8.6.13.3.4.</span> Parse path aliases</h6>
 <div class="outline-text-6" id="text-h-Parse-path-aliases-1">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-35">melbyr_schema_parse_path_aliases</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_parse_path_aliases">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_parse_path_aliases"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MParsePathAliasesRequest</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MParsePathAliasesRequest</span>
   { path_aliases_raw <span class="org-haskell-operator">::</span> <span class="org-haskell-type">T.Text</span>
@@ -8734,7 +8846,7 @@ FIXME: break this up into smaller chunks
 </div>
 
 <div id="outline-container-h-Logging" class="outline-5">
-<h5 id="h-Logging"><span class="section-number-5">6.6.13.4.</span> Logging</h5>
+<h5 id="h-Logging"><span class="section-number-5">8.6.13.4.</span> Logging</h5>
 <div class="outline-text-5" id="text-h-Logging">
 <div class="org-src-container"><pre class="src src-haskell" id="nil-36"><span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">MelbyRenderer.Log</span> <span class="org-haskell-keyword">where</span>
 
@@ -8751,11 +8863,11 @@ FIXME: break this up into smaller chunks
 </div>
 
 <div id="outline-container-h-Other-2" class="outline-5">
-<h5 id="h-Other-2"><span class="section-number-5">6.6.13.5.</span> Other</h5>
+<h5 id="h-Other-2"><span class="section-number-5">8.6.13.5.</span> Other</h5>
 <div class="outline-text-5" id="text-h-Other-2">
 </div>
 <div id="outline-container-h-Pragmas-1" class="outline-6">
-<h6 id="h-Pragmas-1"><span class="section-number-6">6.6.13.5.1.</span> Pragmas</h6>
+<h6 id="h-Pragmas-1"><span class="section-number-6">8.6.13.5.1.</span> Pragmas</h6>
 <div class="outline-text-6" id="text-h-Pragmas-1">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-renderer-hs--code">melbyr_pragmas</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_pragmas">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_pragmas"><span class="org-haskell-pragma">{-# LANGUAGE DataKinds #-}</span>
 <span class="org-haskell-pragma">{-# LANGUAGE FlexibleContexts #-}</span>
@@ -8772,7 +8884,7 @@ FIXME: break this up into smaller chunks
 </div>
 
 <div id="outline-container-h-Imports-1" class="outline-6">
-<h6 id="h-Imports-1"><span class="section-number-6">6.6.13.5.2.</span> Imports</h6>
+<h6 id="h-Imports-1"><span class="section-number-6">8.6.13.5.2.</span> Imports</h6>
 <div class="outline-text-6" id="text-h-Imports-1">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-renderer-hs--code">melbyr_imports</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_imports">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_imports"><span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Control.Monad.Logger</span> <span class="org-haskell-keyword">hiding</span> (logDebug)
 <span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Data.Version</span> (showVersion)
@@ -8792,7 +8904,7 @@ FIXME: break this up into smaller chunks
 </div>
 
 <div id="outline-container-h-Git-versioning-1" class="outline-6">
-<h6 id="h-Git-versioning-1"><span class="section-number-6">6.6.13.5.3.</span> Git versioning</h6>
+<h6 id="h-Git-versioning-1"><span class="section-number-6">8.6.13.5.3.</span> Git versioning</h6>
 <div class="outline-text-6" id="text-h-Git-versioning-1">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__melbyr_main">melbyr_gitVersion</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_gitVersion">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_gitVersion"><span class="org-haskell-definition">versionOption</span> <span class="org-haskell-operator">=</span> infoOption
   (concat [showVersion version, <span class="org-string">"-g"</span>, <span class="org-haskell-operator">$</span>(gitVersion)])
@@ -8835,12 +8947,12 @@ FIXME: should we move this to a common "melby" haskell package?
 </div>
 
 <div id="outline-container-h-Build-system-1" class="outline-4">
-<h4 id="h-Build-system-1"><span class="section-number-4">6.6.14.</span> Build system</h4>
+<h4 id="h-Build-system-1"><span class="section-number-4">8.6.14.</span> Build system</h4>
 <div class="outline-text-4" id="text-h-Build-system-1">
 </div>
 
 <div id="outline-container-h-Makefile-2" class="outline-5">
-<h5 id="h-Makefile-2"><span class="section-number-5">6.6.14.1.</span> Makefile</h5>
+<h5 id="h-Makefile-2"><span class="section-number-5">8.6.14.1.</span> Makefile</h5>
 <div class="outline-text-5" id="text-h-Makefile-2">
 <p>
 This follows the Makefile for <code>melbyc</code> (FIXME: add link).
@@ -8875,7 +8987,7 @@ This follows the Makefile for <code>melbyc</code> (FIXME: add link).
 </div>
 
 <div id="outline-container-h-Cabal-1" class="outline-5">
-<h5 id="h-Cabal-1"><span class="section-number-5">6.6.14.2.</span> Cabal</h5>
+<h5 id="h-Cabal-1"><span class="section-number-5">8.6.14.2.</span> Cabal</h5>
 <div class="outline-text-5" id="text-h-Cabal-1">
 <div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-39"><span class="org-keyword">name</span>: melby-renderer
 <span class="org-keyword">version</span>: 1.0.0.0
@@ -8996,7 +9108,7 @@ This follows the Makefile for <code>melbyc</code> (FIXME: add link).
 </div>
 
 <div id="outline-container-h-Nix" class="outline-5">
-<h5 id="h-Nix"><span class="section-number-5">6.6.14.3.</span> Nix</h5>
+<h5 id="h-Nix"><span class="section-number-5">8.6.14.3.</span> Nix</h5>
 <div class="outline-text-5" id="text-h-Nix">
 <div class="org-src-container"><pre class="src src-nix" id="nil-41"><span class="org-nix-keyword">let</span>
   <span class="org-nix-attribute">sources</span> = <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../../../../package/nix/sources.nix</span>;
@@ -9046,7 +9158,7 @@ pkgs.haskell.lib.buildStackProject {
 </div>
 
 <div id="outline-container-h-Stack-1" class="outline-5">
-<h5 id="h-Stack-1"><span class="section-number-5">6.6.14.4.</span> Stack</h5>
+<h5 id="h-Stack-1"><span class="section-number-5">8.6.14.4.</span> Stack</h5>
 <div class="outline-text-5" id="text-h-Stack-1">
 <div class="org-src-container"><pre class="src src-yaml" id="nil-42"><span class="org-variable-name">resolver</span>: lts-18.28
 <span class="org-variable-name">allow-newer</span>: <span class="org-constant">true</span>
@@ -9081,7 +9193,7 @@ pkgs.haskell.lib.buildStackProject {
 </div>
 
 <div id="outline-container-h-gitignore-3" class="outline-5">
-<h5 id="h-gitignore-3"><span class="section-number-5">6.6.14.5.</span> .gitignore</h5>
+<h5 id="h-gitignore-3"><span class="section-number-5">8.6.14.5.</span> .gitignore</h5>
 <div class="outline-text-5" id="text-h-gitignore-3">
 <div class="org-src-container"><pre class="src src-text" id="nil-43">dist-newstyle
 melbyr
@@ -9093,7 +9205,7 @@ melbyr
 </div>
 
 <div id="outline-container-h-Installation" class="outline-3">
-<h3 id="h-Installation"><span class="section-number-3">6.7.</span> Installation</h3>
+<h3 id="h-Installation"><span class="section-number-3">8.7.</span> Installation</h3>
 <div class="outline-text-3" id="text-h-Installation">
 <p>
 We use Nix for both Linux and Mac (via <a href="https://github.com/LnL7/nix-darwin">https://github.com/LnL7/nix-darwin</a>).
@@ -9101,7 +9213,7 @@ We use Nix for both Linux and Mac (via <a href="https://github.com/LnL7/nix-darw
 </div>
 
 <div id="outline-container-h-Linux" class="outline-4">
-<h4 id="h-Linux"><span class="section-number-4">6.7.1.</span> Linux</h4>
+<h4 id="h-Linux"><span class="section-number-4">8.7.1.</span> Linux</h4>
 <div class="outline-text-4" id="text-h-Linux">
 <div class="org-src-container"><pre class="src src-text" id="nil-44">[Unit]
 Description=melby service
@@ -9122,17 +9234,17 @@ Type=simple
 </div>
 
 <div id="outline-container-h-Build-system-2" class="outline-3">
-<h3 id="h-Build-system-2"><span class="section-number-3">6.8.</span> Build system</h3>
+<h3 id="h-Build-system-2"><span class="section-number-3">8.8.</span> Build system</h3>
 <div class="outline-text-3" id="text-h-Build-system-2">
 </div>
 
 <div id="outline-container-h-Elixir-1" class="outline-4">
-<h4 id="h-Elixir-1"><span class="section-number-4">6.8.1.</span> Elixir</h4>
+<h4 id="h-Elixir-1"><span class="section-number-4">8.8.1.</span> Elixir</h4>
 <div class="outline-text-4" id="text-h-Elixir-1">
 </div>
 
 <div id="outline-container-h-Makefile-3" class="outline-5">
-<h5 id="h-Makefile-3"><span class="section-number-5">6.8.1.1.</span> Makefile</h5>
+<h5 id="h-Makefile-3"><span class="section-number-5">8.8.1.1.</span> Makefile</h5>
 <div class="outline-text-5" id="text-h-Makefile-3">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">daemon/Makefile</label><span class="lilac-caption-link-symbol"><a href="#daemon-Makefile">&#x1f517;</a></span></div><pre class="src src-makefile" id="daemon-Makefile"><span class="org-comment-delimiter"># </span><span class="org-comment">See https://stackoverflow.com/a/73509979/437583 for getting the directory of</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">this Makefile.</span>
@@ -9201,7 +9313,7 @@ endif
 </div>
 
 <div id="outline-container-h-gitattributes" class="outline-5">
-<h5 id="h-gitattributes"><span class="section-number-5">6.8.1.2.</span> gitattributes</h5>
+<h5 id="h-gitattributes"><span class="section-number-5">8.8.1.2.</span> gitattributes</h5>
 <div class="outline-text-5" id="text-h-gitattributes">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">daemon/.gitattributes</label><span class="lilac-caption-link-symbol"><a href="#daemon--gitattributes">&#x1f517;</a></span></div><pre class="src src-gitattributes" id="daemon--gitattributes">mix.nix diff
 lib/melbyd/nifs/Cargo.lock diff
@@ -9211,7 +9323,7 @@ lib/melbyd/nifs/Cargo.toml diff
 </div>
 
 <div id="outline-container-h-Mix-tool-configuration" class="outline-5">
-<h5 id="h-Mix-tool-configuration"><span class="section-number-5">6.8.1.3.</span> Mix tool configuration</h5>
+<h5 id="h-Mix-tool-configuration"><span class="section-number-5">8.8.1.3.</span> Mix tool configuration</h5>
 <div class="outline-text-5" id="text-h-Mix-tool-configuration">
 <div class="org-src-container"><pre class="src src-elixir" id="nil-45"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.MixProject</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">Mix.Project</span>
@@ -9269,7 +9381,7 @@ lib/melbyd/nifs/Cargo.toml diff
 </div>
 
 <div id="outline-container-h-gitignore-4" class="outline-5">
-<h5 id="h-gitignore-4"><span class="section-number-5">6.8.1.4.</span> .gitignore</h5>
+<h5 id="h-gitignore-4"><span class="section-number-5">8.8.1.4.</span> .gitignore</h5>
 <div class="outline-text-5" id="text-h-gitignore-4">
 <div class="org-src-container"><pre class="src src-text" id="nil-46"># The directory Mix will write compiled artifacts to.
 /_build/
@@ -9308,7 +9420,7 @@ melby-*.tar
 </div>
 
 <div id="outline-container-h-Formatter" class="outline-5">
-<h5 id="h-Formatter"><span class="section-number-5">6.8.1.5.</span> Formatter</h5>
+<h5 id="h-Formatter"><span class="section-number-5">8.8.1.5.</span> Formatter</h5>
 <div class="outline-text-5" id="text-h-Formatter">
 <div class="org-src-container"><pre class="src src-elixir" id="nil-47"><span class="org-comment-delimiter"># </span><span class="org-comment">Used by "mix format"</span>
 [
@@ -9319,7 +9431,7 @@ melby-*.tar
 </div>
 
 <div id="outline-container-h-protoc-gen-elixir-nix" class="outline-5">
-<h5 id="h-protoc-gen-elixir-nix"><span class="section-number-5">6.8.1.6.</span> protoc-gen-elixir.nix</h5>
+<h5 id="h-protoc-gen-elixir-nix"><span class="section-number-5">8.8.1.6.</span> protoc-gen-elixir.nix</h5>
 <div class="outline-text-5" id="text-h-protoc-gen-elixir-nix">
 <p>
 Sadly the protoc-gen-elixir plugin is not yet packaged in Nixpkgs, so we have to
@@ -9363,7 +9475,7 @@ working <code>nix-shell</code> where we can generate Elixir code from <code>*.pr
 </div>
 
 <div id="outline-container-h-Mix-release" class="outline-5">
-<h5 id="h-Mix-release"><span class="section-number-5">6.8.1.7.</span> Mix release</h5>
+<h5 id="h-Mix-release"><span class="section-number-5">8.8.1.7.</span> Mix release</h5>
 <div class="outline-text-5" id="text-h-Mix-release">
 <p>
 We package up <code>melbyd</code> as a standalone "package".
@@ -9633,7 +9745,7 @@ Build our Rust library (<code>melbyd_nifs</code>).
 </div>
 
 <div id="outline-container-h-Additional-application-configuration" class="outline-5">
-<h5 id="h-Additional-application-configuration"><span class="section-number-5">6.8.1.8.</span> Additional application configuration</h5>
+<h5 id="h-Additional-application-configuration"><span class="section-number-5">8.8.1.8.</span> Additional application configuration</h5>
 <div class="outline-text-5" id="text-h-Additional-application-configuration">
 <div class="org-src-container"><pre class="src src-elixir" id="nil-50"><span class="org-keyword">import</span> <span class="org-type">Config</span>
 
@@ -9701,7 +9813,7 @@ config <span class="org-elixir-atom">:tzdata</span>, <span class="org-elixir-ato
 </div>
 
 <div id="outline-container-h-Rust-NIFs-integration" class="outline-4">
-<h4 id="h-Rust-NIFs-integration"><span class="section-number-4">6.8.2.</span> Rust NIFs integration</h4>
+<h4 id="h-Rust-NIFs-integration"><span class="section-number-4">8.8.2.</span> Rust NIFs integration</h4>
 <div class="outline-text-4" id="text-h-Rust-NIFs-integration">
 <p>
 In order to expose our Rust code to Elixir, we have to write some wrappers for
@@ -9710,7 +9822,7 @@ both the Elixir and Rust side.
 </div>
 
 <div id="outline-container-h-Elixir-wrapper" class="outline-5">
-<h5 id="h-Elixir-wrapper"><span class="section-number-5">6.8.2.1.</span> Elixir wrapper</h5>
+<h5 id="h-Elixir-wrapper"><span class="section-number-5">8.8.2.1.</span> Elixir wrapper</h5>
 <div class="outline-text-5" id="text-h-Elixir-wrapper">
 <div class="org-src-container"><pre class="src src-elixir" id="nil-54"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Nifs</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">Rustler</span>,
@@ -9730,7 +9842,7 @@ both the Elixir and Rust side.
 </div>
 
 <div id="outline-container-h-Rust-wrapper" class="outline-5">
-<h5 id="h-Rust-wrapper"><span class="section-number-5">6.8.2.2.</span> Rust wrapper</h5>
+<h5 id="h-Rust-wrapper"><span class="section-number-5">8.8.2.2.</span> Rust wrapper</h5>
 <div class="outline-text-5" id="text-h-Rust-wrapper">
 <div class="org-src-container"><pre class="src src-rust" id="nil-55"><span class="org-keyword">pub</span> <span class="org-keyword">mod</span> <span class="org-constant">color</span>;
 <span class="org-keyword">pub</span> <span class="org-keyword">mod</span> <span class="org-constant">path_shorten</span>;
@@ -9747,12 +9859,12 @@ both the Elixir and Rust side.
 </div>
 
 <div id="outline-container-h-Boilerplate-3" class="outline-5">
-<h5 id="h-Boilerplate-3"><span class="section-number-5">6.8.2.3.</span> Boilerplate</h5>
+<h5 id="h-Boilerplate-3"><span class="section-number-5">8.8.2.3.</span> Boilerplate</h5>
 <div class="outline-text-5" id="text-h-Boilerplate-3">
 </div>
 
 <div id="outline-container-h-Makefile-4" class="outline-6">
-<h6 id="h-Makefile-4"><span class="section-number-6">6.8.2.3.1.</span> Makefile</h6>
+<h6 id="h-Makefile-4"><span class="section-number-6">8.8.2.3.1.</span> Makefile</h6>
 <div class="outline-text-6" id="text-h-Makefile-4">
 <div class="org-src-container"><pre class="src src-makefile" id="nil-56"><span class="org-makefile-targets">test</span>:
     cargo test
@@ -9761,7 +9873,7 @@ both the Elixir and Rust side.
 </div>
 
 <div id="outline-container-h-Cargo" class="outline-6">
-<h6 id="h-Cargo"><span class="section-number-6">6.8.2.3.2.</span> Cargo</h6>
+<h6 id="h-Cargo"><span class="section-number-6">8.8.2.3.2.</span> Cargo</h6>
 <div class="outline-text-6" id="text-h-Cargo">
 <div class="org-src-container"><pre class="src src-makefile" id="nil-57">[package]
 <span class="org-variable-name">name</span> = <span class="org-string">"melbyd_nifs"</span>
@@ -9785,7 +9897,7 @@ both the Elixir and Rust side.
 </div>
 
 <div id="outline-container-h-gitignore-5" class="outline-6">
-<h6 id="h-gitignore-5"><span class="section-number-6">6.8.2.3.3.</span> .gitignore</h6>
+<h6 id="h-gitignore-5"><span class="section-number-6">8.8.2.3.3.</span> .gitignore</h6>
 <div class="outline-text-6" id="text-h-gitignore-5">
 <p>
 We ignore Cargo.lock for libraries. See
@@ -9803,7 +9915,7 @@ Cargo.lock
 </div>
 
 <div id="outline-container-h-Haskell--melbyr" class="outline-4">
-<h4 id="h-Haskell--melbyr"><span class="section-number-4">6.8.3.</span> Haskell (melbyr)</h4>
+<h4 id="h-Haskell--melbyr"><span class="section-number-4">8.8.3.</span> Haskell (melbyr)</h4>
 <div class="outline-text-4" id="text-h-Haskell--melbyr">
 <p>
 See (FIXME: add link) for the build system for melbyr.
@@ -9811,7 +9923,7 @@ See (FIXME: add link) for the build system for melbyr.
 </div>
 
 <div id="outline-container-h-Set-up-GHCi-environment" class="outline-5">
-<h5 id="h-Set-up-GHCi-environment"><span class="section-number-5">6.8.3.1.</span> Set up GHCi environment</h5>
+<h5 id="h-Set-up-GHCi-environment"><span class="section-number-5">8.8.3.1.</span> Set up GHCi environment</h5>
 <div class="outline-text-5" id="text-h-Set-up-GHCi-environment">
 <p>
 These are development defaults for interacting with GHCi.
@@ -9825,7 +9937,7 @@ These are development defaults for interacting with GHCi.
 </div>
 
 <div id="outline-container-h-Tests-1" class="outline-3">
-<h3 id="h-Tests-1"><span class="section-number-3">6.9.</span> Tests</h3>
+<h3 id="h-Tests-1"><span class="section-number-3">8.9.</span> Tests</h3>
 <div class="outline-text-3" id="text-h-Tests-1">
 <p>
 This probably should be in a separate file, as it requires a pretty big context
@@ -9841,7 +9953,7 @@ switch.
 </div>
 
 <div id="outline-container-h-Contributing-to-Melby" class="outline-2">
-<h2 id="h-Contributing-to-Melby"><span class="section-number-2">7.</span> Contributing to Melby</h2>
+<h2 id="h-Contributing-to-Melby"><span class="section-number-2">9.</span> Contributing to Melby</h2>
 <div class="outline-text-2" id="text-h-Contributing-to-Melby">
 <p>
 Thank you for showing interest in contributing back to this project!
@@ -9854,7 +9966,7 @@ sort out.
 </div>
 
 <div id="outline-container-h-Code-of-conduct" class="outline-3">
-<h3 id="h-Code-of-conduct"><span class="section-number-3">7.1.</span> Code of conduct</h3>
+<h3 id="h-Code-of-conduct"><span class="section-number-3">9.1.</span> Code of conduct</h3>
 <div class="outline-text-3" id="text-h-Code-of-conduct">
 <p>
 You must adhere to the Code of Conduct (FIXME insert link).
@@ -9863,7 +9975,7 @@ You must adhere to the Code of Conduct (FIXME insert link).
 </div>
 
 <div id="outline-container-h-Where-to-make-changes" class="outline-3">
-<h3 id="h-Where-to-make-changes"><span class="section-number-3">7.2.</span> Where to make changes</h3>
+<h3 id="h-Where-to-make-changes"><span class="section-number-3">9.2.</span> Where to make changes</h3>
 <div class="outline-text-3" id="text-h-Where-to-make-changes">
 <p>
 Remember that the source of truth is in the <code>*.org</code> files. <i>Everything else is
@@ -9874,7 +9986,7 @@ tangling the <code>*.org</code> files will overwrite those changes.
 </div>
 
 <div id="outline-container-h-Focus-on-prose--not-code" class="outline-3">
-<h3 id="h-Focus-on-prose--not-code"><span class="section-number-3">7.3.</span> Focus on prose, not code</h3>
+<h3 id="h-Focus-on-prose--not-code"><span class="section-number-3">9.3.</span> Focus on prose, not code</h3>
 <div class="outline-text-3" id="text-h-Focus-on-prose--not-code">
 <p>
 Remember that this project uses LP. LP requires <i>literate</i> programs, and as

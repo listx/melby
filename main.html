@@ -228,10 +228,7 @@
 <ul>
 <li><a href="#h-Introduction">1. Introduction</a>
 <ul>
-<li><a href="#h-Project-principles">1.1. Project principles</a></li>
-<li><a href="#h-Polyglot-stack">1.2. Polyglot stack</a></li>
-<li><a href="#h-Lay-of-the-land">1.3. Lay of the land</a></li>
-<li><a href="#h-How-the-rest-of-the-documentation-is-organized">1.4. How the rest of the documentation is organized</a></li>
+<li><a href="#h-How-the-rest-of-the-documentation-is-organized">1.1. How the rest of the documentation is organized</a></li>
 </ul>
 </li>
 <li><a href="#h-User-Manual">2. User Manual</a>
@@ -318,139 +315,8 @@ to get started actually using Melby on your own shell prompt configuration.
 </p>
 </div>
 
-<div id="outline-container-h-Project-principles" class="outline-3">
-<h3 id="h-Project-principles"><span class="section-number-3">1.1.</span> Project principles</h3>
-<div class="outline-text-3" id="text-h-Project-principles">
-<p>
-This project has several principles, listed below in order of importance.
-</p>
-
-<ol class="org-ol">
-<li>Documentation</li>
-<li>Tests</li>
-<li>Reliability</li>
-<li>Performance</li>
-</ol>
-
-<p>
-Documentation is the most important of all, because it helps add value for the
-remaining ones.
-</p>
-</div>
-</div>
-
-<div id="outline-container-h-Polyglot-stack" class="outline-3">
-<h3 id="h-Polyglot-stack"><span class="section-number-3">1.2.</span> Polyglot stack</h3>
-<div class="outline-text-3" id="text-h-Polyglot-stack">
-<p>
-We use several programming languages: Elixir, Lua, Rust, and Haskell.
-</p>
-
-<ul class="org-ul">
-<li><b>Elixir</b>: Elixir is the main language used in this project because of it
-leverages the famed Erlang runtime, known for its world-class reliability.
-Elixir is used for programming the base system, as well as testing all of the
-components together.</li>
-<li><b>Lua</b>: Lua is used as our configuration language, because of its power and
-flexibility. Users must create a Lua configuration file in order to use Melby.</li>
-<li><b>Rust</b>: Rust is used in some places where static typing and performance might
-come in handy. Typically it's used for smaller, pure (lacking side effects)
-functions.</li>
-<li><b>Haskell</b>: Haskell is used for the Melby client binary <code>melbyc</code>, and also the
-<code>melbyr</code> rendering service. Haskell maximizes code maintainability and
-stability, and so it is the preferred language for building smaller
-independent components outside of the base (Elixir) system.</li>
-</ul>
-
-<p>
-We also use <a href="https://en.wikipedia.org/wiki/Literate_programming">Literate Programming</a> (LP). To this end, we use Emacs Org mode
-(<code>*.org</code> files) as the source of truth. These files are <i>tangled</i> into the above
-languages for the application binaries. These same files are <i>woven</i> to produce
-HTML files for documentation (what you are reading now). We use several
-languages for weaving:
-</p>
-
-<ul class="org-ul">
-<li><b>Emacs Lisp</b>: We use Emacs Lisp to tame Emacs Org mode for LP. Emacs Org mode
-is used for LP in this project because it is probably the most flexible and
-widely-used LP system out there. LaTeX + Noweb is another possibility, but it
-was not chosen because Org mode by default looks reasonable in plaintext.</li>
-<li><b>TikZ</b>: <a href="https://en.wikipedia.org/wiki/PGF/TikZ">PGF/TikZ</a> is used for writing all of the diagrams and figures used for
-documentation. This is because TikZ is extremely stable, powerful, and
-flexible for creating diagrams of all sorts. It is also able to produce SVG
-files, which are required to generate diagrams of the highest quality.</li>
-<li><b>HTML/CSS</b>: HTML and CSS power the documentation. Although PDF output can be
-very beautiful, HTML is simply more accessible and also does not require code
-listings to be broken across multiple pages.</li>
-</ul>
-
-<p>
-If you are interested in helping to contribute back to Melby, see <a href="developer-manual.html#h-Contributing-to-Melby">"Contributing
-to Melby" in the Developer Manual</a>.
-</p>
-</div>
-</div>
-
-<div id="outline-container-h-Lay-of-the-land" class="outline-3">
-<h3 id="h-Lay-of-the-land"><span class="section-number-3">1.3.</span> Lay of the land</h3>
-<div class="outline-text-3" id="text-h-Lay-of-the-land">
-
-<div id="org0000001" class="figure">
-<p><img src="./image/architecture-overall.svg" alt="architecture-overall.svg" class="org-svg">
-</p>
-</div>
-
-<p>
-Melby uses a client/server architecture. There are two main parts:
-</p>
-
-<div class="sidenote" id="org0000002">
-<p>
-<code>melbyd</code> is the daemon, which acts as a server in the client/server
-architecture. We call it a daemon because it is expected to have direct access
-to the local machine which is relevant to the client. This is unlike typical web
-servers where the local machine characteristics of such servers are irrelevant
-to clients.
-</p>
-
-</div>
-
-<ol class="org-ol">
-<li><code>melbyd</code>: The daemon (server), which itself is composed of two smaller pieces:
-a. The controller written in Elixir and Rust.
-b. The viewer written in Haskell. This is a separate server in its own right
-   (a microservice).</li>
-<li><code>melbyc</code>: The client, written in Haskell. The client sends a request and
-receives a "view".</li>
-</ol>
-
-<p>
-You may notice that the two parts of <code>melbyd</code> are the controller and viewer.
-These parts are named this way to refer to the common <a href="https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller">Model-View-Controller</a>
-(MVC) pattern. One unusual deviation from the MVC pattern is that the client is
-fully responsible for sending in the "template" for the view, as well as asking
-the daemon what kind of data (Model) it would like to work with. The client does
-this by sending in a Lua script.
-</p>
-
-<p>
-So the entire flow is:
-</p>
-
-<ol class="org-ol">
-<li>User writes a Lua script to specify what pieces of information it wants, and
-how it should be presented.</li>
-<li><code>melbyc</code> sends this script to <code>melbyd</code> for processing.</li>
-<li>The <code>melbyd</code> controller gathers the necessary data (e.g., Git status) and
-sends it to the <code>melbyd</code> viewer (Haskell service) for generating the final
-view.</li>
-<li>The view is sent back to <code>melbyc</code>, which then prints it to STDOUT.</li>
-</ol>
-</div>
-</div>
-
 <div id="outline-container-h-How-the-rest-of-the-documentation-is-organized" class="outline-3">
-<h3 id="h-How-the-rest-of-the-documentation-is-organized"><span class="section-number-3">1.4.</span> How the rest of the documentation is organized</h3>
+<h3 id="h-How-the-rest-of-the-documentation-is-organized"><span class="section-number-3">1.1.</span> How the rest of the documentation is organized</h3>
 <div class="outline-text-3" id="text-h-How-the-rest-of-the-documentation-is-organized">
 <p>
 There are two manuals in this project:
@@ -538,7 +404,7 @@ Note that we <code>require</code> the <code>Git</code>, <code>KubeCurrent</code>
 This requires setting the <code>LUA_PATH</code> for melbyd when it starts up. Example:
 </p>
 
-<pre class="example" id="org0000003">
+<pre class="example" id="org0000001">
 LUA_PATH="./?.lua;./?/init.lua;$PWD/test/sample/?.lua" make repl
 </pre>
 
@@ -561,7 +427,7 @@ folder as above), and</li>
 Another option is to modify the package.path global variable like this:
 </p>
 
-<pre class="example" id="org0000004">
+<pre class="example" id="org0000002">
 package.path = 'function/?.lua;' .. package.path
 require "Git"
 </pre>
