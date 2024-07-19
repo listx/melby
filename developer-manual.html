@@ -416,7 +416,7 @@
 <li><a href="#h-Supervisor">8.6.1.7. Supervisor</a></li>
 </ul>
 </li>
-<li><a href="#h-Shell-Process-Service">8.6.2. Shell Process Service</a>
+<li><a href="#h-Shell-Logger-GenServer--SLG">8.6.2. Shell Logger GenServer (SLG)</a>
 <ul>
 <li><a href="#h-Tick-1">8.6.2.1. Tick</a></li>
 <li><a href="#h-Handle-PubSub-messages">8.6.2.2. Handle PubSub messages</a></li>
@@ -4122,22 +4122,22 @@ one that reaches out to <code>Melbyd.StandardResourceSupervisor</code> to start 
 </div>
 </div>
 
-<div id="outline-container-h-Shell-Process-Service" class="outline-4">
-<h4 id="h-Shell-Process-Service"><span class="section-number-4">8.6.2.</span> Shell Process Service</h4>
-<div class="outline-text-4" id="text-h-Shell-Process-Service">
+<div id="outline-container-h-Shell-Logger-GenServer--SLG" class="outline-4">
+<h4 id="h-Shell-Logger-GenServer--SLG"><span class="section-number-4">8.6.2.</span> Shell Logger GenServer (SLG)</h4>
+<div class="outline-text-4" id="text-h-Shell-Logger-GenServer--SLG">
 <p>
-The purpose of the Shell Process Service is to subscribe to various PubSub
+The purpose of the Shell Logger GenServer (SLG) is to subscribe to various PubSub
 topics. That is, this is the consumer and the SRS GenServers are the producers.
 </p>
 
 <p>
 The idea is to let SRS GenServers publish messages to topics that they control
 whenever anything interesting happens (where the determination of "interesting"
-is up to the user's Lua configuration). And then it's up to SPS GenServers to
+is up to the user's Lua configuration). And then it's up to SLGs to
 subscribe to these topics and display these messages to the user.
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-16"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.ShellProcess</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-16"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.ShellLogger</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">GenServer</span>, <span class="org-elixir-atom">restart:</span> <span class="org-elixir-atom">:temporary</span>
   <span class="org-keyword">require</span> <span class="org-type">Logger</span>
 
@@ -4171,7 +4171,7 @@ subscribe to these topics and display these messages to the user.
         } = <span class="org-comment">_args</span>
       ) <span class="org-keyword">do</span>
     <span class="org-type">Process</span>.flag(<span class="org-elixir-atom">:trap_exit</span>, <span class="org-elixir-atom">true</span>)
-    <span class="org-type">Logger</span>.info(<span class="org-string">"Starting SPS </span><span class="org-variable-name">#{inspect(shell_pid)}</span><span class="org-string">; ttl=</span><span class="org-variable-name">#{inspect(ttl)}</span><span class="org-string">"</span>)
+    <span class="org-type">Logger</span>.info(<span class="org-string">"Starting Shell Logger </span><span class="org-variable-name">#{inspect(shell_pid)}</span><span class="org-string">; ttl=</span><span class="org-variable-name">#{inspect(ttl)}</span><span class="org-string">"</span>)
 
     <span class="org-comment-delimiter"># </span><span class="org-comment">Subscribe to topics.</span>
     <span class="org-variable-name">topics</span> = <span class="org-type">Enum</span>.map(topic_handlers, <span class="org-keyword">fn</span> {topic, <span class="org-comment">_handler</span>} <span class="org-keyword">-&gt;</span> topic <span class="org-keyword">end</span>)
@@ -4217,7 +4217,7 @@ subscribe to these topics and display these messages to the user.
     <span class="org-type">Enum</span>.map(topics_obsolete, <span class="org-keyword">fn</span> topic <span class="org-keyword">-&gt;</span> <span class="org-type">Phoenix.PubSub</span>.unsubscribe(<span class="org-type">Melbyd.PubSub</span>, topic) <span class="org-keyword">end</span>)
 
     <span class="org-keyword">if</span> length(messages) &gt; <span class="org-elixir-number">0</span> <span class="org-keyword">do</span>
-      <span class="org-type">Logger</span>.info(<span class="org-string">"SPS </span><span class="org-variable-name">#{shell_pid}</span><span class="org-string">: sending messages to client: </span><span class="org-variable-name">#{inspect(messages)}</span><span class="org-string">"</span>)
+      <span class="org-type">Logger</span>.info(<span class="org-string">"Shell Logger </span><span class="org-variable-name">#{shell_pid}</span><span class="org-string">: sending messages to client: </span><span class="org-variable-name">#{inspect(messages)}</span><span class="org-string">"</span>)
     <span class="org-keyword">end</span>
 
     {
@@ -4237,7 +4237,7 @@ subscribe to these topics and display these messages to the user.
       ) <span class="org-keyword">do</span>
 
     <span class="org-keyword">if</span> env_vars_new != env_vars_old <span class="org-keyword">do</span>
-      <span class="org-type">Logger</span>.info(<span class="org-string">"SPS </span><span class="org-variable-name">#{shell_pid}</span><span class="org-string">: updating env_vars from </span><span class="org-variable-name">#{inspect(env_vars_old)}</span><span class="org-string"> "</span> &lt;&gt;
+      <span class="org-type">Logger</span>.info(<span class="org-string">"Shell Logger </span><span class="org-variable-name">#{shell_pid}</span><span class="org-string">: updating env_vars from </span><span class="org-variable-name">#{inspect(env_vars_old)}</span><span class="org-string"> "</span> &lt;&gt;
         <span class="org-string">"to </span><span class="org-variable-name">#{inspect(env_vars_new)}</span><span class="org-string">"</span>)
     <span class="org-keyword">end</span>
 
@@ -4329,7 +4329,7 @@ process) is currently located at <code>/a/b</code>, then we need to discard this
         <span class="org-elixir-atom">env_vars:</span> env_vars
       } = state
     ) <span class="org-keyword">do</span>
-  <span class="org-type">Logger</span>.info(<span class="org-string">"SPS </span><span class="org-variable-name">#{shell_pid}</span><span class="org-string">: Handling PubSub message: </span><span class="org-variable-name">#{inspect(message)}</span><span class="org-string">"</span>)
+  <span class="org-type">Logger</span>.info(<span class="org-string">"Shell Logger </span><span class="org-variable-name">#{shell_pid}</span><span class="org-string">: Handling PubSub message: </span><span class="org-variable-name">#{inspect(message)}</span><span class="org-string">"</span>)
 
   <span class="org-variable-name">keep_message</span> =
     <span class="org-keyword">if</span> <span class="org-type">Map</span>.has_key?(topic_handlers, topic) <span class="org-keyword">do</span>
@@ -4344,10 +4344,10 @@ process) is currently located at <code>/a/b</code>, then we need to discard this
     <span class="org-keyword">end</span>
 
   <span class="org-keyword">if</span> keep_message <span class="org-keyword">do</span>
-    <span class="org-type">Logger</span>.info(<span class="org-string">"SPS </span><span class="org-variable-name">#{shell_pid}</span><span class="org-string">: Keeping message </span><span class="org-variable-name">#{inspect(message)}</span><span class="org-string">"</span>)
+    <span class="org-type">Logger</span>.info(<span class="org-string">"Shell Logger </span><span class="org-variable-name">#{shell_pid}</span><span class="org-string">: Keeping message </span><span class="org-variable-name">#{inspect(message)}</span><span class="org-string">"</span>)
     {<span class="org-elixir-atom">:noreply</span>, %{state | <span class="org-elixir-atom">messages:</span> [message | messages]}}
   <span class="org-keyword">else</span>
-    <span class="org-type">Logger</span>.info(<span class="org-string">"SPS </span><span class="org-variable-name">#{shell_pid}</span><span class="org-string">: Dropping message </span><span class="org-variable-name">#{inspect(message)}</span><span class="org-string">"</span>)
+    <span class="org-type">Logger</span>.info(<span class="org-string">"Shell Logger </span><span class="org-variable-name">#{shell_pid}</span><span class="org-string">: Dropping message </span><span class="org-variable-name">#{inspect(message)}</span><span class="org-string">"</span>)
     {<span class="org-elixir-atom">:noreply</span>, state}
   <span class="org-keyword">end</span>
 <span class="org-keyword">end</span>
@@ -4372,7 +4372,7 @@ a behaviour or protocol&#x2026;?
       {<span class="org-elixir-atom">:EXIT</span>, from_pid, reason},
       %{<span class="org-elixir-atom">shell_pid:</span> shell_pid} = state
     ) <span class="org-keyword">do</span>
-  <span class="org-type">Logger</span>.debug(<span class="org-string">"SPS </span><span class="org-variable-name">#{shell_pid}</span><span class="org-string">: Got exit reason </span><span class="org-variable-name">#{inspect(reason)}</span><span class="org-string"> from pid </span><span class="org-variable-name">#{inspect(from_pid)}</span><span class="org-string">; exiting"</span>)
+  <span class="org-type">Logger</span>.debug(<span class="org-string">"Shell Logger </span><span class="org-variable-name">#{shell_pid}</span><span class="org-string">: Got exit reason </span><span class="org-variable-name">#{inspect(reason)}</span><span class="org-string"> from pid </span><span class="org-variable-name">#{inspect(from_pid)}</span><span class="org-string">; exiting"</span>)
   <span class="org-keyword">case</span> reason <span class="org-keyword">do</span>
     <span class="org-elixir-atom">:normal</span> <span class="org-keyword">-&gt;</span>
       <span class="org-comment-delimiter"># </span><span class="org-comment">This can happen if, e.g., a System.cmd/3 finishes running successfully.</span>
@@ -4390,7 +4390,7 @@ a behaviour or protocol&#x2026;?
       reason,
       %{<span class="org-elixir-atom">shell_pid:</span> shell_pid} = <span class="org-comment">_state</span>
     ) <span class="org-keyword">do</span>
-  <span class="org-type">Logger</span>.info(<span class="org-string">"SPS </span><span class="org-variable-name">#{shell_pid}</span><span class="org-string">: Got exit reason </span><span class="org-variable-name">#{inspect(reason)}</span><span class="org-string">; shutting down"</span>)
+  <span class="org-type">Logger</span>.info(<span class="org-string">"Shell Logger </span><span class="org-variable-name">#{shell_pid}</span><span class="org-string">: Got exit reason </span><span class="org-variable-name">#{inspect(reason)}</span><span class="org-string">; shutting down"</span>)
 <span class="org-keyword">end</span>
 </pre></div></div>
 </div>
@@ -4400,8 +4400,8 @@ a behaviour or protocol&#x2026;?
 <h5 id="h-Client-interface-1"><span class="section-number-5">8.6.2.4.</span> Client interface</h5>
 <div class="outline-text-5" id="text-h-Client-interface-1">
 <p>
-The <code>get_messages/2</code> function either retrieves all messages from this SPS
-GenServer's <code>messages</code> field, or if there isn't a GenServer that has started
+The <code>get_messages/2</code> function either retrieves all messages from this SLG's
+<code>messages</code> field, or if there isn't a GenServer that has started
 yet, just creates one.
 </p>
 
@@ -4410,7 +4410,7 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
 </p>
 
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_sps_client_interface</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_client_interface">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_client_interface"><span class="org-keyword">def</span> <span class="org-function-name">get_messages</span>(shell_pid, topic_handlers, env_vars) <span class="org-keyword">do</span>
-  <span class="org-keyword">case</span> <span class="org-elixir-atom">:gproc</span>.lookup_pids({<span class="org-elixir-atom">:n</span>, <span class="org-elixir-atom">:l</span>, {<span class="org-type">Melbyd.ShellProcess</span>, shell_pid}}) <span class="org-keyword">do</span>
+  <span class="org-keyword">case</span> <span class="org-elixir-atom">:gproc</span>.lookup_pids({<span class="org-elixir-atom">:n</span>, <span class="org-elixir-atom">:l</span>, {<span class="org-type">Melbyd.ShellLogger</span>, shell_pid}}) <span class="org-keyword">do</span>
     [pid] <span class="org-keyword">-&gt;</span>
       <span class="org-type">Logger</span>.info(<span class="org-string">"Found existing pid for </span><span class="org-variable-name">#{inspect(shell_pid)}</span><span class="org-string">: </span><span class="org-variable-name">#{inspect(pid)}</span><span class="org-string">"</span>)
       <span class="org-comment-delimiter"># </span><span class="org-comment">We update the env_vars in the GenServer state, because otherwise it will</span>
@@ -4420,7 +4420,7 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
 
     <span class="org-constant">_</span> <span class="org-keyword">-&gt;</span>
       <span class="org-type">Task.Supervisor</span>.start_child(<span class="org-type">Melbyd.TaskSupervisor</span>, <span class="org-keyword">fn</span> <span class="org-keyword">-&gt;</span>
-        <span class="org-type">Melbyd.ShellProcessSupervisor</span>.start_sps(shell_pid, topic_handlers, env_vars)
+        <span class="org-type">Melbyd.ShellLoggerSupervisor</span>.start_sps(shell_pid, topic_handlers, env_vars)
       <span class="org-keyword">end</span>)
 
       <span class="org-comment-delimiter"># </span><span class="org-comment">Return empty list (no messages) for now.</span>
@@ -4434,13 +4434,13 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
 <div id="outline-container-h-Supervisor-1" class="outline-5">
 <h5 id="h-Supervisor-1"><span class="section-number-5">8.6.2.5.</span> Supervisor</h5>
 <div class="outline-text-5" id="text-h-Supervisor-1">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_sps_supervisor</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_supervisor">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_supervisor"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.ShellProcessSupervisor</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_sps_supervisor</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_supervisor">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_supervisor"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.ShellLoggerSupervisor</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">DynamicSupervisor</span>
 
   <span class="org-keyword">require</span> <span class="org-type">Logger</span>
 
   <span class="org-keyword">def</span> <span class="org-function-name">start_link</span>(init_arg) <span class="org-keyword">do</span>
-    <span class="org-type">Logger</span>.info(<span class="org-string">"Starting SPS dynamic supervisor"</span>)
+    <span class="org-type">Logger</span>.info(<span class="org-string">"Starting SLG dynamic supervisor"</span>)
     <span class="org-type">DynamicSupervisor</span>.start_link(<span class="org-constant">__MODULE__</span>, init_arg, <span class="org-elixir-atom">name:</span> <span class="org-constant">__MODULE__</span>)
   <span class="org-keyword">end</span>
 
@@ -4462,7 +4462,7 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
 
     <span class="org-type">DynamicSupervisor</span>.start_child(
       <span class="org-constant">__MODULE__</span>,
-      {<span class="org-type">Melbyd.ShellProcess</span>, %{<span class="org-elixir-atom">shell_pid:</span> shell_pid,
+      {<span class="org-type">Melbyd.ShellLogger</span>, %{<span class="org-elixir-atom">shell_pid:</span> shell_pid,
                              <span class="org-elixir-atom">topic_handlers:</span> topic_handlers,
                              <span class="org-elixir-atom">env_vars:</span> env_vars,
                              <span class="org-elixir-atom">ttl:</span> ttl,
@@ -4966,7 +4966,7 @@ will be deleted in the future (to be replaced entirely with gRPC calls).
       <span class="org-comment-delimiter"># </span><span class="org-comment">Equivalent to {Task.Supervisor, [name: Melbyd.TaskSupervisor]}</span>
       {<span class="org-type">Task.Supervisor</span>, <span class="org-elixir-atom">name:</span> <span class="org-type">Melbyd.TaskSupervisor</span>},
       <span class="org-type">Melbyd.StandardResourceSupervisor</span>,
-      <span class="org-type">Melbyd.ShellProcessSupervisor</span>,
+      <span class="org-type">Melbyd.ShellLoggerSupervisor</span>,
 
       <span class="org-comment-delimiter"># </span><span class="org-comment">Lua config validation cache</span>
       <span class="org-type">Melbyd.LuaConfigValidation</span>,
@@ -5378,7 +5378,7 @@ any overlap.
   <span class="org-comment-delimiter"># </span><span class="org-comment">Return the blank state of the initial Lua VM state meant for validation</span>
   <span class="org-comment-delimiter"># </span><span class="org-comment">purposes only.</span>
   <span class="org-comment-delimiter">#</span>
-  <span class="org-comment-delimiter"># </span><span class="org-comment">FIXME: Add a fake for SPS also? And also delete it when we're done with</span>
+  <span class="org-comment-delimiter"># </span><span class="org-comment">FIXME: Add a fake for SLG also? And also delete it when we're done with</span>
   <span class="org-comment-delimiter"># </span><span class="org-comment">validation?</span>
   <span class="org-keyword">def</span> <span class="org-function-name">preloaded_fake_lua_vm</span>() <span class="org-keyword">do</span>
     <span class="org-type">Luerl</span>.init()
@@ -6220,9 +6220,9 @@ user.
 </p>
 
 <p>
-FIXME: We must put all SRS and SPS resources in a separate <code>namespace</code> so as to
+FIXME: We must put all SRS and SLG resources in a separate <code>namespace</code> so as to
 not collide with actual production resources. E.g., we don't want to create an
-SRS or SPS GenServer instance whose <code>id</code> would collide with one for production.
+SRS or SLG GenServer instance whose <code>id</code> would collide with one for production.
 We need to create a unique token for a validation request and use that as part
 of the resource IDs so that multiple validation requests do not walk on each
 other. Hmm, actually, what we need is a concurrent non-blocking cache. We need
@@ -6663,8 +6663,8 @@ name, truncating the last name as necessary.
 </div>
 
 <ol class="org-ol">
-<li><a id="h-Functions-for-instantiating-an-SPS-GenServer"></a>Functions for instantiating an SPS GenServer<br>
-<div class="outline-text-7" id="text-h-Functions-for-instantiating-an-SPS-GenServer">
+<li><a id="h-Functions-for-instantiating-an-SLG"></a>Functions for instantiating an SLG<br>
+<div class="outline-text-7" id="text-h-Functions-for-instantiating-an-SLG">
 <p>
 Here, <code>topics</code> is a list of topic names (strings) which we want to subscribe to.
 The Lua config should know what topics to subscribe to.
@@ -6686,7 +6686,7 @@ The Lua config should know what topics to subscribe to.
     <span class="org-keyword">end</span>)
     <span class="org-keyword">|&gt;</span> <span class="org-type">Map</span>.new()
 
-  <span class="org-variable-name">messages</span> = <span class="org-type">Melbyd.ShellProcess</span>.get_messages(shell_pid, topic_handlers, env_vars)
+  <span class="org-variable-name">messages</span> = <span class="org-type">Melbyd.ShellLogger</span>.get_messages(shell_pid, topic_handlers, env_vars)
 
   {<span class="org-elixir-atom">:ok</span>, messages, st0}
 <span class="org-keyword">end</span>
@@ -9558,7 +9558,7 @@ We package up <code>melbyd</code> as a standalone "package".
     <span class="org-nix-constant">./lib/melbyd/standard_resource.ex</span>
     <span class="org-nix-constant">./lib/melbyd/view.ex</span>
     <span class="org-nix-constant">./lib/melbyd/grpc.ex</span>
-    <span class="org-nix-constant">./lib/melbyd/shell_process.ex</span>
+    <span class="org-nix-constant">./lib/melbyd/shell_logger.ex</span>
     <span class="org-nix-constant">./lib/melbyd/lua_api.ex</span>
     <span class="org-nix-constant">./lib/melbyd/nifs.ex</span>
     <span class="org-nix-constant">./lib/melbyd/path.ex</span>
@@ -9778,7 +9778,7 @@ config <span class="org-elixir-atom">:melbyd</span>,
   <span class="org-comment-delimiter"># </span><span class="org-comment">client usage) before exiting. This is a simple way to garbage-collect unused</span>
   <span class="org-comment-delimiter"># </span><span class="org-comment">SRS GenServers to prevent unbounded growth.</span>
   <span class="org-elixir-atom">melbyd_srs_ttl:</span> <span class="org-type">System</span>.get_env(<span class="org-string">"MELBYD_SRS_TTL"</span>) || <span class="org-elixir-number">3600</span> * <span class="org-elixir-number">4</span>,
-  <span class="org-elixir-atom">melbyd_sps_ttl:</span> <span class="org-type">System</span>.get_env(<span class="org-string">"MELBYD_SPS_TTL"</span>) || <span class="org-elixir-number">3600</span> * <span class="org-elixir-number">4</span>,
+  <span class="org-elixir-atom">melbyd_sps_ttl:</span> <span class="org-type">System</span>.get_env(<span class="org-string">"MELBYD_SLG_TTL"</span>) || <span class="org-elixir-number">3600</span> * <span class="org-elixir-number">4</span>,
   <span class="org-elixir-atom">melbyd_port:</span>
     <span class="org-type">System</span>.get_env(<span class="org-string">"MELBYD_PORT"</span>) ||
       (<span class="org-keyword">if</span> config_env() == <span class="org-elixir-atom">:prod</span> <span class="org-keyword">do</span>

@@ -363,7 +363,7 @@ function Git.notify (resource_id, old, new)
   return nil
 end
 
--- For a ShellProcess that is receiving a message from us (Git resource), only
+-- For a ShellLogger that is receiving a message from us (Git resource), only
 -- keep messages where the repo path is a prefix of the shell's pwd. To keep the
 -- message, return true.
 function Git.should_keep_message (message, env_vars)

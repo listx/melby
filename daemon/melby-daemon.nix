@@ -75,7 +75,7 @@ let
     ./lib/melbyd/standard_resource.ex
     ./lib/melbyd/view.ex
     ./lib/melbyd/grpc.ex
-    ./lib/melbyd/shell_process.ex
+    ./lib/melbyd/shell_logger.ex
     ./lib/melbyd/lua_api.ex
     ./lib/melbyd/nifs.ex
     ./lib/melbyd/path.ex

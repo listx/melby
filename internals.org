@@ -1201,18 +1201,18 @@ defmodule Melbyd.StandardResourceSupervisor do
 end
 #+end_src
 
-* Shell Process Service
+* Shell Logger GenServer (SLG)
 
-The purpose of the Shell Process Service is to subscribe to various PubSub
+The purpose of the Shell Logger GenServer (SLG) is to subscribe to various PubSub
 topics. That is, this is the consumer and the SRS GenServers are the producers.
 
 The idea is to let SRS GenServers publish messages to topics that they control
 whenever anything interesting happens (where the determination of "interesting"
-is up to the user's Lua configuration). And then it's up to SPS GenServers to
+is up to the user's Lua configuration). And then it's up to SLGs to
 subscribe to these topics and display these messages to the user.
 
-#+begin_src elixir :tangle daemon/lib/melbyd/shell_process.ex
-defmodule Melbyd.ShellProcess do
+#+begin_src elixir :tangle daemon/lib/melbyd/shell_logger.ex
+defmodule Melbyd.ShellLogger do
   use GenServer, restart: :temporary
   require Logger
 
@@ -1246,7 +1246,7 @@ defmodule Melbyd.ShellProcess do
         } = _args
       ) do
     Process.flag(:trap_exit, true)
-    Logger.info("Starting SPS #{inspect(shell_pid)}; ttl=#{inspect(ttl)}")
+    Logger.info("Starting Shell Logger #{inspect(shell_pid)}; ttl=#{inspect(ttl)}")
 
     # Subscribe to topics.
     topics = Enum.map(topic_handlers, fn {topic, _handler} -> topic end)
@@ -1292,7 +1292,7 @@ defmodule Melbyd.ShellProcess do
     Enum.map(topics_obsolete, fn topic -> Phoenix.PubSub.unsubscribe(Melbyd.PubSub, topic) end)
 
     if length(messages) > 0 do
-      Logger.info("SPS #{shell_pid}: sending messages to client: #{inspect(messages)}")
+      Logger.info("Shell Logger #{shell_pid}: sending messages to client: #{inspect(messages)}")
     end
 
     {
@@ -1312,7 +1312,7 @@ defmodule Melbyd.ShellProcess do
       ) do
 
     if env_vars_new != env_vars_old do
-      Logger.info("SPS #{shell_pid}: updating env_vars from #{inspect(env_vars_old)} " <>
+      Logger.info("Shell Logger #{shell_pid}: updating env_vars from #{inspect(env_vars_old)} " <>
         "to #{inspect(env_vars_new)}")
     end
 
@@ -1403,7 +1403,7 @@ def handle_info(
         env_vars: env_vars
       } = state
     ) do
-  Logger.info("SPS #{shell_pid}: Handling PubSub message: #{inspect(message)}")
+  Logger.info("Shell Logger #{shell_pid}: Handling PubSub message: #{inspect(message)}")
 
   keep_message =
     if Map.has_key?(topic_handlers, topic) do
@@ -1418,10 +1418,10 @@ def handle_info(
     end
 
   if keep_message do
-    Logger.info("SPS #{shell_pid}: Keeping message #{inspect(message)}")
+    Logger.info("Shell Logger #{shell_pid}: Keeping message #{inspect(message)}")
     {:noreply, %{state | messages: [message | messages]}}
   else
-    Logger.info("SPS #{shell_pid}: Dropping message #{inspect(message)}")
+    Logger.info("Shell Logger #{shell_pid}: Dropping message #{inspect(message)}")
     {:noreply, state}
   end
 end
@@ -1441,7 +1441,7 @@ def handle_info(
       {:EXIT, from_pid, reason},
       %{shell_pid: shell_pid} = state
     ) do
-  Logger.debug("SPS #{shell_pid}: Got exit reason #{inspect(reason)} from pid #{inspect(from_pid)}; exiting")
+  Logger.debug("Shell Logger #{shell_pid}: Got exit reason #{inspect(reason)} from pid #{inspect(from_pid)}; exiting")
   case reason do
     :normal ->
       # This can happen if, e.g., a System.cmd/3 finishes running successfully.
@@ -1459,14 +1459,14 @@ def terminate(
       reason,
       %{shell_pid: shell_pid} = _state
     ) do
-  Logger.info("SPS #{shell_pid}: Got exit reason #{inspect(reason)}; shutting down")
+  Logger.info("Shell Logger #{shell_pid}: Got exit reason #{inspect(reason)}; shutting down")
 end
 #+end_src
 
 ** Client interface
 
-The =get_messages/2= function either retrieves all messages from this SPS
-GenServer's =messages= field, or if there isn't a GenServer that has started
+The =get_messages/2= function either retrieves all messages from this SLG's
+=messages= field, or if there isn't a GenServer that has started
 yet, just creates one.
 
 The internals here mirror the design in =Melbyd.StandardResource.read/2=.
@@ -1474,7 +1474,7 @@ The internals here mirror the design in =Melbyd.StandardResource.read/2=.
 #+name: __NREF__melbyd_sps_client_interface
 #+begin_src elixir
 def get_messages(shell_pid, topic_handlers, env_vars) do
-  case :gproc.lookup_pids({:n, :l, {Melbyd.ShellProcess, shell_pid}}) do
+  case :gproc.lookup_pids({:n, :l, {Melbyd.ShellLogger, shell_pid}}) do
     [pid] ->
       Logger.info("Found existing pid for #{inspect(shell_pid)}: #{inspect(pid)}")
       # We update the env_vars in the GenServer state, because otherwise it will
@@ -1484,7 +1484,7 @@ def get_messages(shell_pid, topic_handlers, env_vars) do
 
     _ ->
       Task.Supervisor.start_child(Melbyd.TaskSupervisor, fn ->
-        Melbyd.ShellProcessSupervisor.start_sps(shell_pid, topic_handlers, env_vars)
+        Melbyd.ShellLoggerSupervisor.start_sps(shell_pid, topic_handlers, env_vars)
       end)
 
       # Return empty list (no messages) for now.
@@ -1497,13 +1497,13 @@ end
 
 #+name: __NREF__melbyd_sps_supervisor
 #+begin_src elixir
-defmodule Melbyd.ShellProcessSupervisor do
+defmodule Melbyd.ShellLoggerSupervisor do
   use DynamicSupervisor
 
   require Logger
 
   def start_link(init_arg) do
-    Logger.info("Starting SPS dynamic supervisor")
+    Logger.info("Starting SLG dynamic supervisor")
     DynamicSupervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
   end
 
@@ -1525,7 +1525,7 @@ defmodule Melbyd.ShellProcessSupervisor do
 
     DynamicSupervisor.start_child(
       __MODULE__,
-      {Melbyd.ShellProcess, %{shell_pid: shell_pid,
+      {Melbyd.ShellLogger, %{shell_pid: shell_pid,
                              topic_handlers: topic_handlers,
                              env_vars: env_vars,
                              ttl: ttl,
@@ -2029,7 +2029,7 @@ defmodule Melbyd.Application do
       # Equivalent to {Task.Supervisor, [name: Melbyd.TaskSupervisor]}
       {Task.Supervisor, name: Melbyd.TaskSupervisor},
       Melbyd.StandardResourceSupervisor,
-      Melbyd.ShellProcessSupervisor,
+      Melbyd.ShellLoggerSupervisor,
 
       # Lua config validation cache
       Melbyd.LuaConfigValidation,
@@ -2386,7 +2386,7 @@ defmodule Melbyd.LuaConfigValidation do
   # Return the blank state of the initial Lua VM state meant for validation
   # purposes only.
   #
-  # FIXME: Add a fake for SPS also? And also delete it when we're done with
+  # FIXME: Add a fake for SLG also? And also delete it when we're done with
   # validation?
   def preloaded_fake_lua_vm() do
     Luerl.init()
@@ -3196,9 +3196,9 @@ also the resource_id_func instead of the resource_id_command. The good thing is
 that all of these bits should already be defined in the resource already by the
 user.
 
-FIXME: We must put all SRS and SPS resources in a separate =namespace= so as to
+FIXME: We must put all SRS and SLG resources in a separate =namespace= so as to
 not collide with actual production resources. E.g., we don't want to create an
-SRS or SPS GenServer instance whose =id= would collide with one for production.
+SRS or SLG GenServer instance whose =id= would collide with one for production.
 We need to create a unique token for a validation request and use that as part
 of the resource IDs so that multiple validation requests do not walk on each
 other. Hmm, actually, what we need is a concurrent non-blocking cache. We need
@@ -3561,7 +3561,7 @@ def_lua_func broadcast([topic, message_ref], st0) do
 end
 #+end_src
 
-**** Functions for instantiating an SPS GenServer
+**** Functions for instantiating an SLG
 
 Here, =topics= is a list of topic names (strings) which we want to subscribe to.
 The Lua config should know what topics to subscribe to.
@@ -3584,7 +3584,7 @@ def_lua_func get_shell_messages([shell_pid, resources_ref, env_vars_ref], st0) d
     end)
     |> Map.new()
 
-  messages = Melbyd.ShellProcess.get_messages(shell_pid, topic_handlers, env_vars)
+  messages = Melbyd.ShellLogger.get_messages(shell_pid, topic_handlers, env_vars)
 
   {:ok, messages, st0}
 end

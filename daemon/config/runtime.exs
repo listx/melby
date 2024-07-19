@@ -6,7 +6,7 @@ config :melbyd,
   # client usage) before exiting. This is a simple way to garbage-collect unused
   # SRS GenServers to prevent unbounded growth.
   melbyd_srs_ttl: System.get_env("MELBYD_SRS_TTL") || 3600 * 4,
-  melbyd_sps_ttl: System.get_env("MELBYD_SPS_TTL") || 3600 * 4,
+  melbyd_sps_ttl: System.get_env("MELBYD_SLG_TTL") || 3600 * 4,
   melbyd_port:
     System.get_env("MELBYD_PORT") ||
       (if config_env() == :prod do

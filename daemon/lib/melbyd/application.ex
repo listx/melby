@@ -21,7 +21,7 @@ defmodule Melbyd.Application do
       # Equivalent to {Task.Supervisor, [name: Melbyd.TaskSupervisor]}
       {Task.Supervisor, name: Melbyd.TaskSupervisor},
       Melbyd.StandardResourceSupervisor,
-      Melbyd.ShellProcessSupervisor,
+      Melbyd.ShellLoggerSupervisor,
 
       # Lua config validation cache
       Melbyd.LuaConfigValidation,

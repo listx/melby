@@ -406,7 +406,7 @@ let
     ./lib/melbyd/standard_resource.ex
     ./lib/melbyd/view.ex
     ./lib/melbyd/grpc.ex
-    ./lib/melbyd/shell_process.ex
+    ./lib/melbyd/shell_logger.ex
     ./lib/melbyd/lua_api.ex
     ./lib/melbyd/nifs.ex
     ./lib/melbyd/path.ex
@@ -634,7 +634,7 @@ config :melbyd,
   # client usage) before exiting. This is a simple way to garbage-collect unused
   # SRS GenServers to prevent unbounded growth.
   melbyd_srs_ttl: System.get_env("MELBYD_SRS_TTL") || 3600 * 4,
-  melbyd_sps_ttl: System.get_env("MELBYD_SPS_TTL") || 3600 * 4,
+  melbyd_sps_ttl: System.get_env("MELBYD_SLG_TTL") || 3600 * 4,
   melbyd_port:
     System.get_env("MELBYD_PORT") ||
       (if config_env() == :prod do

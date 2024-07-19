@@ -717,7 +717,7 @@ function Git.notify (resource_id, old, new)
   return nil
 end
 
--- For a ShellProcess that is receiving a message from us (Git resource), only
+-- For a ShellLogger that is receiving a message from us (Git resource), only
 -- keep messages where the repo path is a prefix of the shell's pwd. To keep the
 -- message, return true.
 function Git.should_keep_message (message, env_vars)
@@ -1442,7 +1442,7 @@ We should let users configure each command with an optional timeout and/or error
 reponse detector, such that:
 
 - if a command times out (still is running after waiting N seconds), we cancel
-  it and generate a message for SPS telling the user that a command timed out
+  it and generate a message for SLG telling the user that a command timed out
   - this should catch cases where kubectl or gcloud return nothing due to either
     network connectivity issues (wifi missing) or missing authentication (didn't
     run =gcloud auth print-access-token= yet)

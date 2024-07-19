@@ -89,7 +89,7 @@ defmodule Melbyd.LuaConfigValidation do
   # Return the blank state of the initial Lua VM state meant for validation
   # purposes only.
   #
-  # FIXME: Add a fake for SPS also? And also delete it when we're done with
+  # FIXME: Add a fake for SLG also? And also delete it when we're done with
   # validation?
   def preloaded_fake_lua_vm() do
     Luerl.init()
@@ -1163,7 +1163,7 @@ defmodule Melbyd.LuaSdk do
       end)
       |> Map.new()
   
-    messages = Melbyd.ShellProcess.get_messages(shell_pid, topic_handlers, env_vars)
+    messages = Melbyd.ShellLogger.get_messages(shell_pid, topic_handlers, env_vars)
   
     {:ok, messages, st0}
   end
