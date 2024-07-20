@@ -245,6 +245,7 @@ build-literate-org:
 tangle-sources: client-org \
 		client-rust-org \
 		daemon-org \
+		developer-manual-org \
 		user-manual-org \
 		image-org
 
@@ -259,6 +260,8 @@ client-rust-org: build-literate-org
 	$(call run_emacs,(org-babel-tangle),client-rust.org)
 daemon-org: build-literate-org
 	$(call run_emacs,(org-babel-tangle),daemon.org)
+developer-manual-org: build-literate-org
+	$(call run_emacs,(org-babel-tangle),developer-manual.org)
 user-manual-org: build-literate-org
 	$(call run_emacs,(org-babel-tangle),user-manual.org)
 
@@ -267,6 +270,7 @@ user-manual-org: build-literate-org
 .PHONY: client-org
 .PHONY: client-rust-org
 .PHONY: daemon-org
+.PHONY: developer-manual-org
 .PHONY: user-manual-org
 .PHONY: image-org
 #+end_src

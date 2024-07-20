@@ -592,7 +592,11 @@
 <li><a href="#h-Contributing-to-Melby">9. Contributing to Melby</a>
 <ul>
 <li><a href="#h-Code-of-conduct">9.1. Code of conduct</a></li>
-<li><a href="#h-Where-to-make-changes">9.2. Where to make changes</a></li>
+<li><a href="#h-Where-to-make-changes">9.2. Where to make changes</a>
+<ul>
+<li><a href="#h-Audit-of-what-s-tangled">9.2.1. Audit of what's tangled</a></li>
+</ul>
+</li>
 <li><a href="#h-Focus-on-prose--not-code">9.3. Focus on prose, not code</a></li>
 </ul>
 </li>
@@ -876,7 +880,7 @@ endef
 <span class="org-makefile-space">    #</span><span class="org-comment">$(</span><span class="org-comment"><span class="org-variable-name">call</span></span><span class="org-comment"> run_emacs,(lilac-gen-css-and-exit),main.org)</span>
     $(<span class="org-variable-name">call</span> run_emacs,(lilac-publish),main.org)
 
-<span class="org-makefile-targets">developer-manual.html</span>: developer-manual.org daemon.org build-literate.org build-packaging.org
+<span class="org-makefile-targets">developer-manual.html</span>: developer-manual.org daemon.org build-literate.org
     $(<span class="org-variable-name">call</span> run_emacs,(lilac-publish),developer-manual.org)
 
 <span class="org-makefile-targets">user-manual.html</span>: user-manual.org developer-manual.html
@@ -1053,15 +1057,13 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
 <span class="org-makefile-targets">tangle-sources</span>: client-org \
         client-rust-org \
         daemon-org \
+        developer-manual-org \
         user-manual-org \
-        image-org \
-        build-packaging-org
+        image-org
 
 <span class="org-comment-delimiter"># </span><span class="org-comment">Sadly, orgmode does not support including files for tangling. This means we</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">have to tangle each org file separately, even though they all come together</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">into main.org.</span>
-<span class="org-makefile-targets">build-packaging-org</span>: build-literate-org
-    $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),build-packaging.org)
 <span class="org-makefile-targets">image-org</span>: build-literate-org
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),image.org)
 <span class="org-makefile-targets">client-org</span>: build-literate-org
@@ -1070,15 +1072,17 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),client-rust.org)
 <span class="org-makefile-targets">daemon-org</span>: build-literate-org
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),daemon.org)
+<span class="org-makefile-targets">developer-manual-org</span>: build-literate-org
+    $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),developer-manual.org)
 <span class="org-makefile-targets">user-manual-org</span>: build-literate-org
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),user-manual.org)
 
 <span class="org-makefile-targets">.PHONY</span>: build-literate-org
-<span class="org-makefile-targets">.PHONY</span>: build-packaging-org
 <span class="org-makefile-targets">.PHONY</span>: tangle-sources
 <span class="org-makefile-targets">.PHONY</span>: client-org
 <span class="org-makefile-targets">.PHONY</span>: client-rust-org
 <span class="org-makefile-targets">.PHONY</span>: daemon-org
+<span class="org-makefile-targets">.PHONY</span>: developer-manual-org
 <span class="org-makefile-targets">.PHONY</span>: user-manual-org
 <span class="org-makefile-targets">.PHONY</span>: image-org
 </pre></div></div>
@@ -1580,7 +1584,6 @@ result*
 </div>
 </div>
 </div>
-
 <div id="outline-container-h-How-to-hack-on-this-project" class="outline-2">
 <h2 id="h-How-to-hack-on-this-project"><span class="section-number-2">6.</span> How to hack on this project</h2>
 <div class="outline-text-2" id="text-h-How-to-hack-on-this-project">
@@ -9977,6 +9980,45 @@ Remember that the source of truth is in the <code>*.org</code> files. <i>Everyth
 generated code.</i> Editing the source code directly will not work at all because
 tangling the <code>*.org</code> files will overwrite those changes.
 </p>
+</div>
+
+<div id="outline-container-h-Audit-of-what-s-tangled" class="outline-4">
+<h4 id="h-Audit-of-what-s-tangled"><span class="section-number-4">9.2.1.</span> Audit of what's tangled</h4>
+<div class="outline-text-4" id="text-h-Audit-of-what-s-tangled">
+<p>
+Some files in this project are not tangled for convenience. Below is a script
+that asks Git for a list of all tracked files, and compares it against what's
+tangled from Org files.
+</p>
+
+<div class="org-src-container"><pre class="src src-sh" id="nil-61"><span class="org-builtin">set</span> -euo pipefail
+
+<span class="org-variable-name">SCRIPT_ROOT</span>=<span class="org-string">"$(</span><span class="org-sh-quoted-exec">dirname "$(realpath "$0"</span><span class="org-string">)")"</span>
+
+<span class="org-function-name">tangled_files</span>()
+{
+    git -C <span class="org-string">"${SCRIPT_ROOT}"</span> grep -P <span class="org-string">'^#\+begin_\w+ \w+ :tangle'</span> -- <span class="org-string">'*.org'</span> <span class="org-sh-escaped-newline">\</span>
+        | sed <span class="org-string">'s/^.\+:tangle \(\S\+\).*$/\1/'</span> <span class="org-sh-escaped-newline">\</span>
+        | sort
+}
+
+<span class="org-function-name">tracked_files</span>()
+{
+    git -C <span class="org-string">"${SCRIPT_ROOT}"</span> ls-tree -r HEAD <span class="org-sh-escaped-newline">\</span>
+        | awk <span class="org-string">'{print $2,$4}'</span> <span class="org-sh-escaped-newline">\</span>
+        | grep <span class="org-string">'^blob'</span> <span class="org-sh-escaped-newline">\</span>
+        | grep -v <span class="org-string">'\.org$'</span> <span class="org-sh-escaped-newline">\</span>
+        | awk <span class="org-string">'{print $2}'</span>
+}
+
+<span class="org-function-name">main</span>()
+{
+    diff -u &lt;(tangled_files) &lt;(tracked_files)
+}
+
+main <span class="org-string">"$@"</span>
+</pre></div>
+</div>
 </div>
 </div>
 
