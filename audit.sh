@@ -5,7 +5,7 @@ SCRIPT_ROOT="$(dirname "$(realpath "$0")")"
 
 tangled_files()
 {
-    git -C "${SCRIPT_ROOT}" grep -P '^#\+begin_\w+ \w+ :tangle' -- '*.org' \
+    git -C "${SCRIPT_ROOT}" grep -P '^#\+begin_\w+ .+? :tangle' -- '*.org' \
         | sed 's/^.\+:tangle \(\S\+\).*$/\1/' \
         | sort
 }

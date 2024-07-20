@@ -9997,7 +9997,7 @@ tangled from Org files.
 
 <span class="org-function-name">tangled_files</span>()
 {
-    git -C <span class="org-string">"${SCRIPT_ROOT}"</span> grep -P <span class="org-string">'^#\+begin_\w+ \w+ :tangle'</span> -- <span class="org-string">'*.org'</span> <span class="org-sh-escaped-newline">\</span>
+    git -C <span class="org-string">"${SCRIPT_ROOT}"</span> grep -P <span class="org-string">'^#\+begin_\w+ .+? :tangle'</span> -- <span class="org-string">'*.org'</span> <span class="org-sh-escaped-newline">\</span>
         | sed <span class="org-string">'s/^.\+:tangle \(\S\+\).*$/\1/'</span> <span class="org-sh-escaped-newline">\</span>
         | sort
 }
