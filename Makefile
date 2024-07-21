@@ -62,8 +62,7 @@ build-literate-org:
 	$(call run_emacs,(org-babel-tangle),build-literate.org)
 
 # Generate source code.
-tangle-sources: client-rust-org \
-		daemon-org \
+tangle-sources: daemon-org \
 		developer-manual-org \
 		user-manual-org \
 		image-org
@@ -73,8 +72,6 @@ tangle-sources: client-rust-org \
 # into main.org.
 image-org: build-literate-org
 	$(call run_emacs,(org-babel-tangle),image.org)
-client-rust-org: build-literate-org
-	$(call run_emacs,(org-babel-tangle),client-rust.org)
 daemon-org: build-literate-org
 	$(call run_emacs,(org-babel-tangle),daemon.org)
 developer-manual-org: build-literate-org
@@ -84,7 +81,6 @@ user-manual-org: build-literate-org
 
 .PHONY: build-literate-org
 .PHONY: tangle-sources
-.PHONY: client-rust-org
 .PHONY: daemon-org
 .PHONY: developer-manual-org
 .PHONY: user-manual-org

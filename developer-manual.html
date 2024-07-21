@@ -1054,8 +1054,7 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),build-literate.org)
 
 <span class="org-comment-delimiter"># </span><span class="org-comment">Generate source code.</span>
-<span class="org-makefile-targets">tangle-sources</span>: client-rust-org \
-        daemon-org \
+<span class="org-makefile-targets">tangle-sources</span>: daemon-org \
         developer-manual-org \
         user-manual-org \
         image-org
@@ -1065,8 +1064,6 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
 <span class="org-comment-delimiter"># </span><span class="org-comment">into main.org.</span>
 <span class="org-makefile-targets">image-org</span>: build-literate-org
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),image.org)
-<span class="org-makefile-targets">client-rust-org</span>: build-literate-org
-    $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),client-rust.org)
 <span class="org-makefile-targets">daemon-org</span>: build-literate-org
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),daemon.org)
 <span class="org-makefile-targets">developer-manual-org</span>: build-literate-org
@@ -1076,7 +1073,6 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
 
 <span class="org-makefile-targets">.PHONY</span>: build-literate-org
 <span class="org-makefile-targets">.PHONY</span>: tangle-sources
-<span class="org-makefile-targets">.PHONY</span>: client-rust-org
 <span class="org-makefile-targets">.PHONY</span>: daemon-org
 <span class="org-makefile-targets">.PHONY</span>: developer-manual-org
 <span class="org-makefile-targets">.PHONY</span>: user-manual-org
