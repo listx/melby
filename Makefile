@@ -42,7 +42,7 @@ tangle:
 .PHONY: tangle
 
 tangle-profile:
-	$(call run_emacs,(melby-tangle-profile),build-literate.org)
+	$(call run_emacs,(melby-tangle-profile),developer-manual.org)
 .PHONY: tangle-profile
 
 tangle-profile-inspect:
@@ -54,13 +54,6 @@ tangle-generated:
 	$(MAKE) -C daemon all
 .PHONY: tangle-generated
 
-build-literate-org:
-	# Generate the toplevel Makefile (this file) and image/Makefile (overwriting
-	# them if necessary). In a way this bootstraps the whole
-	# literate-programming pipeline. Note that these files are different than
-	# the ones used to compile the tangled source code.
-	$(call run_emacs,(org-babel-tangle),build-literate.org)
-
 # Generate source code.
 tangle-sources: developer-manual-org \
 		user-manual-org \
@@ -69,14 +62,17 @@ tangle-sources: developer-manual-org \
 # Sadly, orgmode does not support including files for tangling. This means we
 # have to tangle each org file separately, even though they all come together
 # into main.org.
-image-org: build-literate-org
+image-org: developer-manual.org
 	$(call run_emacs,(org-babel-tangle),image.org)
-developer-manual-org: build-literate-org
+# The developer manual generates the toplevel Makefile (this file) and
+# image/Makefile (overwriting them if necessary) to bootstrap the whole
+# literate-programming pipeline. Note that these LP-related Makefiles are
+# different than the ones used to compile the tangled source code.
+developer-manual-org:
 	$(call run_emacs,(org-babel-tangle),developer-manual.org)
-user-manual-org: build-literate-org
+user-manual-org: developer-manual-org
 	$(call run_emacs,(org-babel-tangle),user-manual.org)
 
-.PHONY: build-literate-org
 .PHONY: tangle-sources
 .PHONY: developer-manual-org
 .PHONY: user-manual-org
@@ -107,7 +103,7 @@ main.html: developer-manual.html image.html main.org
 	#$(call run_emacs,(lilac-gen-css-and-exit),main.org)
 	$(call run_emacs,(lilac-publish),main.org)
 
-developer-manual.html: developer-manual.org build-literate.org
+developer-manual.html: developer-manual.org
 	$(call run_emacs,(lilac-publish),developer-manual.org)
 
 user-manual.html: user-manual.org developer-manual.html

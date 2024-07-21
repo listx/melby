@@ -880,7 +880,7 @@ endef
 <span class="org-makefile-space">    #</span><span class="org-comment">$(</span><span class="org-comment"><span class="org-variable-name">call</span></span><span class="org-comment"> run_emacs,(lilac-gen-css-and-exit),main.org)</span>
     $(<span class="org-variable-name">call</span> run_emacs,(lilac-publish),main.org)
 
-<span class="org-makefile-targets">developer-manual.html</span>: developer-manual.org build-literate.org
+<span class="org-makefile-targets">developer-manual.html</span>: developer-manual.org
     $(<span class="org-variable-name">call</span> run_emacs,(lilac-publish),developer-manual.org)
 
 <span class="org-makefile-targets">user-manual.html</span>: user-manual.org developer-manual.html
@@ -1034,7 +1034,7 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
 <span class="org-makefile-targets">.PHONY</span>: tangle
 
 <span class="org-makefile-targets">tangle-profile</span>:
-    $(<span class="org-variable-name">call</span> run_emacs,(melby-tangle-profile),build-literate.org)
+    $(<span class="org-variable-name">call</span> run_emacs,(melby-tangle-profile),developer-manual.org)
 <span class="org-makefile-targets">.PHONY</span>: tangle-profile
 
 <span class="org-makefile-targets">tangle-profile-inspect</span>:
@@ -1046,13 +1046,6 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
     $(<span class="org-variable-name">MAKE</span>) -C daemon all
 <span class="org-makefile-targets">.PHONY</span>: tangle-generated
 
-<span class="org-makefile-targets">build-literate-org</span>:
-<span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">Generate the toplevel Makefile (this file) and image/Makefile (overwriting</span>
-<span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">them if necessary). In a way this bootstraps the whole</span>
-<span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">literate-programming pipeline. Note that these files are different than</span>
-<span class="org-makefile-space">    #</span><span class="org-comment-delimiter"> </span><span class="org-comment">the ones used to compile the tangled source code.</span>
-    $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),build-literate.org)
-
 <span class="org-comment-delimiter"># </span><span class="org-comment">Generate source code.</span>
 <span class="org-makefile-targets">tangle-sources</span>: developer-manual-org \
         user-manual-org \
@@ -1061,14 +1054,17 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
 <span class="org-comment-delimiter"># </span><span class="org-comment">Sadly, orgmode does not support including files for tangling. This means we</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">have to tangle each org file separately, even though they all come together</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">into main.org.</span>
-<span class="org-makefile-targets">image-org</span>: build-literate-org
+<span class="org-makefile-targets">image-org</span>: developer-manual.org
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),image.org)
-<span class="org-makefile-targets">developer-manual-org</span>: build-literate-org
+<span class="org-comment-delimiter"># </span><span class="org-comment">The developer manual generates the toplevel Makefile (this file) and</span>
+<span class="org-comment-delimiter"># </span><span class="org-comment">image/Makefile (overwriting them if necessary) to bootstrap the whole</span>
+<span class="org-comment-delimiter"># </span><span class="org-comment">literate-programming pipeline. Note that these LP-related Makefiles are</span>
+<span class="org-comment-delimiter"># </span><span class="org-comment">different than the ones used to compile the tangled source code.</span>
+<span class="org-makefile-targets">developer-manual-org</span>:
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),developer-manual.org)
-<span class="org-makefile-targets">user-manual-org</span>: build-literate-org
+<span class="org-makefile-targets">user-manual-org</span>: developer-manual-org
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),user-manual.org)
 
-<span class="org-makefile-targets">.PHONY</span>: build-literate-org
 <span class="org-makefile-targets">.PHONY</span>: tangle-sources
 <span class="org-makefile-targets">.PHONY</span>: developer-manual-org
 <span class="org-makefile-targets">.PHONY</span>: user-manual-org

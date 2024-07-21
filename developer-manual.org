@@ -119,8 +119,299 @@ below and prefixed with =Developer Manual: ...=.
 
 * Build System for Literate Programming
 
-#+include: "build-literate.org" :lines "16-"
+** Overview of how LP is used in this project
 
+Melby uses [[https://github.com/listx/lilac][Lilac]], a literate programming tool.
+
+** Weaving (generating the docs)
+
+Weaving is conceptually simpler than tangling because there is no extra step ---
+the output is an HTML page and that is something that we can use directly
+(unlike program source code, which may require additional compilation into a
+binary, depending on the language). We also limit ourselves to only HTML for
+simplicity (in particular, we don't have to worry about page breaks).
+
+Weaving for requires the following dependencies:
+
+| Dependency    | Why                              | How to install it |
+| GNU Make      |                                  | ?                 |
+| emacs         |                                  |                   |
+| texlive       | Diagrams                         |                   |
+| pdf2svg       | Diagrams                         |                   |
+| inkscape      | Diagrams                         |                   |
+| html-beautify | Format HTML with indentation     |                   |
+
+For Melby, we have a top-level =Makefile= so that we can run some =make= commands
+on the command line (instead of needing to invoke emacs directly).
+
+#+name: Makefile
+#+caption: =Makefile=
+#+begin_src makefile :tangle Makefile :eval no
+PROJ_ROOT := $(shell git rev-parse --show-toplevel)
+LILAC_ROOT := $(PROJ_ROOT)/deps/elisp/lilac
+PROCS := $(shell nproc)
+define run_emacs
+	LILAC_ROOT=$(LILAC_ROOT) PROJ_ROOT=$(PROJ_ROOT) emacs $(2) \
+		--quick --batch --kill \
+		--load $(LILAC_ROOT)/lilac.el \
+		--load $(PROJ_ROOT)/melby.el \
+		--eval="$(1)"
+endef
+
+all: tangle weave
+
+all-build-tools: tangle-build-tools weave
+
+fresh-repl:
+	make -C $(PROJ_ROOT) -j$(PROCS) tangle
+	make -C $(PROJ_ROOT)/daemon repl
+
+__NREF__Makefile-tangle
+
+weave: build-html build-images
+
+weave-quick:
+	MELBY_LP_QUICK=1 make -C ${PROJ_ROOT} -j$(PROCS) build-html build-images
+.PHONY: weave-quick
+
+weave-profile:
+	$(call run_emacs,(lilac-publish-profile),main.org)
+.PHONY: weave-profile
+
+weave-profile-inspect:
+	emacs -Q --load $(LILAC_ROOT)/lilac.el \
+		--eval="(profiler-find-profile \"emacs-profile-weave.txt\"))"
+.PHONY: weave-profile-inspect
+
+build-images:
+	$(call run_emacs,(org-babel-execute-buffer),image.org)
+	$(MAKE) -C image -B
+
+build-html: main.html image.html developer-manual.html user-manual.html
+
+main.html: developer-manual.html image.html main.org
+	#$(call run_emacs,(lilac-gen-css-and-exit),main.org)
+	$(call run_emacs,(lilac-publish),main.org)
+
+developer-manual.html: developer-manual.org
+	$(call run_emacs,(lilac-publish),developer-manual.org)
+
+user-manual.html: user-manual.org developer-manual.html
+	$(call run_emacs,(lilac-publish),user-manual.org)
+
+image.html: image.org
+	$(call run_emacs,(lilac-publish),image.org)
+
+.PHONY: all all-build-tools weave
+
+# Enter development environment.
+shell:
+	nix-shell --pure
+#+end_src
+
+*** Emacs customizations
+
+Because Lilac does not come with built-in support for syntax highlighting for
+all of the different programming languages we use, we have to import them here
+manually. That way, when we run =(lilac-publish)= we'll get all of the syntax
+highlighting that we need.
+
+#+name: melby.el
+#+begin_src emacs-lisp :tangle melby.el
+;; Built-in packages (distributed with Emacs).
+(require 'tex-mode)
+(require 'elisp-mode)
+
+(defun melby-load (path)
+    (add-to-list 'load-path (concat
+                             (getenv "PROJ_ROOT")
+                             (concat "/deps/elisp/"
+                                     path))))
+
+;; Third-party packages (checked in as Git submodules)
+(melby-load "dash.el")
+(require 'dash) ; required by magit
+
+(melby-load "compat.el")
+(require 'compat) ; required by magit
+
+(melby-load "haskell-mode")
+(require 'haskell-mode)
+(require 'haskell-cabal)
+
+(melby-load "magit/lisp")
+(require 'magit-section) ; required by nix-mode
+
+(melby-load "nix-mode")
+(require 'nix-mode)
+
+(melby-load "rust-mode")
+(require 'rust-mode)
+
+(melby-load "emacs-elixir")
+(require 'elixir-mode)
+
+(melby-load "lua-mode")
+(require 'lua-mode)
+
+(melby-load "protobuf/editors")
+(require 'protobuf-mode)
+
+(melby-load "yaml-mode")
+(require 'yaml-mode)
+#+end_src
+
+*** Diagrams
+
+The code used to generate the diagrams used in this doc is [[file:image.html][here]]. We don't
+discuss that code in this doc because it would make this doc even more verbose.
+
+*** Ignore woven HTML from =git diff=
+
+Typically we only need to look at the rendered HTML output in a web browser as
+the raw HTML diff output is extremely difficult to parse as a human. So by
+default we ask Git to exclude it from =git diff= by treating them as binary
+data.
+
+#+caption: =.gitattributes=
+#+begin_src gitattributes :tangle .gitattributes :eval no
+,* -diff
+,**/*.json diff
+,**/*.org diff
+,**/.gitattributes diff
+,**/.gitmodules diff
+,**/.gitignore diff
+#+end_src
+
+In order to still show the HTML textual diff, we can run =git diff --text=.
+
+**** =git add -p=
+
+Note that the above setting to treat HTML files as binary data prevents them
+from being considered for =git add -p=. In order to add them, use =git add -u=
+instead.
+
+** Tangling (generating the source code)
+
+Tangling is simply the act of collecting the =#+begin_src ... #+end_src= blocks
+and arranging them into the various target (source code) files. Every source
+code block is given a unique name.
+
+We simply tangle all major =*.org= files in the toplevel Makefile.
+
+#+name: __NREF__Makefile-tangle
+#+begin_src makefile
+tangle-build-tools: build-tools tangle-sources tangle-generated
+	# Duplicate some files. This way we avoid symlinking, because symlinks can
+	# break when we section off parts of the codebase into separate sandboxes
+	# for building things, such as when building Haskell packages.
+	cp -f LICENSE client/LICENSE
+	cp -f melby_client.proto client/lib/MelbyClient/melby_client.proto
+	cp -f melby_client.proto client-rust/proto/melby_client.proto
+	cp -f melby_renderer.proto daemon/lib/melbyd/renderer/lib/MelbyRenderer/melby_renderer.proto
+.PHONY: tangle-build-tools
+
+# Same as tangle-build-tools, but does not rebuild build tools (ptu).
+do-tangle: tangle-sources tangle-generated
+	cp -f LICENSE client/LICENSE
+	cp -f melby_client.proto client/lib/MelbyClient/melby_client.proto
+	cp -f melby_client.proto client-rust/proto/melby_client.proto
+	cp -f melby_renderer.proto daemon/lib/melbyd/renderer/lib/MelbyRenderer/melby_renderer.proto
+.PHONY: do-tangle
+
+# Currently we don't have any optimizations for tangling, but we still set
+# MELBY_LP_QUICK=1 anyway to align with what we do for weave-quick.
+tangle:
+	MELBY_LP_QUICK=1 make -C $(PROJ_ROOT) -j$(PROCS) do-tangle
+.PHONY: tangle
+
+tangle-profile:
+	$(call run_emacs,(melby-tangle-profile),developer-manual.org)
+.PHONY: tangle-profile
+
+tangle-profile-inspect:
+	emacs -Q --load $(LILAC_ROOT)/lilac.el --eval="(profiler-find-profile \"emacs-profile-tangle.txt\"))"
+.PHONY: tangle-profile-inspect
+
+tangle-generated:
+	# Generate generated source code.
+	$(MAKE) -C daemon all
+.PHONY: tangle-generated
+
+# Generate source code.
+tangle-sources: developer-manual-org \
+		user-manual-org \
+		image-org
+
+# Sadly, orgmode does not support including files for tangling. This means we
+# have to tangle each org file separately, even though they all come together
+# into main.org.
+image-org: developer-manual.org
+	$(call run_emacs,(org-babel-tangle),image.org)
+# The developer manual generates the toplevel Makefile (this file) and
+# image/Makefile (overwriting them if necessary) to bootstrap the whole
+# literate-programming pipeline. Note that these LP-related Makefiles are
+# different than the ones used to compile the tangled source code.
+developer-manual-org:
+	$(call run_emacs,(org-babel-tangle),developer-manual.org)
+user-manual-org: developer-manual-org
+	$(call run_emacs,(org-babel-tangle),user-manual.org)
+
+.PHONY: tangle-sources
+.PHONY: developer-manual-org
+.PHONY: user-manual-org
+.PHONY: image-org
+#+end_src
+
+*** Copyright headers
+
+We used to use a utility called =ptu= ("post-tangle utility") to prepend
+copyright headers to all tangled files, but this resulted in a few problems:
+
+1. no support for copyright year ranges (e.g., 2020-2024),
+2. no support for checking when each tangled part was actually modified in the
+   Org source file.
+
+Because of these issues, the utility has been removed.
+
+*** .gitignore
+
+#+begin_src text :tangle .gitignore
+.stack-work
+deps/
+dist-newstyle/
+image/*.pdf
+image/*uncropped*
+#+end_src
+
+*** Post-tangled phase
+
+Here we discuss the various programming languages and their required build
+environments.
+
+**** Elixir
+
+We use Elixir 1.13.4+.
+
+**** Rust
+
+**** Haskell
+
+We use stack for reproducibility, although we should probably also think of
+moving to Nix.
+
+We're stuck on GHC 8.10.7 because of mu-haskell which currently does not build
+with GHC 9+.
+
+**** Lua
+
+We use luerl (add link), which uses Lua 5.2 with some 5.3 support.
+
+** Glossary
+
+- *Melby component*: a modular piece of software used to deliver the Melby user
+  experience.
+ 
 * Build System for Packaging Melby
 
 ** Introduction
