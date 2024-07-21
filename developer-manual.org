@@ -549,9 +549,774 @@ perspective of the human user, who is expected to invoke =melbyc= somewhere in
 their shell prompt generation logic. We then look at the pieces in the daemon to
 see how it all works.
 
-# We skip the first line with ":lines ..." because otherwise the "#+title: ..."
-# of that document interferes our own title.
-#+include: "client.org" :lines "16-"
+** Purpose
+
+=melby-client= is a client for Melby. It allows users to interact with melby (the
+daemon).
+
+** Architectural overview
+
+(Insert diagram --- write tikz and export as SVG.)
+
+** Design by contract
+
+We would like our client to observe the following behaviors.
+
+1. Allow users to talk to the daemon.
+2. Run very quickly (the synchronous call to the daemon should finish in under
+   500 milliseconds).
+3. Have basic command-line argument handling.
+
+These points are the main things (or problems) that our program has to worry
+about. We look at each of these requirements below.
+
+*** Talking to the daemon
+
+We talk to melbyd using gRPC. This is rather straightforward as it just involves
+a single unary (that is, non-streaming) gRPC call.
+
+**** Lua
+
+The more interesting thing here is that we send melbyd some Lua code to give the
+user the flexibility of determining exactly how to construct the prompt. This
+way, the user is not stuck with only the default "look" of the pieces of the
+prompt (the user can do more than just rearrange these pieces --- they can
+customizes the pieces themselves). To this
+
+**** Proto
+
+For concreteness, this is the actual protobuf file we use to define melbyc's
+behavior when it talks to the daemon.
+
+This is the protobuf definition that we need to generate the Haskell client
+stub. We also use it to generate the Elixir server stubs (used by the daemon).
+FIXME: add link to where it's used in Elixir.
+
+#+name: melbyproto_melby_client
+#+begin_src protobuf :tangle melby_client.proto
+syntax = "proto3";
+
+package melby_client;
+
+// melbyc <-> melbyd communication
+service View {
+  rpc GetView (ViewRequest) returns (ViewResponse);
+}
+
+message ViewRequest {
+  // Path to Lua configuration. Delegates reading the config to the daemon.
+  string config_path = 1;
+
+  // Lua configuration that is given directly. Currently unusued by the daemon.
+  string config = 2;
+
+  // Environment variables ((name, value) pairs) of interest.
+  map<string, string> env_vars = 3;
+
+  // Process ID number of the running (interactive) shell program. (FIXME: move
+  // this to env var)
+  string shell_pid = 4;
+}
+
+message ViewResponse {
+  // Status of this response message.
+  ViewStatus status = 1;
+
+  // String result of running Lua script.
+  string view = 2;
+
+  // Error message from melbyd, if any.
+  string error = 3;
+}
+
+enum ViewStatus {
+  VIEW_STATUS_UNSPECIFIED = 0;
+  VIEW_STATUS_ERROR = 1;
+  VIEW_STATUS_OK = 2;
+}
+#+end_src
+
+*** Running very quickly
+
+We don't want the client to block too long, because it is expected to be called
+as often as every second (or even more often if Zsh ever offers sub-1-second
+delay with the =TMOUT= variable).
+
+The basic way we ensure this is that we make melbyd return whatever it has
+without waiting for any of its internal calculations to finish.
+
+Because this is a daemon-side concern, there isn't much for us to do here.
+
+*** Command line argument handling
+
+This is somewhat "boring" and we actually don't have much to design here. Much
+of the choices here depend heavily on the command line argument parsing library
+that we will be using.
+
+** Code overview
+
+This walkthrough is written for the future maintainers of this codebase.
+
+*** Overall structure
+
+All of the business logic lies in the =melby-client.hs= file, which has the
+following structure:
+
+#+name: melbyc-melby-client.hs
+#+caption: Layout of =melby-client.hs=
+#+begin_src haskell :tangle client/melby-client.hs
+__NREF__melbyc_pragmas
+
+module Main where
+
+__NREF__melbyc_imports
+__NREF__melbyc_business_logic
+__NREF__melbyc_option_handling
+__NREF__melbyc_main
+#+end_src
+
+The more interesting bits are in the =<<business-logic>>= section, which
+actually performs the gRPC call to melbyd. Everything else is mostly boilerplate
+code.
+
+We'll look at the business logic first, and then all of the other boilerplate
+code.
+
+** Business logic
+
+Recall in section FIXME that we said we wanted to pass in some Lua code. So
+that's basically what we do here --- we pass in a gRPC connection and a filepath
+to the Lua script we want to send to melbyd. We do this in the =getView=
+function.
+
+#+name: __NREF__melbyc_business_logic
+#+begin_src haskell
+__NREF__melbyc_getView
+#+end_src
+
+Now let's construct the =getView= function.
+
+#+name: __NREF__melbyc_getView
+#+begin_src haskell
+getView :: GRpcConnection View 'MsgProtoBuf -> FilePath -> T.Text -> Int -> IO ()
+getView conn configPath' config' shell_pid' = do
+  __NREF__melbyc_getView_construct_payload
+  __NREF__melbyc_getView_call_melbyd
+  __NREF__melbyc_getView_handle_payload
+#+end_src
+
+Below we construct a gRPC message payload (request) for melbyd.
+
+#+name: __NREF__melbyc_getView_construct_payload
+#+begin_src haskell
+env_vars_str <- getEnvironment
+let env_vars' = M.fromList $ map (\(k, v) -> (T.pack k, T.pack v)) env_vars_str
+    req = toSchema $ MViewRequest
+      { config_path = T.pack configPath'
+      , config = config'
+      , env_vars = env_vars'
+      , shell_pid = T.pack $ show shell_pid'
+      }
+#+end_src
+
+We then make the remote procedure call. There's some lens magic here, but the
+important thing is that we call the =GetView= method by passing it the =req= as
+an argument. We use the capitalized =GetView= instead of =getView= because the
+capitzalized version is the suggested style for protocol buffers according to
+https://developers.google.com/protocol-buffers/docs/style#services.
+Unfortunately, we cannot use =#GetVrompt= (just like we would use =#getVrompt=,
+the uncapitalized version) and so must instead do =fromLabel @"GetView"= because
+capitalized words have a special meaning in Haskell. See
+https://github.com/higherkindness/mu-haskell/issues/337#issuecomment-1243874126.
+
+#+name: __NREF__melbyc_getView_call_melbyd
+#+begin_src haskell
+response <- conn ^. fromLabel @"GetView" $ req
+#+end_src
+
+For now we don't really care if the call to melbyd did not succeed and crash if
+the response was not successfully completed. That's why we only pattern match
+against =GRpcOk=.
+
+=term= here is a mu-haskell type that can be converted into a Haskell type, as
+below. However, the term itself is useful because we can use various "optics"
+functions, such as =^.=.
+
+Lastly we need to render the view to the user from the response.
+
+#+name: __NREF__melbyc_getView_handle_payload
+#+begin_src haskell
+let term = case response of
+      GRpcOk a -> Right a
+      x -> Left $ T.pack ("unrecognized daemon response: " <> (show x))
+case term of
+  Left err -> do
+    T.hPutStrLn stderr err
+    exitFailure
+  Right a -> do
+    let viewResponse = fromSchema a :: MViewResponse
+    case status viewResponse of
+      VIEW_STATUS_UNSPECIFIED -> do
+        T.hPutStrLn stderr ("VIEW_STATUS_UNSPECIFIED")
+        exitFailure
+      VIEW_STATUS_ERROR -> do
+        T.hPutStrLn stderr ("encountered error: " <> getField @"error" viewResponse)
+        exitFailure
+      VIEW_STATUS_OK -> do
+        T.putStrLn $ getField @"view" viewResponse
+#+end_src
+
+That's it! We are done printing to STDOUT and the shell program (or whatever
+else) that is calling us can make use of this information. A primary use case is
+making =getView= output a shell script itself (such as variable assignments)
+that can be sourced by the shell. This way all that the shell has to do is
+something like:
+
+#+name: example
+#+caption: Example usage of =melbyc= from your shell's configuration.
+#+begin_src shell
+source "$(melbyc view PATH_TO_LUA_CONFIG)"
+#+end_src
+
+** Boilerplate
+
+*** Option handling
+
+#+name: __NREF__melbyc_option_handling
+#+begin_src haskell
+__NREF__melbyc_option_handling_types
+__NREF__melbyc_option_handling_parsers
+__NREF__melbyc_option_handling_dispatcher
+#+end_src
+
+The types here are what we read in from the command line.
+
+#+name: __NREF__melbyc_option_handling_types
+#+begin_src haskell
+data Opts = Opts
+  { subcommand :: Subcommand
+  , oMelbydPort :: PortNumber
+  }
+
+data Subcommand
+  = View ViewOpts
+  | Ping
+  | Shutdown
+
+data ViewOpts = ViewOpts
+  { oConfigPath :: FilePath
+  , oConfig :: T.Text
+  , oShellPid :: Int
+  }
+#+end_src
+
+The parsers here determine how the types we defined above are accepted on the
+command line. For the user, this is the help message they see so that they know
+how to provide the right arguments to ensure that we get the correct types.
+
+#+name: __NREF__melbyc_option_handling_parsers
+#+begin_src haskell
+optionsP :: Parser Opts
+optionsP = Opts
+  <$> subcommandP
+  <*> (option auto (long "melbyd-port"
+                    <> help "port for melbyd (e.g., 50052 for dev environmont))"
+                    <> showDefault <> value 50051 <> metavar "PORT"))
+
+subcommandP :: Parser Subcommand
+subcommandP = hsubparser
+  (  command "view" (info
+                     (View <$> viewOptsP)
+                     (progDesc "get prompt information with Lua"))
+  <> command "ping" (info
+                     (pure Ping) (progDesc "Check melbyd connectivity"))
+  <> command "shutdown" (info
+                         (pure Shutdown)
+                         (progDesc "Shut down melbyd instance"))
+  <> metavar "SUBCOMMAND"
+  )
+
+viewOptsP :: Parser ViewOpts
+viewOptsP
+  = ViewOpts
+  <$> (argument str (metavar "FILEPATH"))
+  <*> (option auto (long "config"
+                    <> help "raw Lua string" <> showDefault <> value ""
+                    <> metavar "LUA_CONFIG_RAW"))
+  <*> (option auto (long "shell-pid"
+                    <> help "PID of invoking shell (in most shells this is '$$')"
+                    <> showDefault <> value 0 <> metavar "PID"))
+
+#+end_src
+
+Lastly, =optsHandler= is where we send the types that we've constructed (after a
+successful parse of command line arguments) to the business logic.
+
+#+name: __NREF__melbyc_option_handling_dispatcher
+#+begin_src haskell
+optsHandler :: Opts -> IO ()
+optsHandler (Opts subcommand' oMelbydPort') = do
+  -- FIXME: configure the domain and port to be configurable through TOML or
+  -- yaml in a shared location with the daemon. The daemon should configure its
+  -- port with it. The precedence of settings (where later mechanisms override
+  -- earlier ones) is: (1) the configuration file (in TOML) converted to a
+  -- native Haskell type (with sane defaults) with tomland
+  -- (https://kowainik.github.io/posts/2019-01-14-tomland), (2) command-line
+  -- options that are passed in at runtime.
+  Right viewClient <- initGRpc (grpcClientConfigSimple
+                                 "127.0.0.1" oMelbydPort' False) msgProtoBuf
+  --home <- T.pack <$> getEnv "HOME"
+  case subcommand' of
+    View o -> do
+      getView viewClient (oConfigPath o) (oConfig o) (oShellPid o)
+    Ping -> putStrLn "not implemented"
+    Shutdown -> putStrLn "not implemented"
+#+end_src
+
+*** Main
+
+#+name: __NREF__melbyc_main
+#+begin_src haskell
+main :: IO ()
+main = do
+  opts <- customExecParser (prefs showHelpOnEmpty) optsP
+  optsHandler opts
+  where
+  optsP = info parserProgramOptions infoMod
+  parserProgramOptions = helper
+    <*> versionOption
+    <*> optionsP
+  infoMod = fullDesc
+    <> header "melbyc - CLI for interacting with the melby daemon (melbyd)"
+  __NREF__melbyc_gitVersion
+#+end_src
+
+*** gRPC schema
+
+This is the code that helps melbyc understand how to encode and decode the raw
+bytes that are used for communication with melbyd (an Elixir application). This
+is usally autogenerated when you're using a gRPC stack (via built-in language
+support from the =protoc= binary, a.k.a. the protobuf compiler). However the
+Haskell library we use asks us to define these types, so we do that here. This
+isn't that much work, and although it reads like autogenerated code, it is easy
+enough to understand (thanks to how terse Haskell can be).
+
+We define this in a separate file so that it can be reused by other programs,
+namely the =melbyd-lens= Haskell service that runs as part of melbyd.
+
+FIXME: break this up into smaller chunks
+
+#+name: melbyc_lib_schema
+#+begin_src haskell :tangle client/lib/MelbyClient/Schema.hs
+{-# language CPP                   #-}
+{-# language DataKinds             #-}
+{-# language DeriveAnyClass        #-}
+{-# language DeriveGeneric         #-}
+{-# language DerivingVia           #-}
+{-# language DuplicateRecordFields #-}
+{-# language FlexibleContexts      #-}
+{-# language FlexibleInstances     #-}
+{-# language MultiParamTypeClasses #-}
+{-# language OverloadedLabels      #-}
+{-# language PolyKinds             #-}
+{-# language TemplateHaskell       #-}
+{-# language TypeFamilies          #-}
+{-# language TypeOperators         #-}
+
+module MelbyClient.Schema where
+
+import qualified Data.Text as T
+import qualified Data.Map.Strict as M
+import GHC.Generics
+
+import Mu.Quasi.GRpc
+import Mu.Schema
+
+grpc "MelbyClientSchema" id "lib/MelbyClient/melby_client.proto"
+
+-- The "M" prefix for the types here is for "Message" as in a gRPC "message"
+-- type.
+
+data MViewRequest = MViewRequest
+  { config_path :: T.Text
+  , config :: T.Text
+  , env_vars :: M.Map T.Text T.Text
+  , shell_pid :: T.Text
+  } deriving (Eq, Show, Ord, Generic
+             , ToSchema MelbyClientSchema "ViewRequest"
+             , FromSchema MelbyClientSchema "ViewRequest")
+
+data MViewResponse = MViewResponse
+  { status :: MViewStatus
+  , view :: T.Text
+  , error :: T.Text
+  } deriving (Eq, Ord, Show, Generic
+             , ToSchema MelbyClientSchema "ViewResponse"
+             , FromSchema MelbyClientSchema "ViewResponse")
+
+data MViewStatus
+  = VIEW_STATUS_UNSPECIFIED
+  | VIEW_STATUS_ERROR
+  | VIEW_STATUS_OK
+  deriving (Eq, Ord, Show, Generic
+             , ToSchema MelbyClientSchema "ViewStatus"
+             , FromSchema MelbyClientSchema "ViewStatus")
+#+end_src
+
+*** Other
+**** Pragmas
+
+The language pragmas are not that interesting, as their purpose is to basically
+turn on the various GHC extensions that allow us to use the libraries we use.
+
+#+name: __NREF__melbyc_pragmas
+#+begin_src haskell
+{-# language DataKinds #-}
+{-# language OverloadedLabels #-}
+{-# language OverloadedStrings #-}
+{-# language ScopedTypeVariables #-}
+{-# language TemplateHaskell #-}
+{-# language TypeApplications #-}
+#+end_src
+
+**** Imports
+
+#+name: __NREF__melbyc_imports
+#+begin_src haskell
+import Data.Map.Strict qualified as M
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
+import Data.Version (showVersion)
+import GHC.OverloadedLabels (fromLabel)
+import GHC.Records (getField)
+import Mu.GRpc.Client.Optics
+import Mu.Schema (fromSchema, toSchema)
+import Network.Socket (PortNumber)
+import Options.Applicative
+import System.Environment (getEnvironment)
+import System.Exit (exitFailure)
+import System.IO (stderr)
+
+import Paths_melby_client (version)
+import MelbyClient.GitVersion
+import MelbyClient.Schema
+#+end_src
+
+**** Git versioning
+
+We want to store the git hash of the project into the melbyc binary itself (this
+is just good practice). The part we do the storing in the binary is done below,
+as part of the =<<main>>= block of code:
+
+#+name: __NREF__melbyc_gitVersion
+#+begin_src haskell
+versionOption = infoOption
+  (concat [showVersion version, "-g", $(gitVersion)])
+  (long "version" <> short 'v' <> help "Show version")
+#+end_src
+
+The underlying plumbing that handles this is done in FIXME path:
+
+#+name: melbyc_lib_gitVersion
+#+begin_src haskell :tangle client/lib/MelbyClient/GitVersion.hs
+module MelbyClient.GitVersion
+  ( gitVersion
+  ) where
+
+import Data.Time.LocalTime
+import Language.Haskell.TH
+import System.Environment
+import System.Process
+
+-- Adapted from
+-- https://stackoverflow.com/questions/5713418/templatehaskell-and-io#comment7962237_5713551
+-- and https://stackoverflow.com/a/20871010/437583.
+
+gitVersion :: Q Exp
+gitVersion = stringE =<< runIO getCombinedInfo
+
+getCombinedInfo :: IO String
+getCombinedInfo = do
+  gi <- getGitInfo
+  ti <- getTimeInfo
+  pure $ concat [gi, "  (", ti, ")"]
+
+getGitInfo :: IO String
+getGitInfo = do
+  -- We can't use the convenient "tGitInfoCwd" function from the GitHash package
+  -- because it uses the current directory (and if we are built by cabal, we're
+  -- not in the actual source directory but a copy of it in a sandboxed folder).
+  -- The "tGitInfo" function is parameterized to take arbitrary paths, but it's
+  -- difficult to customize its behavior. Because of this we just invoke git
+  -- with our own flags, because it's pretty easy to do so.
+  --
+  -- Anyway, the point of MELBY_PROJECT_ROOT is so that we can set this
+  -- environment variable when we invoke cabal, so that we can read it back out
+  -- here. This way we can pass in environment variables to Template Haskell
+  -- (compile-time code).
+  maybeProjectRoot <- lookupEnv "MELBY_PROJECT_ROOT"
+  case maybeProjectRoot of
+    Just projectRoot -> readProcess "git"
+      [ "-C"
+      , projectRoot
+      , "describe"
+      , "--abbrev=10"
+      , "--always"
+      , "--dirty"
+      ] ""
+    Nothing -> pure "-unknown"
+
+getTimeInfo :: IO String
+getTimeInfo = show <$> getZonedTime
+#+end_src
+
+** Build system
+
+*** Makefile
+
+#+begin_src makefile :tangle client/Makefile
+# NOTE: Below is an installation rule for a Nix + Cabal workflow. It may be
+# useful to do this in case stack doesn't work for some reason. Originally we
+# wanted to use this workflow instead but ran up against a Nix + MacOS breakage
+# (https://github.com/NixOS/nixpkgs/pull/149942). Currently only stack works, so
+# that's what we use. It may be the case though that we end up using stack
+# long-term, because of its stability guarantees.
+#
+#       MELBY_PROJECT_ROOT=$(PWD) cabal install --overwrite-policy=always
+
+# Let stack be aware of NixOS's non-standard library paths. This is an
+# alternative to specifying the `nix:` field in stack.yaml directly (we just
+# want to use a plain stack.yaml that is not aware of NixOS so that we can use
+# the same stack.yaml file on non-NixOS distributions including MacOS).
+ZLIB_SO_DIR=$(shell pkg-config --libs-only-L zlib)
+ZLIB_H_DIR=$(shell pkg-config --cflags-only-I zlib)
+
+all: melbyc
+
+melbyc:
+	MELBY_PROJECT_ROOT=$(PWD) stack build \
+		--copy-bins \
+		--local-bin-path $(PWD) \
+		--no-nix-pure \
+		--extra-lib-dirs=$(ZLIB_SO_DIR:-L%=%) \
+		--extra-include-dirs=$(ZLIB_H_DIR:-I%=%)
+.PHONY: melbyc
+
+ghci:
+	stack exec -- ghci
+.PHONY: ghci
+#+end_src
+
+It's OK if =MELBY_PROJECT_ROOT= isn't actually the Melby project root directory,
+because Git will still figure out how to run =git describe=. We just use
+=MELBY_PROJECT_ROOT= here to be consistent with the Makefile (FIXME: link) for
+=melby-renderer=.
+
+*** Cabal
+
+#+name: melby-client.cabal
+#+begin_src haskell-cabal :tangle client/melby-client.cabal
+name: melby-client
+version: 1.0.0.0
+author: Linus Arver
+maintainer: linusa@google.com
+category: Utility
+build-type: Simple
+cabal-version: >=1.10
+license: Apache-2.0
+license-file: LICENSE
+data-files: lib/MelbyClient/melby_client.proto
+
+executable melbyc
+  main-is: melby-client.hs
+  default-language: Haskell2010
+  other-modules:
+    Paths_melby_client
+  default-extensions:
+    DisambiguateRecordFields
+    DuplicateRecordFields
+    ImportQualifiedPost
+    LambdaCase
+    MultiWayIf
+    NoDoAndIfThenElse
+    NoNondecreasingIndentation
+    OverloadedStrings
+  ghc-options:
+    -O2 -Werror -threaded -fno-warn-tabs
+    -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints
+    -fhide-source-paths -Wpartial-fields -fforce-recomp
+  build-depends:
+      base >= 4.8
+    , melby-client
+    , aeson
+    , bytestring
+    , conduit >= 1.3.2 && <2
+    , containers
+    , http-client
+    , mu-grpc-client >=0.3.0.0
+    , mu-optics >=0.3.0.0
+    , mu-protobuf >= 0.4.0
+    , mu-rpc >= 0.4.0
+    , mu-schema >= 0.3.0
+    , optparse-applicative >= 0.16.1.0
+    , network >= 3.1.1.1
+    , swagger2
+    , text >=1.2 && <2
+    , unordered-containers >= 0.2.16.0
+
+library
+  default-language: Haskell2010
+  exposed-modules:
+    MelbyClient.GitVersion
+    MelbyClient.Schema
+  hs-source-dirs:
+    lib
+  default-extensions:
+    DisambiguateRecordFields
+    DuplicateRecordFields
+    ImportQualifiedPost
+    LambdaCase
+    MultiWayIf
+    NoDoAndIfThenElse
+    NoNondecreasingIndentation
+    OverloadedStrings
+  ghc-options:
+    -O2 -Werror -fno-warn-tabs
+    -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints
+    -fhide-source-paths -Wpartial-fields -fforce-recomp
+  build-depends:
+      base >= 4.8
+    , aeson
+    , bytestring
+    , containers
+    , mu-protobuf >= 0.4.0
+    , mu-schema >= 0.3.0
+    , process
+    , template-haskell
+    , text >=1.2 && <2
+    , time
+#+end_src
+
+#+name: =cabal.project=
+#+begin_src haskell-cabal :tangle client/cabal.project
+executable-stripping: True
+packages:
+  ./melby-client.cabal
+#+end_src
+
+*** melbyc.nix
+
+We use Stack for building our Haskell binaries. The biggest reason we do this is
+simply because Stack's LTS snapshots stay frozen, whereas Nix keeps evolving to
+support the latest and greatest packages.
+
+#+begin_src nix :tangle client/melby-client.nix
+let
+  sources = import ../package/nix/sources.nix;
+  pkgs = import sources.nixpkgs { };
+  # Nix never copies the .git directory as input to generate a derivation,
+  # because Git's .git directory is not deterministic. So we never have a Git
+  # directory, which means any "use git to derive the version" command will
+  # fail. One way around this is to fetch a previous version of this repo (using
+  # fetchGit) and then use the revision there as an output here using string
+  # interpolation. We then make this fake Git script take precedence over the
+  # vanilla git binary, tricking our version generation code. See
+  # https://jeancharles.quillet.org/posts/2022-04-22-Embed-the-git-hash-into-a-binary-with-nix.html
+  # and
+  # https://discourse.nixos.org/t/accessing-git-directory-in-flake-with-local-source/17370/7.
+  fakeGit = pkgs.writeShellScriptBin "git"
+  ''
+    echo -unknown
+  '';
+  files = [
+    ./LICENSE
+    ./cabal.project
+    ./lib
+    ./lib/MelbyClient
+    ./lib/MelbyClient/GitVersion.hs
+    ./lib/MelbyClient/melby_client.proto
+    ./lib/MelbyClient/Schema.hs
+    ./melby-client.cabal
+    ./melby-client.hs
+    ./melby-client.nix
+    ./stack.yaml
+    ./stack.yaml.lock
+  ];
+  macOS-security =
+    # Make `/usr/bin/security` available in `PATH`, which is needed for stack
+    # on darwin which calls this binary to find certificates. See
+    # https://github.com/tweag/rules_haskell/commit/31171a520f49f263895112678ac93c7ed958ead1.
+    pkgs.writeScriptBin "security" ''exec /usr/bin/security "$@"'';
+in
+
+# When we tell  See https://docs.haskellstack.org/en/stable/nix_integration/#using-a-custom-shellnix-file.
+{ ghc }:
+
+pkgs.haskell.lib.buildStackProject {
+  inherit ghc;
+  name = "melby-client";
+  src = builtins.path {
+    name = "melby-client";
+    path = ./.;
+    filter = path: type: builtins.elem (/. + path) files;
+  };
+  # System dependencies needed at compilation time.
+  buildInputs = [
+    pkgs.zlib
+    fakeGit
+  ]
+  # See
+  # https://www.reddit.com/r/haskell/comments/rjm0x8/help_wanted_for_llvm_config_for_haskell_on_mac/
+  # about needing a version of LLVM < 13 on Mac.
+  ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [pkgs.llvm_10 macOS-security];
+}
+#+end_src
+
+*** Stack
+
+#+caption: client/stack.yaml
+#+begin_src yaml :tangle client/stack.yaml
+resolver: lts-18.28
+allow-newer: true
+
+packages:
+- .
+
+extra-deps:
+- compendium-client-0.2.1.1@sha256:cd477438d507273b34b82581ade333921ae997c1618b48af0c1da2a4968623e0,1203
+- graphql-1.0.3.0
+- http2-2.0.6
+- http2-client-0.10.0.0
+- http2-client-grpc-0.8.0.0
+- http2-grpc-proto3-wire-0.1.0.0
+- http2-grpc-types-0.5.0.0
+- hw-kafka-conduit-2.7.0
+- mu-avro-0.4.0.4@sha256:10e317c633c5152a26e89becba749456b76f70eb640d1c0b2ccdc0e45a7ef5da,2096
+- mu-grpc-client-0.4.0.2@sha256:cc98a09601b9634531772b270fa9509503048946f27fa47ef140bb8cccb544f2,2006
+- mu-grpc-common-0.4.0.0@sha256:568b5879cd67c0bc0e956d53fb87552bb6d9a6287c5d1b09e2284ed5b04de418,1394
+- mu-optics-0.3.0.1@sha256:c3494c71c6300e6a0dcb77c9782481150956e912c1b47fccd69cbb795e461d52,1068
+- mu-protobuf-0.4.2.0@sha256:4787a2688abdda107e150736433b61448acdf0b71eb0c174232239b4c143f78b,2119
+- mu-rpc-0.5.0.2@sha256:470f5bc372de1b212f625f9e7310cdf82b7fa41ddea03e092fccff0cd9e19db1,1430
+- mu-schema-0.3.1.2@sha256:c05e58de29d50376638d19dd3357cd3644d39f984664484f3568d5305b3034d9,1933
+- stm-containers-1.2
+- stm-hamt-1.2.0.7
+- tracing-0.0.7.2
+- tracing-control-0.0.7.3
+- warp-3.3.14
+- warp-grpc-0.4.0.1
+#+end_src
+
+*** .gitignore
+
+#+caption: client/.gitignore
+#+begin_src text :tangle client/.gitignore
+dist-newstyle
+melbyc
+.stack-work
+#+end_src
+
 
 ** Rust client
 
