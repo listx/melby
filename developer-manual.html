@@ -880,7 +880,7 @@ endef
 <span class="org-makefile-space">    #</span><span class="org-comment">$(</span><span class="org-comment"><span class="org-variable-name">call</span></span><span class="org-comment"> run_emacs,(lilac-gen-css-and-exit),main.org)</span>
     $(<span class="org-variable-name">call</span> run_emacs,(lilac-publish),main.org)
 
-<span class="org-makefile-targets">developer-manual.html</span>: developer-manual.org daemon.org build-literate.org
+<span class="org-makefile-targets">developer-manual.html</span>: developer-manual.org build-literate.org
     $(<span class="org-variable-name">call</span> run_emacs,(lilac-publish),developer-manual.org)
 
 <span class="org-makefile-targets">user-manual.html</span>: user-manual.org developer-manual.html
@@ -1054,8 +1054,7 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),build-literate.org)
 
 <span class="org-comment-delimiter"># </span><span class="org-comment">Generate source code.</span>
-<span class="org-makefile-targets">tangle-sources</span>: daemon-org \
-        developer-manual-org \
+<span class="org-makefile-targets">tangle-sources</span>: developer-manual-org \
         user-manual-org \
         image-org
 
@@ -1064,8 +1063,6 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
 <span class="org-comment-delimiter"># </span><span class="org-comment">into main.org.</span>
 <span class="org-makefile-targets">image-org</span>: build-literate-org
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),image.org)
-<span class="org-makefile-targets">daemon-org</span>: build-literate-org
-    $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),daemon.org)
 <span class="org-makefile-targets">developer-manual-org</span>: build-literate-org
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),developer-manual.org)
 <span class="org-makefile-targets">user-manual-org</span>: build-literate-org
@@ -1073,7 +1070,6 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
 
 <span class="org-makefile-targets">.PHONY</span>: build-literate-org
 <span class="org-makefile-targets">.PHONY</span>: tangle-sources
-<span class="org-makefile-targets">.PHONY</span>: daemon-org
 <span class="org-makefile-targets">.PHONY</span>: developer-manual-org
 <span class="org-makefile-targets">.PHONY</span>: user-manual-org
 <span class="org-makefile-targets">.PHONY</span>: image-org

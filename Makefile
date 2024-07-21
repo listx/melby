@@ -62,8 +62,7 @@ build-literate-org:
 	$(call run_emacs,(org-babel-tangle),build-literate.org)
 
 # Generate source code.
-tangle-sources: daemon-org \
-		developer-manual-org \
+tangle-sources: developer-manual-org \
 		user-manual-org \
 		image-org
 
@@ -72,8 +71,6 @@ tangle-sources: daemon-org \
 # into main.org.
 image-org: build-literate-org
 	$(call run_emacs,(org-babel-tangle),image.org)
-daemon-org: build-literate-org
-	$(call run_emacs,(org-babel-tangle),daemon.org)
 developer-manual-org: build-literate-org
 	$(call run_emacs,(org-babel-tangle),developer-manual.org)
 user-manual-org: build-literate-org
@@ -81,7 +78,6 @@ user-manual-org: build-literate-org
 
 .PHONY: build-literate-org
 .PHONY: tangle-sources
-.PHONY: daemon-org
 .PHONY: developer-manual-org
 .PHONY: user-manual-org
 .PHONY: image-org
@@ -111,7 +107,7 @@ main.html: developer-manual.html image.html main.org
 	#$(call run_emacs,(lilac-gen-css-and-exit),main.org)
 	$(call run_emacs,(lilac-publish),main.org)
 
-developer-manual.html: developer-manual.org daemon.org build-literate.org
+developer-manual.html: developer-manual.org build-literate.org
 	$(call run_emacs,(lilac-publish),developer-manual.org)
 
 user-manual.html: user-manual.org developer-manual.html
