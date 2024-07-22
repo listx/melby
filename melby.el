@@ -39,3 +39,5 @@
 
 (melby-load "yaml-mode")
 (require 'yaml-mode)
+
+(setq org-latex-compiler "lualatex")

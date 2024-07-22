@@ -930,6 +930,8 @@ highlighting that we need.
 
 (melby-load <span class="org-string">"yaml-mode"</span>)
 (<span class="org-keyword">require</span> '<span class="org-constant">yaml-mode</span>)
+
+(<span class="org-keyword">setq</span> org-latex-compiler <span class="org-string">"lualatex"</span>)
 </pre></div>
 </div>
 </div>
@@ -1275,6 +1277,20 @@ running unit tests) for all of the various languages we use.
     <span class="org-comment"># on darwin which calls this binary to find certificates. See</span>
     <span class="org-comment"># https://github.com/tweag/rules_haskell/commit/31171a520f49f263895112678ac93c7ed958ead1.</span>
     pkgs.writeScriptBin <span class="org-string">"security"</span> <span class="org-string">''exec /usr/bin/security "$@"''</span>;
+
+  <span class="org-comment"># See https://nixos.wiki/wiki/TexLive for customizing texlive packages</span>
+  <span class="org-comment"># (picking only those packages we need as in here).</span>
+  <span class="org-nix-attribute">tex</span> = (pkgs.texlive.combine {
+    <span class="org-nix-keyword">inherit</span> (pkgs.texlive) scheme-basic
+      amsmath
+      capt-of
+      dvisvgm
+      sourcesanspro
+      pgf
+      ulem
+      wrapfig
+      xkeyval;
+  });
 <span class="org-nix-keyword">in</span>
 
 <span class="org-comment-delimiter"># </span><span class="org-comment">This is our development shell.</span>
@@ -1305,6 +1321,7 @@ pkgs.mkShell ({
     pkgs.emacs29-nox
     pkgs.inkscape
     pkgs.pdf2svg
+    tex
 
     <span class="org-comment"># For updating Nix dependencies.</span>
     pkgs.niv

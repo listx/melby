@@ -61,6 +61,20 @@ let
     # on darwin which calls this binary to find certificates. See
     # https://github.com/tweag/rules_haskell/commit/31171a520f49f263895112678ac93c7ed958ead1.
     pkgs.writeScriptBin "security" ''exec /usr/bin/security "$@"'';
+
+  # See https://nixos.wiki/wiki/TexLive for customizing texlive packages
+  # (picking only those packages we need as in here).
+  tex = (pkgs.texlive.combine {
+    inherit (pkgs.texlive) scheme-basic
+      amsmath
+      capt-of
+      dvisvgm
+      sourcesanspro
+      pgf
+      ulem
+      wrapfig
+      xkeyval;
+  });
 in
 
 # This is our development shell.
@@ -91,6 +105,7 @@ pkgs.mkShell ({
     pkgs.emacs29-nox
     pkgs.inkscape
     pkgs.pdf2svg
+    tex
 
     # For updating Nix dependencies.
     pkgs.niv
