@@ -39,6 +39,7 @@ do-tangle: tangle-sources tangle-generated
 # MELBY_LP_QUICK=1 anyway to align with what we do for weave-quick.
 tangle:
 	MELBY_LP_QUICK=1 make -C $(PROJ_ROOT) -j$(PROCS) do-tangle
+	@$(PROJ_ROOT)/audit.sh
 .PHONY: tangle
 
 tangle-profile:

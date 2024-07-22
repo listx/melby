@@ -1031,6 +1031,7 @@ We simply tangle all major <code>*.org</code> files in the toplevel Makefile.
 <span class="org-comment-delimiter"># </span><span class="org-comment">MELBY_LP_QUICK=1 anyway to align with what we do for weave-quick.</span>
 <span class="org-makefile-targets">tangle</span>:
     <span class="org-variable-name">MELBY_LP_QUICK</span>=1 make -C $(<span class="org-variable-name">PROJ_ROOT</span>) -j$(<span class="org-variable-name">PROCS</span>) do-tangle
+    <span class="org-type">@</span><span class="org-makefile-shell">$(</span><span class="org-makefile-shell"><span class="org-variable-name">PROJ_ROOT</span></span><span class="org-makefile-shell">)/audit.sh</span>
 <span class="org-makefile-targets">.PHONY</span>: tangle
 
 <span class="org-makefile-targets">tangle-profile</span>:
