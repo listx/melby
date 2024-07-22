@@ -230,23 +230,31 @@
 <h2 id="h-Architecture"><span class="section-number-2">1.</span> Architecture</h2>
 <div class="outline-text-2" id="text-h-Architecture">
 <p>
-This svg file is not stable (changes every time we generate it).
+The SVG file we generate here is not deterministic (changes every time we
+generate it).
 </p>
 
 <p>
-It appears that it generates the wrong thing as SVG (the SVG itself is valid but the shapes displayed are parts of the text strings used for generating the SVG).
+It appears that it generates the wrong thing as SVG (the SVG itself is valid but
+the shapes displayed are parts of the text strings used for generating the SVG).
 </p>
 
 <p>
-Note that this pdf generation works fine. However if we specif SVG it doesn't work.
+Note that this pdf generation works fine. However if we specify SVG it doesn't
+work.
 </p>
 
 <p>
-We can now convert the minimal 1-page PDF into an SVG using either <a href="https://github.com/mgieseki/dvisvgm">dvisvgm</a> or <a href="https://github.com/dawbarton/pdf2svg">pdf2svg</a>. Currently (September 2022) there is <a href="https://github.com/mgieseki/dvisvgm/issues/183">a bug</a> with dvisvgm so we have to use the latter. Ideally Org mode can take care of this but currently it appears to be buggy, so we perform the manual conversion ourselves. We might even want to create a separate Org mode doc for all of the svg image processing. FIXME
+We can now convert the minimal 1-page PDF into an SVG using either <a href="https://github.com/mgieseki/dvisvgm">dvisvgm</a> or
+<a href="https://github.com/dawbarton/pdf2svg">pdf2svg</a>. Currently (September 2022) there is <a href="https://github.com/mgieseki/dvisvgm/issues/183">a bug</a> with dvisvgm so we have to
+use the latter. Ideally Org mode can take care of this but currently it appears
+to be buggy, so we perform the manual conversion ourselves. We might even want
+to create a separate Org mode doc for all of the svg image processing. FIXME
 </p>
 
 <p>
-FIXME: Also, we need to basically do 2 passes &#x2014; run emacs to generate the HTML and all PDF (images) files, and a second pass with pdf2svg to generate the svgs.
+FIXME: Also, we need to basically do 2 passes &#x2014; run emacs to generate the HTML
+and all PDF (images) files, and a second pass with pdf2svg to generate the svgs.
 </p>
 
 <p>
@@ -254,7 +262,6 @@ FIXME: Also, we need to basically do 2 passes &#x2014; run emacs to generate the
 </p>
 </div>
 </div>
-
 
 <div id="outline-container-h-Makefile" class="outline-2">
 <h2 id="h-Makefile"><span class="section-number-2">2.</span> Makefile</h2>

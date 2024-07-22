@@ -19,15 +19,23 @@
 
 * Architecture
 
-This svg file is not stable (changes every time we generate it).
+The SVG file we generate here is not deterministic (changes every time we
+generate it).
 
-It appears that it generates the wrong thing as SVG (the SVG itself is valid but the shapes displayed are parts of the text strings used for generating the SVG).
+It appears that it generates the wrong thing as SVG (the SVG itself is valid but
+the shapes displayed are parts of the text strings used for generating the SVG).
 
-Note that this pdf generation works fine. However if we specif SVG it doesn't work.
+Note that this pdf generation works fine. However if we specify SVG it doesn't
+work.
 
-We can now convert the minimal 1-page PDF into an SVG using either [[https://github.com/mgieseki/dvisvgm][dvisvgm]] or [[https://github.com/dawbarton/pdf2svg][pdf2svg]]. Currently (September 2022) there is [[https://github.com/mgieseki/dvisvgm/issues/183][a bug]] with dvisvgm so we have to use the latter. Ideally Org mode can take care of this but currently it appears to be buggy, so we perform the manual conversion ourselves. We might even want to create a separate Org mode doc for all of the svg image processing. FIXME
+We can now convert the minimal 1-page PDF into an SVG using either [[https://github.com/mgieseki/dvisvgm][dvisvgm]] or
+[[https://github.com/dawbarton/pdf2svg][pdf2svg]]. Currently (September 2022) there is [[https://github.com/mgieseki/dvisvgm/issues/183][a bug]] with dvisvgm so we have to
+use the latter. Ideally Org mode can take care of this but currently it appears
+to be buggy, so we perform the manual conversion ourselves. We might even want
+to create a separate Org mode doc for all of the svg image processing. FIXME
 
-FIXME: Also, we need to basically do 2 passes --- run emacs to generate the HTML and all PDF (images) files, and a second pass with pdf2svg to generate the svgs.
+FIXME: Also, we need to basically do 2 passes --- run emacs to generate the HTML
+and all PDF (images) files, and a second pass with pdf2svg to generate the svgs.
 
 #+name: architecture-overall
 #+caption: Generates =image/architecture-overall.pdf=.
@@ -37,7 +45,8 @@ FIXME: Also, we need to basically do 2 passes --- run emacs to generate the HTML
 #+header: :imagemagick yes
 #+header: :headers '("\\usepackage{tikz}" "\\usepackage[default]{sourcesanspro}")
 #+begin_src latex
-% FIXME: we have to run C-c C-c to generate the pdf file. Ideally we'd just run it from a Makefile or something.
+% FIXME: we have to run C-c C-c to generate the pdf file. Ideally we'd just run
+% it from a Makefile or something.
 % Source: https://www.overleaf.com/learn/latex/LaTeX_Graphics_using_TikZ%3A_A_Tutorial_for_Beginners_(Part_3)%E2%80%94Creating_Flowcharts.
 \usetikzlibrary{shapes.geometric, arrows}
 \tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=red!30]
@@ -70,7 +79,6 @@ FIXME: Also, we need to basically do 2 passes --- run emacs to generate the HTML
 :results:
 [[file:image/architecture-overall.pdf]]
 :end:
-
 
 * Makefile
 
