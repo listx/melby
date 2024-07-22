@@ -18,6 +18,11 @@
 #+OPTIONS: ^:{}
 #+OPTIONS: H:5
 
+NOTE: This manual is not yet ready for consumption. There are many missing
+pieces (how to install, how to set up your configuration files, etc). Once the
+main architecture settles down in the [[file:developer-manual.html][Developer Manual]] this User Manual will be
+revised accordingly.
+
 * Concepts
 
 Ultimately, you will want to provide =melbyc= with a Lua configuration file,

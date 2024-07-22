@@ -37,6 +37,8 @@ Also see https://orgmode.org/manual/Comment-Lines.html.
 
 * Introduction
 
+NOTE: THIS PROJECT IS NOT EVEN BETA. EXPECT REGULAR BREAKAGES.
+
 #+begin_sidenote
 The name /melby/ comes from /Melbourne/, the capital city of the state of
 Victoria, Australia.
@@ -56,9 +58,6 @@ prompt string in under 1 second, even if the commands used for gathering
 information to be used by the shell prompt take much longer. Melby achieves this
 by running things asynchronously and caching results.
 
-If you are a newcomer to this project, you should start out with the [[file:user-manual.html][User Manual]]
-to get started actually using Melby on your own shell prompt configuration.
-
 ** How the rest of the documentation is organized
 
 There are two manuals in this project:
@@ -68,6 +67,3 @@ There are two manuals in this project:
 
 The [[file:developer-manual.html][*Developer Manual*]] is written to help other programmers understand how
 everything works, while the [[file:user-manual.html][*User Manual*]] is written for end-users.
-
-The [[file:user-manual.html][*User Manual*]] should probably be read first, as it shows you how to install
-Melby and use it.

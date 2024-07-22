@@ -18,7 +18,22 @@
 #+OPTIONS: ^:{}
 #+OPTIONS: H:5
 
-* Tech stack
+
+* Overview of this manual
+
+This manual covers several topics:
+
+- The build system for Literate Programming (LP), which explains how LP is used
+  in this projec.
+- The build system for packaging Melby, which explains how Melby can be packaged
+  up using the Nix Package Manager. This is useful for developing Melby locally
+  (setting up a development environment).
+- The daemon and client programs that make up the Melby implementation.
+
+Before we get into the details, let's take a quick look at the tech stack used
+and the architectural overview of how the different pieces fit together.
+
+** Tech stack
 
 We use several programming languages: Elixir, Lua, Rust, and Haskell.
 
@@ -26,11 +41,12 @@ We use several programming languages: Elixir, Lua, Rust, and Haskell.
   leverages the famed Erlang runtime, known for its world-class reliability.
   Elixir is used for programming the base system, as well as testing all of the
   components together.
-- *Lua*: Lua is used as our configuration language, because of its power and
-  flexibility. Users must create a Lua configuration file in order to use Melby.
+- *Lua*: Lua is used as our configuration language, because of its power
+  (especially by integrating with [[https://github.com/rvirding/luerl][Luerl]], which allows us to interop with Elixir)
+  and flexibility.
 - *Rust*: Rust is used in some places where static typing and performance might
   come in handy. Typically it's used for smaller, pure (lacking side effects)
-  functions.
+  functions as NIFs (Native Inline Functions) inside Elixir.
 - *Haskell*: Haskell is used for the Melby client binary =melbyc=, and also the
   =melbyr= rendering service. Haskell maximizes code maintainability and
   stability, and so it is the preferred language for building smaller
@@ -38,9 +54,9 @@ We use several programming languages: Elixir, Lua, Rust, and Haskell.
 
 We also use [[https://en.wikipedia.org/wiki/Literate_programming][Literate Programming]] (LP). To this end, we use Emacs Org mode
 (=*.org= files) as the source of truth. These files are /tangled/ into the above
-languages for the application binaries. These same files are /woven/ to produce
-HTML files for documentation (what you are reading now). We use several
-languages for weaving:
+languages for the application binaries. These same Org files are /woven/ to
+produce HTML files for documentation (what you are probably reading now). We use
+several languages for weaving:
 
 - *Emacs Lisp*: We use Emacs Lisp to tame Emacs Org mode for LP. Emacs Org mode
   is used for LP in this project because it is probably the most flexible and
@@ -48,17 +64,17 @@ languages for weaving:
   was not chosen because Org mode by default looks reasonable in plaintext.
 - *TikZ*: [[https://en.wikipedia.org/wiki/PGF/TikZ][PGF/TikZ]] is used for writing all of the diagrams and figures used for
   documentation. This is because TikZ is extremely stable, powerful, and
-  flexible for creating diagrams of all sorts. It is also able to produce SVG
-  files, which are required to generate diagrams of the highest quality.
+  flexible for creating diagrams of all sorts. SVG is the preferred file format.
 - *HTML/CSS*: HTML and CSS power the documentation. Although PDF output can be
   very beautiful, HTML is simply more accessible and also does not require code
   listings to be broken across multiple pages.
 
-If you are interested in helping to contribute back to Melby, see [[file:developer-manual.html#h-Contributing-to-Melby]["Contributing
-to Melby" in the Developer Manual]].
+If you are interested in helping to contribute back to Melby, see
+[[*Contributing to Melby]].
 
-* Lay of the land
+** Architectural overview of Melby components
 
+FIXME: This image is just a template and not correct at all.
 [[./image/architecture-overall.svg]]
 
 Melby uses a client/server architecture. There are two main parts:
@@ -72,50 +88,20 @@ to clients.
 #+end_sidenote
 
 1. =melbyd=: The daemon (server), which itself is composed of two smaller pieces:
-   a. The controller written in Elixir and Rust.
-   b. The viewer written in Haskell. This is a separate server in its own right
-      (a microservice).
-2. =melbyc=: The client, written in Haskell. The client sends a request and
-   receives a "view".
+   a. The core application written in Elixir and Rust.
+   b. The renderer (=melbyr=) written in Haskell. This is a separate child
+      process controlled by the core app.
+2. =melbyc=: The client, written in Haskell.
+   a. =melbyc-rust= is an equivalent client written in Rust.
 
-You may notice that the two parts of =melbyd= are the controller and viewer.
-These parts are named this way to refer to the common [[https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller][Model-View-Controller]]
-(MVC) pattern. One unusual deviation from the MVC pattern is that the client is
-fully responsible for sending in the "template" for the view, as well as asking
-the daemon what kind of data (Model) it would like to work with. The client does
-this by sending in a Lua script.
-
-So the entire flow is:
+The pieces above work like this:
 
 1. User writes a Lua script to specify what pieces of information it wants, and
    how it should be presented.
 2. =melbyc= sends this script to =melbyd= for processing.
-3. The =melbyd= controller gathers the necessary data (e.g., Git status) and
-   sends it to the =melbyd= viewer (Haskell service) for generating the final
-   view.
+3. =melbyd= gathers the necessary data (e.g., Git status or Kubernetes metadata) and
+   sends it =melbyr= for generating the final view (an arbitrary string).
 4. The view is sent back to =melbyc=, which then prints it to STDOUT.
-
-* Overview of this manual
-
-The developer manual consists of multiple parts for the following areas:
-
-- The build system for Literate Programming (LP), which explains how LP is used
-  in this project as well as how each Melby component is used. You may skip this
-  section if you are only interested in Melby's business logic.
-- The build system for packaging Melby, which explains how Melby can be packaged
-  up using the Nix Package Manager. This is useful for developing Melby locally
-  (setting up a development environment).
-- melbyc: an overview of the client program that queries =melbyd= for information,
-  to be displayed in a shell prompt (or anywhere else).
-- melbyd: an overview of the Elixir service that accepts requests from =melbyc=
-  (the client). This is where most of the "meat" of Melby business logic resides,
-  and is perhaps the most interesting. One key area here is the use of [[https://github.com/rvirding/luerl][Luerl]] to
-  enable Melby configuration using the Lua programming language. This also
-  includes an overview of the Haskell =melbyr= service that performs string/data
-  transformation and manipulation.
-
-Each of these parts are included separately under their own top-level heading
-below and prefixed with =Developer Manual: ...=.
 
 * Build System for Literate Programming
 
@@ -845,10 +831,6 @@ see how it all works.
 
 =melby-client= is a client for Melby. It allows users to interact with melby (the
 daemon).
-
-** Architectural overview
-
-(Insert diagram --- write tikz and export as SVG.)
 
 ** Design by contract
 
@@ -1877,10 +1859,6 @@ in
 =melbyd= is the daemon for Melby. It is written in Elixir and serves requests to
 =melbyc= (the client). The daemon is the heart of the project because it's where
 most of the interesting things happen.
-
-** Architectural overview
-
-FIXME: add diagram
 
 ** Proto
 
@@ -6442,10 +6420,6 @@ There are basically 2 concrete things that =melbyr= can do:
    into a final string output).
 
 The second step involves interpreting layout tokens such as =FILL= and =SPACE=.
-
-*** Architectural overview
-
-(Insert diagram --- write tikz and export as SVG.)
 
 *** Design by contract
 
