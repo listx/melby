@@ -10079,12 +10079,18 @@ which acts as an allowlist.
 
 <span class="org-function-name">main</span>()
 {
+    &gt;&amp;2 echo -n <span class="org-string">"$0: checking tangled vs tracked files... "</span>
     <span class="org-comment-delimiter"># </span><span class="org-comment">Combine tangled files and those which are tracked but not tangled. This</span>
     <span class="org-comment-delimiter"># </span><span class="org-comment">list should match the sum of all tangled files (modulo HTML and Org</span>
     <span class="org-comment-delimiter"># </span><span class="org-comment">files).</span>
-    diff -u <span class="org-sh-escaped-newline">\</span>
+    <span class="org-keyword">if</span> diff -u <span class="org-sh-escaped-newline">\</span>
         &lt;(<span class="org-builtin">printf</span> <span class="org-string">'%s\n'</span> <span class="org-string">"$(</span><span class="org-sh-quoted-exec">tangled_files</span><span class="org-string">)"</span> <span class="org-string">"${known_not_tangled[@]}"</span> | sort) <span class="org-sh-escaped-newline">\</span>
-        &lt;(tracked_files)
+        &lt;(tracked_files); <span class="org-keyword">then</span>
+
+        &gt;&amp;2 echo <span class="org-string">"OK"</span>
+    <span class="org-keyword">else</span>
+        &gt;&amp;2 echo <span class="org-string">"$0: failed"</span>
+    <span class="org-keyword">fi</span>
 }
 
 main <span class="org-string">"$@"</span>

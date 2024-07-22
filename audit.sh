@@ -97,12 +97,18 @@ tracked_files()
 
 main()
 {
+    >&2 echo -n "$0: checking tangled vs tracked files... "
     # Combine tangled files and those which are tracked but not tangled. This
     # list should match the sum of all tangled files (modulo HTML and Org
     # files).
-    diff -u \
+    if diff -u \
         <(printf '%s\n' "$(tangled_files)" "${known_not_tangled[@]}" | sort) \
-        <(tracked_files)
+        <(tracked_files); then
+
+        >&2 echo "OK"
+    else
+        >&2 echo "$0: failed"
+    fi
 }
 
 main "$@"
