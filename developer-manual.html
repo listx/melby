@@ -682,16 +682,17 @@ If you are interested in helping to contribute back to Melby, see
 <div id="outline-container-h-Architectural-overview-of-Melby-components" class="outline-3">
 <h3 id="h-Architectural-overview-of-Melby-components"><span class="section-number-3">1.2.</span> Architectural overview of Melby components</h3>
 <div class="outline-text-3" id="text-h-Architectural-overview-of-Melby-components">
-<p>
-FIXME: This image is just a template and not correct at all.
-<img src="./image/architecture-overall.svg" alt="architecture-overall.svg" class="org-svg">
+
+<div id="org0000000" class="figure">
+<p><img src="./image/architecture-overall.svg" alt="architecture-overall.svg" class="org-svg" width="700px">
 </p>
+</div>
 
 <p>
 Melby uses a client/server architecture. There are two main parts:
 </p>
 
-<div class="sidenote" id="org0000000">
+<div class="sidenote" id="org0000001">
 <p>
 <code>melbyd</code> is the daemon, which acts as a server in the client/server
 architecture. We call it a daemon because it is expected to have direct access
@@ -1488,7 +1489,7 @@ to not conflict with the dev environment. Even better, add these settings in our
 Elixir code so that the user does not (normally) have to configure them.
 </p>
 
-<pre class="example" id="org0000013">
+<pre class="example" id="org0000014">
 RELEASE_COOKIE=path/to/cookie
 </pre>
 
@@ -1496,7 +1497,7 @@ RELEASE_COOKIE=path/to/cookie
 Then populate <code>path/to/cookie</code> with a random text string like this:
 </p>
 
-<pre class="example" id="org0000014">
+<pre class="example" id="org0000015">
 $ cd ~/.melby
 $ openssl rand -base64 48 &gt; cookie
 $ chmod 600 cookie
@@ -1597,7 +1598,7 @@ You then need to stand up each individual Melby component.
 <div id="outline-container-h-melbyr---renderer--required-by-daemon" class="outline-4">
 <h4 id="h-melbyr---renderer--required-by-daemon"><span class="section-number-4">4.1.1.</span> <code>melbyr</code> (renderer; required by daemon)</h4>
 <div class="outline-text-4" id="text-h-melbyr---renderer--required-by-daemon">
-<pre class="example" id="org0000019">
+<pre class="example" id="org000001a">
 cd daemon/lib/melbyd/renderer; make
 </pre>
 </div>
@@ -1606,7 +1607,7 @@ cd daemon/lib/melbyd/renderer; make
 <div id="outline-container-h-melbyd---daemon" class="outline-4">
 <h4 id="h-melbyd---daemon"><span class="section-number-4">4.1.2.</span> <code>melbyd</code> (daemon)</h4>
 <div class="outline-text-4" id="text-h-melbyd---daemon">
-<pre class="example" id="org000001a">
+<pre class="example" id="org000001b">
 cd daemon &amp;&amp; make
 </pre>
 
@@ -1614,7 +1615,7 @@ cd daemon &amp;&amp; make
 And then to run the daemon, do
 </p>
 
-<pre class="example" id="org000001b">
+<pre class="example" id="org000001c">
 cd daemon &amp;&amp; make run_dev
 </pre>
 
@@ -1631,7 +1632,7 @@ you are running.
 <div id="outline-container-h-melbyc---client" class="outline-3">
 <h3 id="h-melbyc---client"><span class="section-number-3">4.2.</span> <code>melbyc</code> (client)</h3>
 <div class="outline-text-3" id="text-h-melbyc---client">
-<pre class="example" id="org000001c">
+<pre class="example" id="org000001d">
 cd client; make
 </pre>
 

@@ -45,40 +45,70 @@ and all PDF (images) files, and a second pass with pdf2svg to generate the svgs.
 #+header: :imagemagick yes
 #+header: :headers '("\\usepackage{tikz}" "\\usepackage[default]{sourcesanspro}")
 #+begin_src latex
-% FIXME: we have to run C-c C-c to generate the pdf file. Ideally we'd just run
-% it from a Makefile or something.
-% Source: https://www.overleaf.com/learn/latex/LaTeX_Graphics_using_TikZ%3A_A_Tutorial_for_Beginners_(Part_3)%E2%80%94Creating_Flowcharts.
-\usetikzlibrary{shapes.geometric, arrows}
-\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=red!30]
-\tikzstyle{io} = [trapezium, trapezium left angle=70, trapezium right angle=110, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=blue!30]
-\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, text width=3cm, draw=black, fill=orange!30]
-\tikzstyle{decision} = [diamond, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=green!30]
-\tikzstyle{arrow} = [thick,->,>=stealth]
-\begin{tikzpicture}[node distance=2cm]
-\node (start) [startstop] {Start};
-\node (in1) [io, below of=start] {Input};
-\node (pro1) [process, below of=in1] {Process 1};
-\node (dec1) [decision, below of=pro1, yshift=-0.5cm] {Decision 1};
-\node (pro2a) [process, below of=dec1, yshift=-0.5cm] {Process 2a text text text text text text text text text text};
-\node (pro2b) [process, right of=dec1, xshift=2cm] {Process 2b};
-\node (out1) [io, below of=pro2a] {Output};
-\node (stop) [startstop, below of=out1] {Stop};
+% See https://tex.stackexchange.com/a/445446 which was used as a template for
+% this diagram below.
+\usetikzlibrary{
+  arrows.meta,
+  calc,
+  shapes.geometric,
+  shapes.symbols,
+  fit,
+  positioning}
+\tikzset{
+  module/.style={%
+    fill=white,
+    draw=black, rounded corners,
+    % Minimum height is useful to take into account capital
+    % letters and such that take up extra height.
+    minimum height=7mm,
+    align=center,
+    font=\sffamily
+  },
+  user/.style={%
+    shape=ellipse,
+    fill=white,
+    draw=black, rounded corners,
+    % Minimum height is useful to take into account capital
+    % letters and such that take up extra height.
+    minimum height=7mm,
+    align=center,
+    font=\sffamily
+  },
+  arrowX/.style={%
+    {Latex[length=2mm,width=2mm]}-{Latex[length=2mm,width=2mm]}
+  },
+  arrowL/.style={%
+    {Latex[length=2mm,width=2mm]}-
+  },
+  arrowR/.style={%
+    -{Latex[length=2mm,width=2mm]}
+  }%
+}
+\begin{tikzpicture}[thick,font=\sffamily,every label/.append
+    style={font=\sffamily,align=center}]
 
-\draw [arrow] (start) -- (in1);
-\draw [arrow] (in1) -- (pro1);
-\draw [arrow] (pro1) -- (dec1);
-\draw [arrow] (dec1) -- node[anchor=east] {yes} (pro2a);
-\draw [arrow] (dec1) -- node[anchor=south] {no} (pro2b);
-\draw [arrow] (pro2b) |- (pro1);
-\draw [arrow] (pro2a) -- (out1);
-\draw [arrow] (out1) -- (stop);
+% Lua VMs. This is the "root" node as it does not reference anything
+% else in terms of positioning.
+\node[module, label={[yshift=3mm]Daemon\\(melbyd)}] (LuaVMs) {Lua VMs};
+% Outer box around melbyd, which includes the LuaVMs.
+\node[fit={(0,2) (LuaVMs) (0,-1)}, draw, rounded corners,
+  inner xsep=5mm, inner ysep=-\pgflinewidth] (melbydOutline) {};
+\node[module, left=1.5cm of melbydOutline] (melbyr) {Renderer\\(melbyr)};
+
+% We could just use "right=1.5cm of melbydOutline" here but use calc's syntax
+% for computing a coordinate combined with a (X,Y) delta for future reference in
+% case we need to fine-tune an illustration.
+\node[module] at ($(melbydOutline) + (3.5cm,0cm)$) (melbyc) {Client\\(melbyc)};
+\node[module, right=1cm of melbyc] (Configs) {Configs\\(Lua)};
+\node[user, below=1.5cm of melbyc] (User) {User};
+
+\draw[arrowX] (melbyr)--(melbydOutline);
+\draw[arrowX] (User)--(melbyc);
+\draw[arrowL] (melbyc)--(Configs);
+\draw[arrowX] (melbyc)--(melbydOutline);
+
 \end{tikzpicture}
 #+end_src
-
-#+RESULTS: architecture-overall
-:results:
-[[file:image/architecture-overall.pdf]]
-:end:
 
 * Makefile
 

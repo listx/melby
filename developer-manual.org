@@ -74,7 +74,7 @@ If you are interested in helping to contribute back to Melby, see
 
 ** Architectural overview of Melby components
 
-FIXME: This image is just a template and not correct at all.
+#+ATTR_HTML: :width 700px
 [[./image/architecture-overall.svg]]
 
 Melby uses a client/server architecture. There are two main parts:
