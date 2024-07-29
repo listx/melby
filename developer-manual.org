@@ -366,6 +366,7 @@ Because of these issues, the utility has been removed.
 *** .gitignore
 
 #+begin_src text :tangle .gitignore
+.DS_Store
 .stack-work
 deps/
 dist-newstyle/
