@@ -55,5 +55,5 @@ pkgs.haskell.lib.buildStackProject {
   # See
   # https://www.reddit.com/r/haskell/comments/rjm0x8/help_wanted_for_llvm_config_for_haskell_on_mac/
   # about needing a version of LLVM < 13 on Mac.
-  ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [pkgs.llvm_10 macOS-security];
+  ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [pkgs.llvm_12 macOS-security];
 }

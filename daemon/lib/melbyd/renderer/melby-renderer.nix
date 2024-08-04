@@ -39,5 +39,5 @@ pkgs.haskell.lib.buildStackProject {
   buildInputs = [
     pkgs.zlib
     fakeGit
-  ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [pkgs.llvm_10 macOS-security];
+  ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [pkgs.llvm_12 macOS-security];
 }
