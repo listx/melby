@@ -404,7 +404,7 @@ defmodule Melbyd.StandardResource do
         state
       ) do
     new_state = maybe_refresh_state_and_notify(state)
-  
+
     # Unlike for the handle_info version, we do not tick again on our own, because
     # this is meant to be used only as a way for fake resources to get updated
     # manually in a synchronized fashion. If we were to tick ourselves now, then
@@ -449,7 +449,7 @@ defmodule Melbyd.StandardResource do
       Logger.info("Re-reading state for #{inspect(id)}")
       new = run_readers(resource, resource_opts, reads)
       Logger.info("Finished re-reading state for #{inspect(id)}")
-  
+
       new_state_hist =
         case state_hist do
           # This list is always populated with at least 1 element because we
@@ -466,13 +466,13 @@ defmodule Melbyd.StandardResource do
               Logger.info("checking for any new messages to broadcast")
               {_, resource_id} = id
               resource["notify"].([resource_id, old, new])
-  
+
               # Drop oldest state from state_hist if adding (prepending) to it
               # would exceed our history size.
               [new | state_hist] |> Enum.take(resource["history_size"])
             end
         end
-  
+
       %{state | state_hist: new_state_hist,
                 stale: false,
                 ttl: ttl - 1,
@@ -481,21 +481,21 @@ defmodule Melbyd.StandardResource do
       # Now handle the case where staleness is false (no need to read new data).
       # In this case the only thing that happens is the ttl age getting older (1
       # unit closer to 0).
-  
+
       %{state | ttl: ttl - 1}
     end
   end
-  
+
   @impl true
   def handle_info(
         :tick,
         %{ttl: ttl, notify_on_exit_pid: notify_on_exit_pid} = state
       ) do
     new_state = maybe_refresh_state_and_notify(state)
-  
+
     # Continue ticking for the future. But optionally die if ttl is too low.
     tick(ttl, notify_on_exit_pid)
-  
+
     {:noreply, new_state}
   end
   @impl true
@@ -511,7 +511,7 @@ defmodule Melbyd.StandardResource do
     # Now translate our path and events arguments to send into the Lua function,
     # and call it.
     [should_mark_stale] = fs_event_handler.([path, events])
-  
+
     if should_mark_stale do
       # Invalidate the cache entry for all current and parent SRS GenServers
       # between / and path. This includes us (our particular SRS GenServer
@@ -522,7 +522,7 @@ defmodule Melbyd.StandardResource do
         "ignoring Git index path #{path}; events:#{inspect(events)}"
       )
     end
-  
+
     {:noreply, state}
   end
   @impl true
@@ -533,7 +533,7 @@ defmodule Melbyd.StandardResource do
         } = state
       ) do
     Logger.info("SRS id #{inspect(id)}, fs watcher #{inspect(watcher_pid)}: FileSystem monitor stopped")
-  
+
     # FIXME: Use {:stop, reason, new_state} here to stop the process instead of
     # (ab)using ttl. See pages 174-175 of Elixir In Action.
     {:noreply, %{state | ttl: -1}}
@@ -558,7 +558,7 @@ defmodule Melbyd.StandardResource do
       ) do
     {resource_type, _resource_id} = id
     mark_stale({resource_type, id})
-  
+
     {:noreply, state}
   end
   @impl true
@@ -594,7 +594,7 @@ defmodule Melbyd.StandardResource do
         {:stop, reason, state}
     end
   end
-  
+
   @impl true
   def terminate(
         reason,
@@ -618,13 +618,13 @@ defmodule Melbyd.StandardResource do
             "TTL expired manually; shutting down this GenServer"
           )
         end
-  
+
         # Used for testing, where we assert that we can receive this
         # ":shutting_down" message after the ttl expires.
         if notify_on_exit_pid do
           send(notify_on_exit_pid, :shutting_down)
         end
-  
+
         Process.exit(self(), :ttl_deadline_exceeded)
       _ ->
         # Send after 1 second. We could alternatively use :timer.send_interval
@@ -648,12 +648,12 @@ defmodule Melbyd.StandardResource do
            _staleness_flagger,
          initial_state
        ) do
-  
+
     watch_paths = Melbyd.LuerlUtil.array_to_native_list(watch_paths_lua_array)
     Logger.info("Watching filesystem directory #{inspect(watch_paths)}")
     {:ok, watcher_pid} = FileSystem.start_link(dirs: watch_paths)
     FileSystem.subscribe(watcher_pid)
-  
+
     # We need to save this info about fs, because we need to run the fs event
     # handler (we can do the full lookup using get_resources but this is slightly
     # cheaper).
@@ -665,41 +665,41 @@ defmodule Melbyd.StandardResource do
        ) do
     Logger.info("Setting up duration-based staleness flagger, with duration #{duration}")
     :timer.send_interval(:timer.seconds(duration_to_seconds(duration)), self(), :duration_event)
-  
+
     Map.put(initial_state, :duration, duration)
   end
-  
+
   defp duration_to_seconds(s) do
     case Elixir.Timex.Parse.Duration.Parsers.ISO8601Parser.parse(s) do
       {:ok, d} ->
         seconds = Timex.Duration.to_seconds(d, truncate: true)
-  
+
         if seconds == 0 do
           Logger.warning("duration #{s} was parsed as 0 seconds; using 2 seconds as fallback")
           2
         else
           seconds
         end
-  
+
       {:error, err} ->
         Logger.warning("failed to parse duration #{s}: #{inspect(err)}; using 2 seconds as fallback")
         2
     end
   end
   # Filesystem-based staleness
-  
+
   # Mark the given path as stale, as well as all other SRS GenServers whose id's
   # are of the form "{resource_type, path}" where "path" is a parent path.
   defp mark_all_paths_stale_from({resource_type, path}) do
     get_all_parents(path)
     |> Enum.map(fn p -> mark_stale({resource_type, p}) end)
   end
-  
+
   # Given "/a/b/c", return ["/", "/a", "/a/b", "/a/b/c"]
   defp get_all_parents(path) do
     parts = Path.split(path)
     parts_len = length(parts)
-  
+
     1..parts_len
     |> Enum.map(&(Enum.take(parts, &1) |> Path.join()))
   end
@@ -711,29 +711,29 @@ defmodule Melbyd.StandardResource do
     # out of it. This optional startup can be handled by the DynamicSupervisor,
     # which can do a call into gproc (process registry) to determine if the
     # GenServer of the type and options exists.
-  
+
     resource_id =
       cond do
         resource_opts["fake"] ->
           resource["fake"]["resource_id_func"].([resource_opts]) |> Kernel.hd()
-  
+
         resource["resource_id_command"] != nil ->
           run_resource_id_command(resource, resource_opts)
-  
+
         resource["resource_id_func"] != nil ->
           resource["resource_id_func"].([resource_opts]) |> Kernel.hd()
-  
+
         true ->
           ""
       end
-  
+
     if resource_id == "" do
       Logger.warning(
         "resource_id cannot be empty: failed to generate srs_id for resource " <>
           "#{inspect({resource, resource_opts})} --- if this is a fake, then " <>
           "it means that your resource_id_func could be returning an empty string"
       )
-  
+
       %MelbyDaemon.StandardResource{status: :STANDARD_RESOURCE_STATUS_NOT_APPLICABLE}
     else
       # Warn users about misbehaving resource_ids for non-fake resources.
@@ -742,7 +742,7 @@ defmodule Melbyd.StandardResource do
           "resource_id starts with 'fake->' but 'fake' key is not set in"
             <> "resource_opts: #{inspect({resource, resource_opts})}"
         )
-  
+
         %MelbyDaemon.StandardResource{status: :STANDARD_RESOURCE_STATUS_NOT_APPLICABLE}
       else
         # Prepend "fake->" to the resource_id so that it is in a different
@@ -755,27 +755,27 @@ defmodule Melbyd.StandardResource do
           else
             resource_id
           end
-  
+
         # We need to encode the resource type as well into the id because it may
         # be the case that other resource types also end up generating the same
         # id, such as when both resource types depend on the same filesystem
         # path.
         srs_id = {resource["type"], resource_id}
-  
+
         case :gproc.lookup_pids({:n, :l, {Melbyd.StandardResource, srs_id}}) do
           [pid] ->
             # This StandardResource with the given id already exists.
             Logger.info("Found existing pid for #{inspect(srs_id)}: #{inspect(pid)}")
-  
+
             # If it's a fake resource, we manually mark it stale first, then force
             # a read (with a tick).
             if resource_opts["fake"] do
               GenServer.call(pid, :mark_stale)
               GenServer.call(pid, :tick)
             end
-  
+
             GenServer.call(pid, :read)
-  
+
           _ ->
             # Start the StandardResource with the given id. This is idempotent and
             # will not spawn a new GenServer if one already exists with the given
@@ -787,7 +787,7 @@ defmodule Melbyd.StandardResource do
             Task.Supervisor.start_child(Melbyd.TaskSupervisor, fn ->
               Melbyd.StandardResourceSupervisor.start_srs(srs_id, resource, resource_opts)
             end)
-  
+
             # We started the watcher just above asynchronously. For now return a
             # blank struct with the "LOADING" status so that the caller can know
             # that the given repo is indeed a Git repo but that we just don't have
@@ -797,7 +797,7 @@ defmodule Melbyd.StandardResource do
       end
     end
   end
-  
+
   # Return a resource_id by running the given command. Also return the appropriate
   # StandardResourceStatus atom.
   def run_resource_id_command(resource, resource_opts) do
@@ -809,34 +809,34 @@ defmodule Melbyd.StandardResource do
     cmd_head = Kernel.hd(invocation)
     cmd_args = Enum.drop(invocation, 1)
     cd = resource_id_command["cd"]
-  
+
     cmd_opts =
       if cd != nil do
         [cd: cd]
       else
         []
       end
-  
+
     # If the resource id command requirse some additional processing (the command
     # itself does not return a unique, simple string), we can construct our final
     # format with the help of the parser.
     parser_func_name = resource_id_command["parser"]
     parser_func = resource["parser"][parser_func_name] || (&Function.identity/1)
-  
+
     case System.cmd(cmd_head, cmd_args, cmd_opts) do
       {stdout, 0} ->
         # For example, "git rev-parse ..." can output a trailing newline, which we
         # need to remove.
         stdout_trimmed = String.trim_trailing(stdout)
         resource_id = stdout_trimmed
-  
+
         if resource_id == "" do
           Logger.warning(
             "command returned successfully, but had no output: failed to " <>
               "generate srs_id for resource #{inspect({resource, resource_opts})}"
           )
         end
-  
+
         # If we have an associated parser function, use it to help construct the
         # final ID format. Otherwise (or if it errors out due to an invalid
         # input), just use the output we got from above.
@@ -844,20 +844,20 @@ defmodule Melbyd.StandardResource do
           if parser_func != nil do
             parser_func.([stdout_trimmed]) |> Kernel.hd()
           end
-  
+
         resource_id =
           if parsed_resource_id != nil && String.trim(parsed_resource_id) != "" do
             parsed_resource_id
           end
-  
+
         resource_id
-  
+
       {_stdout, error_code} ->
         Logger.warning(
           "resource_id_command failed with error code #{error_code}: failed to " <>
             "generate srs_id for resource #{inspect({resource, resource_opts})}"
         )
-  
+
         ""
     end
   end

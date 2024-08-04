@@ -133,7 +133,7 @@ defmodule Melbyd.ShellLogger do
         } = state
       ) do
     Logger.info("Shell Logger #{shell_pid}: Handling PubSub message: #{inspect(message)}")
-  
+
     keep_message =
       if Map.has_key?(topic_handlers, topic) do
         should_keep_message = topic_handlers[topic]
@@ -142,10 +142,10 @@ defmodule Melbyd.ShellLogger do
         # If we can't find an associated filter function for this topic, discard it
         # but log a warning.
         Logger.warning("could not find filter function for PubSub message #{inspect(message)}")
-  
+
         false
       end
-  
+
     if keep_message do
       Logger.info("Shell Logger #{shell_pid}: Keeping message #{inspect(message)}")
       {:noreply, %{state | messages: [message | messages]}}
@@ -171,7 +171,7 @@ defmodule Melbyd.ShellLogger do
         {:stop, reason, state}
     end
   end
-  
+
   @impl true
   def terminate(
         reason,
@@ -193,13 +193,13 @@ defmodule Melbyd.ShellLogger do
             "TTL expired manually; shutting down this GenServer"
           )
         end
-  
+
         # Used for testing, where we assert that we can receive this
         # ":shutting_down" message after the ttl expires.
         if notify_on_exit_pid do
           send(notify_on_exit_pid, :shutting_down)
         end
-  
+
         Process.exit(self(), :ttl_deadline_exceeded)
       _ ->
         Process.send_after(self(), :tick, @tick_interval)
@@ -215,12 +215,12 @@ defmodule Melbyd.ShellLogger do
         # always keep the same env_vars that it was created with.
         GenServer.call(pid, {:update_env_vars, env_vars})
         GenServer.call(pid, {:get_messages, topic_handlers})
-  
+
       _ ->
         Task.Supervisor.start_child(Melbyd.TaskSupervisor, fn ->
           Melbyd.ShellLoggerSupervisor.start_sps(shell_pid, topic_handlers, env_vars)
         end)
-  
+
         # Return empty list (no messages) for now.
         []
     end

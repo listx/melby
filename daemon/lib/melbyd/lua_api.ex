@@ -607,21 +607,21 @@ defmodule Melbyd.LuaSdk do
   def_lua_func render([widgets_list_ref, delimiter_ref], st0) do
     delimiter_tuples = Luerl.decode(st0, delimiter_ref)
     delimiter = widget_from_tuples(delimiter_tuples)
-  
+
     # Retrieve render_options from the Config table in the Lua state.
     render_options = get_render_options(st0)
-  
+
     widgets =
       Luerl.decode(st0, widgets_list_ref)
       |> Enum.map(fn {_idx, widget_tuples} ->
         widget_from_tuples(widget_tuples)
       end)
-  
+
     req = %MelbyRenderer.RenderWidgetsRequest{}
     req = Map.put(req, :widgets, widgets)
     req = Map.put(req, :delimiter, delimiter)
     req = Map.put(req, :render_options, render_options)
-  
+
     # Call out to melbyr over gRPC.
     addr = get_melbyr_addr()
     with {:ok, channel} <- GRPC.Stub.connect(addr, adapter_opts: [retry_timeout: 5]),
@@ -632,20 +632,20 @@ defmodule Melbyd.LuaSdk do
       err -> raise "could not parse response from melbyr: #{inspect(err)}"
     end
   end
-  
+
   def get_render_options(st0) do
     {render_options_tuples, _st1} = Luerl.get_table(st0, ["Config", "render_options"])
-  
+
     render_options_map =
       Map.new(
         render_options_tuples
         |> Enum.map(fn {k, v} -> {String.to_atom(k), String.to_atom(v)} end)
       )
-  
+
     render_options = %MelbyRenderer.RenderOptions{}
     Map.merge(render_options, render_options_map)
   end
-  
+
   def widget_from_tuples(widget_tuples) do
     {widget, tp} =
       Enum.reduce(
@@ -657,39 +657,39 @@ defmodule Melbyd.LuaSdk do
           case k do
             "str" ->
               {Map.put(acc_w, :str, v), acc_tp}
-  
+
             "fg" ->
               {acc_w, Map.put(acc_tp, :fg, color_from_str(v))}
-  
+
             "bg" ->
               {acc_w, Map.put(acc_tp, :bg, color_from_str(v))}
-  
+
             "styles" ->
               styles = Enum.map(v, fn {_idx, s} -> style_from_str(s) end)
               {acc_w, Map.put(acc_tp, :styles, styles)}
-  
+
             # Skip over any unrecognized key.
             "drop_delim_left" ->
               {Map.put(acc_w, :drop_delim_left, v), acc_tp}
-  
+
             "drop_delim_right" ->
               {Map.put(acc_w, :drop_delim_right, v), acc_tp}
-  
+
             _ ->
               acc
           end
         end
       )
-  
+
     Map.put(widget, :prop, tp)
   end
-  
+
   def color_from_str(s) do
     {r, g, b} = Melbyd.Color.parse(s)
     c24bit = %MelbyRenderer.Color24Bit{red: r, green: g, blue: b}
     %MelbyRenderer.Color{color_oneof: {:color_24_bit, c24bit}}
   end
-  
+
   def style_from_str(s) do
     case s do
       "bold" -> :TEXT_STYLE_BOLD
@@ -700,17 +700,17 @@ defmodule Melbyd.LuaSdk do
   def_lua_func get_path_pretty([path, options_ref], st0) do
     options = Luerl.decode(st0, options_ref)
     options_map = Map.new(options)
-  
+
     aliases = options_map["aliases"] |> Melbyd.LuerlUtil.table_to_native_map()
     env = options_map["env"] |> Melbyd.LuerlUtil.table_to_native_map()
-  
+
     # Create a subset of env vars. This is because we only care about the ones used by the keys in aliases.
     {aliases_filtered, env_filtered} =
       Enum.reduce(aliases, {%{}, %{}}, fn {k, v}, {aliases_filtered, env_filtered} ->
         vars = Regex.scan(~r/\$\{(.+?)\}/, k) |> Enum.map(fn [_entire_match, group] -> group end)
         # Check if every variable is found in env.
         env_subset = Map.take(env, vars)
-  
+
         if length(vars) == Enum.count(env_subset) do
           # Only keep aliases if we can find all of its environment variable references.
           {Map.put(aliases_filtered, k, v), Map.merge(env_filtered, env_subset)}
@@ -718,7 +718,7 @@ defmodule Melbyd.LuaSdk do
           {aliases_filtered, env_filtered}
         end
       end)
-  
+
     # If we were unable to parse the aliases (e.g., we are given no aliases to
     # begin with because we failed to parse the path aliases file), then just use
     # a map with the HOME variable. This is because the Rust NIF always
@@ -730,21 +730,21 @@ defmodule Melbyd.LuaSdk do
             "HOME environment variable is not defined; using useless default \"/home/foo\""
           )
         end
-  
+
         Map.new([{"HOME", env["HOME"] || "/home/foo"}])
       else
         env_filtered
       end
-  
+
     # Default value is 0 (no shortening).
     shorten_threshold = Map.get(options_map, "shorten_threshold", 0)
-  
+
     prettified =
       Melbyd.Path.get_path_pretty(path, aliases_filtered, env_filtered_final, shorten_threshold)
-  
+
     {:ok, prettified, st0}
   end
-  
+
   def_lua_func get_path_aliases([path_aliases_file], st0) do
     if path_aliases_file == nil do
       Logger.warning("path_aliases_file is nil; defaulting to empty map")
@@ -755,17 +755,17 @@ defmodule Melbyd.LuaSdk do
       end
     end
   end
-  
+
   # This is just like get_path_aliases, but expects the raw file contents instead
   # of the filename (path) to read out.
   def_lua_func get_path_aliases_fake([path_aliases_raw], st0) do
     get_path_aliases_helper(path_aliases_raw, st0)
   end
-  
+
   def get_path_aliases_helper(path_aliases_raw, st0) do
     req = %MelbyRenderer.ParsePathAliasesRequest{}
     req = Map.put(req, :path_aliases_raw, path_aliases_raw)
-  
+
     # Call out to melbyr over gRPC.
     addr = get_melbyr_addr()
     with {:ok, channel} <- GRPC.Stub.connect(addr, adapter_opts: [retry_timeout: 5]),
@@ -782,16 +782,16 @@ defmodule Melbyd.LuaSdk do
   end
   def_lua_func get_colorized_sha([sha, sha_length, pad_left, pad_right], st0) do
     render_options = get_render_options(st0)
-  
+
     req = %MelbyRenderer.ColorizedGitShaRequest{}
     req = Map.put(req, :sha, sha)
     req = Map.put(req, :sha_length, sha_length)
     req = Map.put(req, :pad_left, pad_left)
     req = Map.put(req, :pad_right, pad_right)
     req = Map.put(req, :render_options, render_options)
-  
+
     Logger.debug("elixir req was: #{inspect(req)}")
-  
+
     addr = get_melbyr_addr()
     with {:ok, channel} <- GRPC.Stub.connect(addr, adapter_opts: [retry_timeout: 5]),
          {:ok, reply} <- channel |> MelbyRenderer.Renderer.Stub.get_colorized_git_sha(req, timeout: 200) do
@@ -807,7 +807,7 @@ defmodule Melbyd.LuaSdk do
         timezone_ok(time_zone) -> time_zone
         true -> "Etc/UTC"
       end
-  
+
     # Use the current time if unix_seconds is not provided.
     sec =
       if unix_seconds do
@@ -820,25 +820,25 @@ defmodule Melbyd.LuaSdk do
         with {:ok, t} <- DateTime.now(tz),
              do: DateTime.to_unix(t)
       end
-  
+
     # Format the current time with the given format string.
     t =
       DateTime.from_unix!(sec)
       |> DateTime.shift_zone!(tz)
-  
+
     {:ok, Calendar.strftime(t, format), st0}
   end
-  
+
   def_lua_func get_unix_seconds(_, st0) do
     with {:ok, t} <- DateTime.now("Etc/UTC"),
          do: {:ok, DateTime.to_unix(t), st0}
   end
-  
+
   def timezone_ok(tz) do
     case DateTime.now(tz) do
       {:ok, _} ->
         true
-  
+
       _ ->
         Logger.warning("unrecognized timezone: '#{tz}'")
         false
@@ -847,20 +847,20 @@ defmodule Melbyd.LuaSdk do
   def_lua_func to_shell_script([exports_ref], st0) do
     exports_list = Luerl.decode(st0, exports_ref) |> Melbyd.LuerlUtil.array_to_native_list()
     exports = exports_list |> Enum.map(&Melbyd.LuerlUtil.table_to_native_map/1)
-  
+
     Logger.debug("exports is #{inspect(exports)}")
-  
+
     script =
       exports
       |> Enum.reduce("", fn export_map, acc ->
         acc <> export_shell_var(export_map)
       end)
-  
+
     Logger.debug("script is #{inspect(script, limit: :infinity, binaries: :as_strings)}")
-  
+
     {:ok, script, st0}
   end
-  
+
   def export_shell_var(%{"name" => name, "val" => val, "type" => type}) do
     case type do
       "array" ->
@@ -868,13 +868,13 @@ defmodule Melbyd.LuaSdk do
         declare -a #{name}
         #{name}=(
         """
-  
+
         ret =
           Melbyd.LuerlUtil.array_to_native_list(val)
           |> Enum.reduce(ret, fn item, acc -> acc <> "#{inspect(item)}" end)
-  
+
         ret <> "\n)\n"
-  
+
       _ ->
         # FIXME: Technically this is broken if "v" has a string "END_HEREDOC" on
         # its own line. There are ways around this but for now we don't care.
@@ -893,9 +893,9 @@ defmodule Melbyd.LuaSdk do
   def_lua_func read_standard_resource([resource_ref, resource_opts_ref], st0) do
     resource = resource_ref_to_native_map(resource_ref, st0)
     resource_opts = Luerl.decode(st0, resource_opts_ref) |> Melbyd.LuerlUtil.table_to_native_map()
-  
+
     resource_opts = Map.put(resource_opts, "fake", false)
-  
+
     # Now we just have to pass in this data into a SRS initializer function. This
     # initializer function is the Melbyd.StandardResource.get_state() function,
     # which does the work of calling out to the DynamicSupervisor if necessary
@@ -906,7 +906,7 @@ defmodule Melbyd.LuaSdk do
     res = Melbyd.StandardResource.read(resource, resource_opts)
     {:ok, res, st0}
   end
-  
+
   def resource_ref_to_native_map(resource_ref, st0) do
     resource_luerl = Luerl.decode(st0, resource_ref)
     resource = Melbyd.LuerlUtil.table_to_native_map(resource_luerl)
@@ -918,14 +918,14 @@ defmodule Melbyd.LuaSdk do
   def_lua_func read_standard_resource_fake([resource_ref, resource_opts_ref], st0) do
     resource = resource_ref_to_native_map(resource_ref, st0)
     resource_opts = Luerl.decode(st0, resource_opts_ref) |> Melbyd.LuerlUtil.table_to_native_map()
-  
+
     # Stamp this as being fake for all downstream code.
     resource_opts = Map.put(resource_opts, "fake", true)
-  
+
     # Save vm_fingerprint so that it's accessible easily from the Elixir side.
     {vm_fingerprint, _} = Luerl.get_table1(st0, ["melbyd", "vm_fingerprint"])
     resource_opts = Map.put(resource_opts, "vm_fingerprint", vm_fingerprint)
-  
+
     res = Melbyd.StandardResource.read(resource, resource_opts)
     {:ok, res, st0}
   end
@@ -934,7 +934,7 @@ defmodule Melbyd.LuaSdk do
       s
       |> String.split(@newlines)
       |> Enum.take_while(fn x -> String.trim(x) |> String.length() > 0 end)
-  
+
     {:ok, lines, st0}
   end
   def_lua_func get_trimmed([s], st0) do
@@ -952,14 +952,14 @@ defmodule Melbyd.LuaSdk do
           Logger.error(got: e, from_pat: pat)
           nil
       end
-  
+
     case regex do
       nil ->
         {:ok, default, st0}
-  
+
       _ ->
         captures = Regex.run(regex, s)
-  
+
         res =
           if captures == nil do
             default
@@ -969,11 +969,11 @@ defmodule Melbyd.LuaSdk do
               g -> g
             end
           end
-  
+
         {:ok, res, st0}
     end
   end
-  
+
   # Equivalent to get_group_or_default([s, pat, 1, 0], st0)
   def_lua_func get_int_group([s, pat], st0) do
     {:ok, res, _st} = __internal__get_group_or_default([s, pat, 1, "0"], st0)
@@ -985,13 +985,13 @@ defmodule Melbyd.LuaSdk do
   end
   def_lua_func get_kv_lines_as_map([s], st0) do
     {:ok, lines, _st} = __internal__get_lines_trimmed_nonempty([s], st0)
-  
+
     kvs =
       Enum.map(lines, fn line ->
         [k, v] = String.split(line, ",")
         {k, v}
       end)
-  
+
     {:ok, Map.new(kvs), st0}
   end
   def_lua_func get_columnar_fields_zipped([s, keys_ref], st0) do
@@ -999,26 +999,26 @@ defmodule Melbyd.LuaSdk do
     trimmed_line = String.trim(s)
     vals = String.split(trimmed_line)
     kvs = Enum.zip(keys, vals)
-  
+
     {:ok, Map.new(kvs), st0}
   end
   def_lua_func cast_values([t_ref, keytypes_ref], st0) do
     t = Luerl.decode(st0, t_ref) |> Melbyd.LuerlUtil.table_to_native_map()
     keytypes = Luerl.decode(st0, keytypes_ref) |> Melbyd.LuerlUtil.table_to_native_map()
-  
+
     ret =
       Enum.reduce(t, %{}, fn {key, val}, acc ->
         if Map.has_key?(keytypes, key) do
           case keytypes[key] do
             "float" ->
               Map.put(acc, key, to_number(val, key))
-  
+
             "int" ->
               Map.put(acc, key, Kernel.trunc(to_number(val, key)))
-  
+
             "bool" ->
               Map.put(acc, key, to_bool(val))
-  
+
             # If we can't figure out the type, log an error and use the uncasted value.
             type ->
               Logger.error("key #{inspect(key)}: unrecognized type #{inspect(type)}")
@@ -1028,38 +1028,38 @@ defmodule Melbyd.LuaSdk do
           Map.put(acc, key, val)
         end
       end)
-  
+
     {:ok, ret, st0}
   end
-  
+
   def to_number(s, field) when is_binary(s) do
     case Float.parse(s) do
       :error ->
         Logger.error("field #{inspect(field)}: could not convert #{inspect(s)} to float; defaulting to 0")
         0
-  
+
       {f, _rem} ->
         f
       _ -> 0
     end
   end
-  
+
   def to_number(n, field) when is_number(n) do
     Logger.debug("field #{inspect(field)}: #{n} is already a number; using it as-is")
     n
   end
-  
+
   def to_number(x, field) do
     Logger.error("field #{inspect(field)}: #{x} is not a number; defaulting to 0")
     0
   end
-  
+
   def to_bool(s) do
     case s do
       str
       when str in ["", "n", "N", "no", "No", "NO", "nil", "Nil", "NIL", "false", "False", "FALSE"] ->
         false
-  
+
       _ ->
         true
     end
@@ -1069,7 +1069,7 @@ defmodule Melbyd.LuaSdk do
     unix_seconds = Kernel.trunc(unix_seconds_float)
     t = Timex.from_unix(unix_seconds)
     {:ok, s} = Timex.format(t, "{relative}", :relative)
-  
+
     {:ok, s, st0}
   end
   def_lua_func get_relative_age_short([unix_seconds_float], st0) do
@@ -1077,73 +1077,73 @@ defmodule Melbyd.LuaSdk do
     t1 = Kernel.trunc(unix_seconds_float)
     # t1 = Timex.from_unix(unix_seconds)
     t2 = Timex.now() |> Timex.to_unix()
-  
+
     age_seconds = t2 - t1
-  
+
     age = Timex.Duration.from_seconds(age_seconds)
-  
+
     s =
       cond do
         Timex.Duration.to_minutes(age) < 1 ->
           "#{age_seconds}s"
-  
+
         Timex.Duration.to_hours(age) < 1 ->
           minutes = Kernel.trunc(Timex.Duration.to_minutes(age))
           "#{minutes}m"
-  
+
         Timex.Duration.to_hours(age) < 48 ->
           hours = Kernel.trunc(Timex.Duration.to_hours(age))
           "#{hours}h"
-  
+
         Timex.Duration.to_days(age) < 14 ->
           days = Kernel.trunc(Timex.Duration.to_days(age))
           "#{days}d"
-  
+
         Timex.Duration.to_days(age) < 30 ->
           weeks = Kernel.trunc(Timex.Duration.to_days(age) / 7)
           "#{weeks}w"
-  
+
         Timex.Duration.to_days(age) < 365 ->
           months = Kernel.trunc(Timex.Duration.to_days(age) / 30)
           "#{months}M"
-  
+
         true ->
           years = Kernel.trunc(Timex.Duration.to_days(age) / 365)
           "#{years}Y"
       end
-  
+
     {:ok, s, st0}
   end
   def_lua_func get_truncated_personal_moniker([first_last_name, max], st0) do
     Logger.debug("first_last_name: #{first_last_name}")
-  
+
     s =
       case String.split(first_last_name) do
         [] ->
           "?"
-  
+
         [name] ->
           String.slice(name, 0..(max - 1))
-  
+
         [first_name, last_name] ->
           String.first(first_name) <> String.slice(last_name, 0..(max - 2))
-  
+
         names ->
           String.first(List.first(names)) <> String.slice(List.last(names), 0..(max - 2))
       end
-  
+
     {:ok, s, st0}
   end
 
   def_lua_func broadcast([topic, message_ref], st0) do
     message = Luerl.decode(st0, message_ref) |> Melbyd.LuerlUtil.table_to_native_map_atomic_keys()
-  
+
     payload = Melbyd.LuerlUtil.table_to_native_map_atomic_keys(message.payload)
     payload = Map.put(payload, :time, Calendar.strftime(Timex.local(), "%H:%M:%S"))
     message = Map.put(message, :payload, payload)
-  
+
     Phoenix.PubSub.broadcast(Melbyd.PubSub, topic, message)
-  
+
     # There is nothing to return back to Lua.
     {:ok, nil, st0}
   end
@@ -1151,7 +1151,7 @@ defmodule Melbyd.LuaSdk do
     resource_luerl_tables =
       Luerl.decode(st0, resources_ref) |> Melbyd.LuerlUtil.array_to_native_list()
     env_vars = Luerl.decode(st0, env_vars_ref) |> Melbyd.LuerlUtil.table_to_native_map()
-  
+
     # Topic handlers is a map where the key is the resource type (e.g.,
     # "srs_Git"), and the handler is the Lua function named "should_keep_message"
     # for that resource.
@@ -1162,9 +1162,9 @@ defmodule Melbyd.LuaSdk do
         {"srs_" <> resource["type"], resource["should_keep_message"]}
       end)
       |> Map.new()
-  
+
     messages = Melbyd.ShellLogger.get_messages(shell_pid, topic_handlers, env_vars)
-  
+
     {:ok, messages, st0}
   end
 
@@ -1187,17 +1187,17 @@ defmodule Melbyd.LuerlUtil do
   def table_lookup(_t, []) do
     raise ArgumentError, message: "lookup_keys cannot be empty"
   end
-  
+
   def table_lookup(t, lookup_keys) do
     Enum.reduce(lookup_keys, t, fn lookup_key, val_so_far ->
       if not Kernel.is_list(val_so_far) do
         raise ArgumentError, message: "val_so_far '#{inspect(val_so_far)}' is not a list"
       end
-  
+
       Enum.map(val_so_far, &verify_table_tuple/1)
-  
+
       found = Enum.find(val_so_far, fn {t_key, _t_val} -> t_key == lookup_key end)
-  
+
       if found == nil do
         raise ArgumentError, message: "lookup_key '#{lookup_key}' not found"
       else
@@ -1206,17 +1206,17 @@ defmodule Melbyd.LuerlUtil do
       end
     end)
   end
-  
+
   def verify_table_tuple({k, _v}) when is_binary(k) do
     :ok
   end
-  
+
   def verify_table_tuple(x) do
     raise ArgumentError, message: "element '#{inspect(x)}' is not a well-formed tuple"
   end
   def array_to_native_list(a) do
     Enum.map(a, &verify_array_tuple/1)
-  
+
     {_, native_list} =
       Enum.reduce(a, {0, []}, fn {k, v}, {i, native_list} ->
         if k == i + 1 do
@@ -1225,14 +1225,14 @@ defmodule Melbyd.LuerlUtil do
           raise ArgumentError, message: "expected index #{i + 1} for element '#{inspect({k, v})}'"
         end
       end)
-  
+
     Enum.reverse(native_list)
   end
-  
+
   def verify_array_tuple({k, _v}) when is_integer(k) do
     :ok
   end
-  
+
   def verify_array_tuple(x) do
     raise ArgumentError, message: "element '#{inspect(x)}' is not a well-formed tuple"
   end
