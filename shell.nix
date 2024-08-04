@@ -152,7 +152,7 @@ pkgs.mkShell ({
   NIX_PATH = "nixpkgs=" + pkgs.path;
 
   # Make Elixir not complain about using "latin1" encoding.
-  LANG = "C.UTF-8";
+  LANG = "en_US.UTF-8";
   LOCALE_ARCHIVE = pkgs.lib.optional pkgs.stdenv.isLinux
     "${pkgs.glibcLocales}/lib/locale/locale-archive";
 } // darwin-cargo-build-rustflags)

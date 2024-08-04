@@ -156,7 +156,7 @@ in
           Security
         ]);
     nativeBuildInputs = [ pkgs.makeWrapper ];
-    LANG = "C.UTF-8";
+    LANG = "en_US.UTF-8";
     LOCALE_ARCHIVE = pkgs.lib.optional pkgs.stdenv.isLinux
       "${pkgs.glibcLocales}/lib/locale/locale-archive";
 

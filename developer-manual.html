@@ -1369,7 +1369,7 @@ pkgs.mkShell ({
   <span class="org-nix-attribute">NIX_PATH</span> = <span class="org-string">"nixpkgs="</span> + pkgs.path;
 
   <span class="org-comment"># Make Elixir not complain about using "latin1" encoding.</span>
-  <span class="org-nix-attribute">LANG</span> = <span class="org-string">"C.UTF-8"</span>;
+  <span class="org-nix-attribute">LANG</span> = <span class="org-string">"en_US.UTF-8"</span>;
   <span class="org-nix-attribute">LOCALE_ARCHIVE</span> = pkgs.lib.optional pkgs.stdenv.isLinux
     <span class="org-string">"</span><span class="org-nix-antiquote">${</span>pkgs.glibcLocales<span class="org-nix-antiquote">}</span><span class="org-string">/lib/locale/locale-archive"</span>;
 } // darwin-cargo-build-rustflags)
@@ -9598,7 +9598,7 @@ We package up <code>melbyd</code> as a standalone "package".
           Security
         ]);
     <span class="org-nix-attribute">nativeBuildInputs</span> = [ pkgs.makeWrapper ];
-    <span class="org-nix-attribute">LANG</span> = <span class="org-string">"C.UTF-8"</span>;
+    <span class="org-nix-attribute">LANG</span> = <span class="org-string">"en_US.UTF-8"</span>;
     <span class="org-nix-attribute">LOCALE_ARCHIVE</span> = pkgs.lib.optional pkgs.stdenv.isLinux
       <span class="org-string">"</span><span class="org-nix-antiquote">${</span>pkgs.glibcLocales<span class="org-nix-antiquote">}</span><span class="org-string">/lib/locale/locale-archive"</span>;
 
