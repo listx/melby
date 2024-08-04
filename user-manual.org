@@ -1444,7 +1444,7 @@ this per-cluster information.
 **** IN-PROGRESS SRS: create time-based staleness flagger (easy)
 **** TODO SRS: create a command timeout for shell commands that take too long or error out
 We should let users configure each command with an optional timeout and/or error
-reponse detector, such that:
+response detector, such that:
 
 - if a command times out (still is running after waiting N seconds), we cancel
   it and generate a message for SLG telling the user that a command timed out
@@ -2206,7 +2206,7 @@ return KubeFake
 FIXME: The sample above is actually part of a test case we use in Melby. You can
 be confident that the above example will always work.
 
-FIXME: Maybe create some "standard configuration library" of pre-configured Lua
+FIXME: Maybe create some "standard configuration library" of preconfigured Lua
 modules for users. For example, we could promote the above "Git" module (and
 maybe another Kubernetes one) into a standard folder that ships with Melby.
 
