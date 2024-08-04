@@ -39,7 +39,7 @@ and all PDF (images) files, and a second pass with pdf2svg to generate the SVGs.
 
 #+name: architecture-overall
 #+caption: Generates =image/architecture-overall.pdf=.
-#+header: :eval yes
+#+header: :eval no
 #+header: :results file drawer
 #+header: :file image/architecture-overall.pdf
 #+header: :imagemagick yes
