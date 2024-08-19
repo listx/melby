@@ -20,7 +20,8 @@ getGitInfo :: IO String
 getGitInfo = do
   maybeProjectRoot <- lookupEnv "MELBY_PROJECT_ROOT"
   case maybeProjectRoot of
-    Just projectRoot -> readProcess "git" ["-C", projectRoot, "describe", "--abbrev=10", "--always", "--dirty"] ""
+    Just projectRoot -> readProcess "git"
+      ["-C", projectRoot, "describe", "--abbrev=10", "--always", "--dirty"] ""
     Nothing -> pure "-unknown"
 
 getTimeInfo :: IO String

@@ -1024,7 +1024,8 @@ We simply tangle all major <code>*.org</code> files in the top-level Makefile.
 <span class="org-makefile-targets">.PHONY</span>: tangle-profile
 
 <span class="org-makefile-targets">tangle-profile-inspect</span>:
-    emacs -Q --load $(<span class="org-variable-name">LILAC_ROOT</span>)/lilac.el --eval=<span class="org-string">"(profiler-find-profile \"emacs-profile-tangle.txt\"))"</span>
+    emacs -Q --load $(<span class="org-variable-name">LILAC_ROOT</span>)/lilac.el \
+        <span class="org-variable-name">--eval</span>=<span class="org-string">"(profiler-find-profile \"emacs-profile-tangle.txt\"))"</span>
 <span class="org-makefile-targets">.PHONY</span>: tangle-profile-inspect
 
 <span class="org-makefile-targets">tangle-generated</span>:
@@ -1350,7 +1351,8 @@ pkgs.mkShell ({
     macOS-security
   ];
 
-  <span class="org-comment"># FIXME: how to get the git version into the environment...???? The setting below for MELBY_PROJECT_ROOT only works for the dev env, not the release env</span>
+  <span class="org-comment"># FIXME: how to get the git version into the environment...???? The setting</span>
+  <span class="org-comment"># below for MELBY_PROJECT_ROOT only works for the dev env, not the release env</span>
   <span class="org-nix-attribute">shellHook</span> = <span class="org-string">''</span>
 <span class="org-string">    # Prefer to use melbyr and melbyc from the local development tree path.</span>
 <span class="org-string">    export PATH=$PWD/daemon/test:$PWD/daemon/lib/melbyd/renderer:$PWD/client:$PATH</span>
@@ -1957,7 +1959,7 @@ that can be sourced by the shell. This way all that the shell has to do is
 something like:
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">Example usage of <code>melbyc</code> from your shell's configuration.</label><span class="lilac-caption-link-symbol"><a href="#Example-usage-of--code-melbyc--code--from-your-shell-s-configuration">&#x1f517;</a></span></div><pre class="src src-shell" id="Example-usage-of--code-melbyc--code--from-your-shell-s-configuration"><span class="org-builtin">source</span> <span class="org-string">"$(melbyc view PATH_TO_LUA_CONFIG)"</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">Example usage of <code>melbyc</code> from your shell's configuration.</label><span class="lilac-caption-link-symbol"><a href="#Example-usage-of--code-melbyc--code--from-your-shell-s-configuration">&#x1f517;</a></span></div><pre class="src src-shell" id="Example-usage-of--code-melbyc--code--from-your-shell-s-configuration"><span class="org-builtin">source</span> <span class="org-string">"$(</span><span class="org-sh-quoted-exec">melbyc view PATH_TO_LUA_CONFIG</span><span class="org-string">)"</span>
 </pre></div></div>
 </div>
 </div>
@@ -4489,14 +4491,16 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
     <span class="org-keyword">end</span>
   <span class="org-keyword">end</span>
 <span class="org-keyword">end</span>
-</pre></div><div class="org-src-container"><pre class="src src-rust" id="nil-18"><span class="org-keyword">use</span> <span class="org-constant">std</span>::<span class="org-constant">collections</span>::<span class="org-type">HashMap</span>;
-<span class="org-keyword">use</span> <span class="org-constant">envsubst</span>;
+</pre></div><div class="org-src-container"><pre class="src src-rust" id="nil-18"><span class="org-keyword">use</span> <span class="org-constant">envsubst</span>;
+<span class="org-keyword">use</span> <span class="org-constant">std</span>::<span class="org-constant">collections</span>::<span class="org-type">HashMap</span>;
 
 <span class="org-preprocessor">#[rustler::nif]</span>
-<span class="org-keyword">pub</span> <span class="org-keyword">fn</span> <span class="org-function-name">path_shorten</span>(<span class="org-variable-name">path</span>: <span class="org-rust-ampersand">&amp;</span><span class="org-type">str</span>,
-                    <span class="org-variable-name">aliases</span>: <span class="org-type">HashMap</span>&lt;<span class="org-type">String</span>, <span class="org-type">String</span>&gt;,
-                    <span class="org-variable-name">env_vars</span>: <span class="org-type">HashMap</span>&lt;<span class="org-type">String</span>, <span class="org-type">String</span>&gt;,
-                    <span class="org-variable-name">shorten_threshold</span>: <span class="org-type">u8</span>) -&gt; <span class="org-type">String</span> {
+<span class="org-keyword">pub</span> <span class="org-keyword">fn</span> <span class="org-function-name">path_shorten</span>(
+    <span class="org-variable-name">path</span>: <span class="org-rust-ampersand">&amp;</span><span class="org-type">str</span>,
+    <span class="org-variable-name">aliases</span>: <span class="org-type">HashMap</span>&lt;<span class="org-type">String</span>, <span class="org-type">String</span>&gt;,
+    <span class="org-variable-name">env_vars</span>: <span class="org-type">HashMap</span>&lt;<span class="org-type">String</span>, <span class="org-type">String</span>&gt;,
+    <span class="org-variable-name">shorten_threshold</span>: <span class="org-type">u8</span>,
+) -&gt; <span class="org-type">String</span> {
     <span class="org-keyword">let</span> <span class="org-variable-name">path_canonical</span> = make_canonical_path(path, <span class="org-rust-ampersand">&amp;</span>aliases, <span class="org-rust-ampersand">&amp;</span>env_vars);
     _path_shorten(<span class="org-rust-ampersand">&amp;</span>path_canonical, shorten_threshold)
 }
@@ -4587,7 +4591,7 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
 <span class="org-keyword">fn</span> <span class="org-function-name">make_canonical_path</span>(
     <span class="org-variable-name">path</span>: <span class="org-rust-ampersand">&amp;</span><span class="org-type">str</span>,
     <span class="org-variable-name">aliases</span>: <span class="org-rust-ampersand">&amp;</span><span class="org-type">HashMap</span>&lt;<span class="org-type">String</span>, <span class="org-type">String</span>&gt;,
-    <span class="org-variable-name">env_vars</span>: <span class="org-rust-ampersand">&amp;</span><span class="org-type">HashMap</span>&lt;<span class="org-type">String</span>, <span class="org-type">String</span>&gt;
+    <span class="org-variable-name">env_vars</span>: <span class="org-rust-ampersand">&amp;</span><span class="org-type">HashMap</span>&lt;<span class="org-type">String</span>, <span class="org-type">String</span>&gt;,
 ) -&gt; <span class="org-type">String</span> {
     <span class="org-comment-delimiter">// </span><span class="org-comment">For every aliased path, replace all matching environment variable</span>
     <span class="org-comment-delimiter">// </span><span class="org-comment">references in the path with their actual runtime values. For example, if</span>
@@ -4608,8 +4612,8 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
     }
 
     <span class="org-keyword">for</span> (path_maybe_has_env_vars, name) <span class="org-keyword">in</span> aliases.into_iter() {
-        <span class="org-keyword">let</span> <span class="org-variable-name">expanded_path</span> = <span class="org-constant">envsubst</span>::substitute(path_maybe_has_env_vars,
-                                                 <span class="org-rust-ampersand">&amp;</span>env_vars_cleaned).unwrap();
+        <span class="org-keyword">let</span> <span class="org-variable-name">expanded_path</span> =
+            <span class="org-constant">envsubst</span>::substitute(path_maybe_has_env_vars, <span class="org-rust-ampersand">&amp;</span>env_vars_cleaned).unwrap();
         aliases_expanded.insert(expanded_path, name.to_string());
     }
 
@@ -4633,18 +4637,13 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
             <span class="org-rust-builtin-formatting-macro">format!</span>(<span class="org-string">"~</span><span class="org-rust-string-interpolation">{}</span><span class="org-string">"</span>, aliased_path)
         }
         <span class="org-comment-delimiter">// </span><span class="org-comment">If there is no match, return the path as-is.</span>
-        <span class="org-type">None</span> =&gt; {
-            path.to_string()
-        }
+        <span class="org-type">None</span> =&gt; path.to_string(),
     };
 
     path_canonical
 }
 
-<span class="org-keyword">fn</span> <span class="org-function-name">get_matching_name</span>(
-    <span class="org-variable-name">path</span>: <span class="org-rust-ampersand">&amp;</span><span class="org-type">str</span>,
-    <span class="org-variable-name">aliases</span>: <span class="org-rust-ampersand">&amp;</span><span class="org-type">HashMap</span>&lt;<span class="org-type">String</span>, <span class="org-type">String</span>&gt;,
-) -&gt; <span class="org-type">Option</span>&lt;(<span class="org-type">String</span>, <span class="org-type">String</span>)&gt; {
+<span class="org-keyword">fn</span> <span class="org-function-name">get_matching_name</span>(<span class="org-variable-name">path</span>: <span class="org-rust-ampersand">&amp;</span><span class="org-type">str</span>, <span class="org-variable-name">aliases</span>: <span class="org-rust-ampersand">&amp;</span><span class="org-type">HashMap</span>&lt;<span class="org-type">String</span>, <span class="org-type">String</span>&gt;) -&gt; <span class="org-type">Option</span>&lt;(<span class="org-type">String</span>, <span class="org-type">String</span>)&gt; {
     <span class="org-keyword">let</span> <span class="org-keyword">mut</span> <span class="org-variable-name">aliased_paths</span> = aliases.keys().collect::&lt;<span class="org-type">Vec</span>&lt;_&gt;&gt;();
     aliased_paths.sort();
     aliased_paths.reverse();
@@ -4667,19 +4666,31 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
     <span class="org-keyword">fn</span> <span class="org-function-name">test_make_canonical_path</span>() {
         <span class="org-keyword">let</span> <span class="org-keyword">mut</span> <span class="org-variable-name">aliases</span>: <span class="org-type">HashMap</span>&lt;<span class="org-type">String</span>, <span class="org-type">String</span>&gt; = <span class="org-type">HashMap</span>::new();
         aliases.insert(<span class="org-string">"${HOME}/bar"</span>.to_string(), <span class="org-string">"b"</span>.to_string());
-        aliases.insert(<span class="org-string">"${HOME}/bar/baz/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/c"</span>.to_string(), <span class="org-string">"c"</span>.to_string());
+        aliases.insert(
+            <span class="org-string">"${HOME}/bar/baz/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/c"</span>.to_string(),
+            <span class="org-string">"c"</span>.to_string(),
+        );
         aliases.insert(<span class="org-string">"${MYPROJECT_DIR}"</span>.to_string(), <span class="org-string">"p"</span>.to_string());
         <span class="org-comment-delimiter">// </span><span class="org-comment">Handle aliases composed of multiple environment variables.</span>
-        aliases.insert(<span class="org-string">"${MYPROJECT_DIR}/${KOALA_SIZE}"</span>.to_string(), <span class="org-string">"pk"</span>.to_string());
+        aliases.insert(
+            <span class="org-string">"${MYPROJECT_DIR}/${KOALA_SIZE}"</span>.to_string(),
+            <span class="org-string">"pk"</span>.to_string(),
+        );
 
         <span class="org-keyword">let</span> <span class="org-keyword">mut</span> <span class="org-variable-name">env_vars</span>: <span class="org-type">HashMap</span>&lt;<span class="org-type">String</span>, <span class="org-type">String</span>&gt; = <span class="org-type">HashMap</span>::new();
         env_vars.insert(<span class="org-string">"HOME"</span>.to_string(), <span class="org-string">"/home/foo"</span>.to_string());
-        env_vars.insert(<span class="org-string">"MYPROJECT_DIR"</span>.to_string(), <span class="org-string">"/home/foo/myproject"</span>.to_string());
+        env_vars.insert(
+            <span class="org-string">"MYPROJECT_DIR"</span>.to_string(),
+            <span class="org-string">"/home/foo/myproject"</span>.to_string(),
+        );
         env_vars.insert(<span class="org-string">"KOALA_SIZE"</span>.to_string(), <span class="org-string">"big"</span>.to_string());
 
         <span class="org-preprocessor">assert_eq!</span>(make_canonical_path(<span class="org-string">""</span>, <span class="org-rust-ampersand">&amp;</span>aliases, <span class="org-rust-ampersand">&amp;</span>env_vars), <span class="org-string">""</span>);
         <span class="org-preprocessor">assert_eq!</span>(make_canonical_path(<span class="org-string">"/"</span>, <span class="org-rust-ampersand">&amp;</span>aliases, <span class="org-rust-ampersand">&amp;</span>env_vars), <span class="org-string">"/"</span>);
-        <span class="org-preprocessor">assert_eq!</span>(make_canonical_path(<span class="org-string">"/unrecognized/path"</span>, <span class="org-rust-ampersand">&amp;</span>aliases, <span class="org-rust-ampersand">&amp;</span>env_vars), <span class="org-string">"/unrecognized/path"</span>);
+        <span class="org-preprocessor">assert_eq!</span>(
+            make_canonical_path(<span class="org-string">"/unrecognized/path"</span>, <span class="org-rust-ampersand">&amp;</span>aliases, <span class="org-rust-ampersand">&amp;</span>env_vars),
+            <span class="org-string">"/unrecognized/path"</span>
+        );
         <span class="org-preprocessor">assert_eq!</span>(make_canonical_path(<span class="org-string">"/home/foo"</span>, <span class="org-rust-ampersand">&amp;</span>aliases, <span class="org-rust-ampersand">&amp;</span>env_vars), <span class="org-string">"~"</span>);
         <span class="org-preprocessor">assert_eq!</span>(
             make_canonical_path(<span class="org-string">"/home/foo/bar"</span>, <span class="org-rust-ampersand">&amp;</span>aliases, <span class="org-rust-ampersand">&amp;</span>env_vars),
@@ -4693,8 +4704,14 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
             ),
             <span class="org-string">"~c"</span>
         );
-        <span class="org-preprocessor">assert_eq!</span>(make_canonical_path(<span class="org-string">"/home/foo/myproject"</span>, <span class="org-rust-ampersand">&amp;</span>aliases, <span class="org-rust-ampersand">&amp;</span>env_vars), <span class="org-string">"~p"</span>);
-        <span class="org-preprocessor">assert_eq!</span>(make_canonical_path(<span class="org-string">"/home/foo/myproject/big"</span>, <span class="org-rust-ampersand">&amp;</span>aliases, <span class="org-rust-ampersand">&amp;</span>env_vars), <span class="org-string">"~pk"</span>);
+        <span class="org-preprocessor">assert_eq!</span>(
+            make_canonical_path(<span class="org-string">"/home/foo/myproject"</span>, <span class="org-rust-ampersand">&amp;</span>aliases, <span class="org-rust-ampersand">&amp;</span>env_vars),
+            <span class="org-string">"~p"</span>
+        );
+        <span class="org-preprocessor">assert_eq!</span>(
+            make_canonical_path(<span class="org-string">"/home/foo/myproject/big"</span>, <span class="org-rust-ampersand">&amp;</span>aliases, <span class="org-rust-ampersand">&amp;</span>env_vars),
+            <span class="org-string">"~pk"</span>
+        );
     }
 
     <span class="org-preprocessor">#[test]</span>
@@ -4739,48 +4756,58 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
         <span class="org-comment-delimiter">// </span><span class="org-comment">Extreme cases.</span>
         <span class="org-preprocessor">assert_eq!</span>(
             _path_shorten(
-                <span class="org-string">"~/aaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccc/hello"</span>, 30
+                <span class="org-string">"~/aaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccc/hello"</span>,
+                30
             ),
             <span class="org-string">"~/a/b/c/hello"</span>
         );
         <span class="org-comment-delimiter">// </span><span class="org-comment">Unusual case of just 2 directories, where both are very long.</span>
         <span class="org-preprocessor">assert_eq!</span>(
             _path_shorten(
-                <span class="org-string">"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"</span>, 30
+                <span class="org-string">"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"</span>,
+                30
             ),
             <span class="org-string">"a/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"</span>
         );
         <span class="org-comment-delimiter">// </span><span class="org-comment">Non-ASCII (exactly 30 characters).</span>
         <span class="org-preprocessor">assert_eq!</span>(
-            _path_shorten(<span class="org-string">"/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;"</span>, 30),
+            _path_shorten(
+                <span class="org-string">"/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;"</span>,
+                30
+            ),
             <span class="org-string">"/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;"</span>
         );
         <span class="org-preprocessor">assert_eq!</span>(
-            _path_shorten(<span class="org-string">"&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;a"</span>, 30),
+            _path_shorten(
+                <span class="org-string">"&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;a"</span>,
+                30
+            ),
             <span class="org-string">"&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;a"</span>
         );
         <span class="org-preprocessor">assert_eq!</span>(
-            _path_shorten(<span class="org-string">"~&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;"</span>, 30),
+            _path_shorten(
+                <span class="org-string">"~&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;"</span>,
+                30
+            ),
             <span class="org-string">"~&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;"</span>
         );
         <span class="org-comment-delimiter">// </span><span class="org-comment">Non-ASCII (over 30 characters).</span>
         <span class="org-preprocessor">assert_eq!</span>(
-            _path_shorten(<span class="org-string">"/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/a"</span>, 30),
+            _path_shorten(
+                <span class="org-string">"/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/a"</span>,
+                30
+            ),
             <span class="org-string">"/&#51068;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/&#51068;&#51060;&#49340;&#49324;&#50724;&#50977;&#52832;&#54036;&#44396;/a"</span>
         );
-        <span class="org-keyword">let</span> <span class="org-variable-name">longstr</span> = <span class="org-preprocessor">concat!</span>(<span class="org-string">"~/&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;"</span>,
-                                  <span class="org-string">"/&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;"</span>,
-                                  <span class="org-string">"/&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;"</span>,
-                                  <span class="org-string">"/hello"</span>);
-        <span class="org-preprocessor">assert_eq!</span>(
-            _path_shorten(longstr, 30),
-            <span class="org-string">"~/&#51068;/&#51060;/&#49340;/hello"</span>
+        <span class="org-keyword">let</span> <span class="org-variable-name">longstr</span> = <span class="org-preprocessor">concat!</span>(
+            <span class="org-string">"~/&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;&#51068;"</span>,
+            <span class="org-string">"/&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;&#51060;"</span>,
+            <span class="org-string">"/&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;&#49340;"</span>,
+            <span class="org-string">"/hello"</span>
         );
+        <span class="org-preprocessor">assert_eq!</span>(_path_shorten(longstr, 30), <span class="org-string">"~/&#51068;/&#51060;/&#49340;/hello"</span>);
         <span class="org-comment-delimiter">// </span><span class="org-comment">Shorten threshold is disabled, so don't shorten at all.</span>
-        <span class="org-preprocessor">assert_eq!</span>(
-            _path_shorten(longstr, 0),
-            longstr
-        );
+        <span class="org-preprocessor">assert_eq!</span>(_path_shorten(longstr, 0), longstr);
     }
 }
 </pre></div>
@@ -4946,7 +4973,10 @@ will be deleted in the future (to be replaced entirely with gRPC calls).
       {<span class="org-type">Phoenix.PubSub</span>, <span class="org-elixir-atom">name:</span> <span class="org-type">Melbyd.PubSub</span>},
 
       <span class="org-comment-delimiter"># </span><span class="org-comment">gRPC service. (controller)</span>
-      {<span class="org-type">GRPC.Server.Supervisor</span>, <span class="org-elixir-atom">endpoint:</span> <span class="org-type">Melbyd.GRPC</span>, <span class="org-elixir-atom">port:</span> <span class="org-type">Application</span>.get_env(<span class="org-elixir-atom">:melbyd</span>, <span class="org-elixir-atom">:melbyd_port</span>), <span class="org-elixir-atom">start_server:</span> <span class="org-elixir-atom">true</span>},
+      {<span class="org-type">GRPC.Server.Supervisor</span>,
+       <span class="org-elixir-atom">endpoint:</span> <span class="org-type">Melbyd.GRPC</span>,
+       <span class="org-elixir-atom">port:</span> <span class="org-type">Application</span>.get_env(<span class="org-elixir-atom">:melbyd</span>, <span class="org-elixir-atom">:melbyd_port</span>),
+       <span class="org-elixir-atom">start_server:</span> <span class="org-elixir-atom">true</span>},
 
       <span class="org-comment-delimiter"># </span><span class="org-comment">Haskell "melbyr" service. (view)</span>
       <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_muontrap">melbyr_muontrap</a></span>
@@ -5460,7 +5490,8 @@ any overlap.
         <span class="org-string">"paths"</span> <span class="org-keyword">-&gt;</span>
           assert_type_paths(val)
 
-        <span class="org-comment-delimiter"># </span><span class="org-comment">The contents of a file can be anything (any sequence of bytes), so it's always well-formed.</span>
+        <span class="org-comment-delimiter"># </span><span class="org-comment">The contents of a file can be anything (any sequence of bytes), so</span>
+        <span class="org-comment-delimiter"># </span><span class="org-comment">it's always well-formed.</span>
         <span class="org-string">"pathblob"</span> <span class="org-keyword">-&gt;</span>
           <span class="org-elixir-atom">:ok</span>
 
@@ -5901,7 +5932,8 @@ argument is always the state of the Lua VM instance. This is demonstrated in the
   <span class="org-variable-name">aliases</span> = options_map[<span class="org-string">"aliases"</span>] <span class="org-keyword">|&gt;</span> <span class="org-type">Melbyd.LuerlUtil</span>.table_to_native_map()
   <span class="org-variable-name">env</span> = options_map[<span class="org-string">"env"</span>] <span class="org-keyword">|&gt;</span> <span class="org-type">Melbyd.LuerlUtil</span>.table_to_native_map()
 
-  <span class="org-comment-delimiter"># </span><span class="org-comment">Create a subset of env vars. This is because we only care about the ones used by the keys in aliases.</span>
+  <span class="org-comment-delimiter"># </span><span class="org-comment">Create a subset of env vars. This is because we only care about the ones</span>
+  <span class="org-comment-delimiter"># </span><span class="org-comment">used by the keys in aliases.</span>
   {aliases_filtered, env_filtered} =
     <span class="org-type">Enum</span>.reduce(aliases, {%{}, %{}}, <span class="org-keyword">fn</span> {k, v}, {aliases_filtered, env_filtered} <span class="org-keyword">-&gt;</span>
       <span class="org-variable-name">vars</span> = <span class="org-type">Regex</span>.scan(<span class="org-builtin">~r</span>/<span class="org-string">\$\{(.+?)\}</span>/, k) <span class="org-keyword">|&gt;</span> <span class="org-type">Enum</span>.map(<span class="org-keyword">fn</span> [<span class="org-comment">_entire_match</span>, group] <span class="org-keyword">-&gt;</span> group <span class="org-keyword">end</span>)
@@ -5998,7 +6030,8 @@ def_lua_func get_path_aliases_fake([path_aliases_raw], st0) <span class="org-key
 
   <span class="org-variable-name">addr</span> = get_melbyr_addr()
   <span class="org-keyword">with</span> {<span class="org-elixir-atom">:ok</span>, channel} <span class="org-keyword">&lt;-</span> <span class="org-type">GRPC.Stub</span>.connect(addr, <span class="org-elixir-atom">adapter_opts:</span> [<span class="org-elixir-atom">retry_timeout:</span> <span class="org-elixir-number">5</span>]),
-       {<span class="org-elixir-atom">:ok</span>, reply} <span class="org-keyword">&lt;-</span> channel <span class="org-keyword">|&gt;</span> <span class="org-type">MelbyRenderer.Renderer.Stub</span>.get_colorized_git_sha(req, <span class="org-elixir-atom">timeout:</span> <span class="org-elixir-number">200</span>) <span class="org-keyword">do</span>
+       {<span class="org-elixir-atom">:ok</span>, reply} <span class="org-keyword">&lt;-</span> channel
+         <span class="org-keyword">|&gt;</span> <span class="org-type">MelbyRenderer.Renderer.Stub</span>.get_colorized_git_sha(req, <span class="org-elixir-atom">timeout:</span> <span class="org-elixir-number">200</span>) <span class="org-keyword">do</span>
     <span class="org-type">GRPC.Stub</span>.disconnect(channel)
     {<span class="org-elixir-atom">:ok</span>, reply.sha_colorized, st0}
   <span class="org-keyword">end</span>
@@ -7125,7 +7158,16 @@ config <span class="org-elixir-atom">:logger</span>,
       <span class="org-elixir-atom">frequency:</span> <span class="org-elixir-number">1000</span>,
       <span class="org-elixir-atom">timeout:</span> <span class="org-elixir-number">5_000</span>
     )
-    <span class="org-comment-delimiter"># </span><span class="org-comment">Alternate: wait for all substrings to appear. But actually, this is broken because we run the lua script too many times (once for each substring); so then our backend will purge any already-broadcasted shell message. The right approach is to wait up to 5 seconds, and during that time do fetches 1x per second, and for each fetch we should check how many of the substrings have matched, and NOT re-check those already-matched substrings in the next iteration. That is, we should match as much as possible each time we run the lua script and fetch (this way different parts of the output string can match what we want overall).</span>
+    <span class="org-comment-delimiter"># </span><span class="org-comment">Alternate: wait for all substrings to appear. But actually, this is broken</span>
+    <span class="org-comment-delimiter"># </span><span class="org-comment">because we run the lua script too many times (once for each substring); so</span>
+    <span class="org-comment-delimiter"># </span><span class="org-comment">then our backend will purge any already-broadcasted shell message. The</span>
+    <span class="org-comment-delimiter"># </span><span class="org-comment">right approach is to wait up to 5 seconds, and during that time do fetches</span>
+    <span class="org-comment-delimiter"># </span><span class="org-comment">1x per second, and for each fetch we should check how many of the</span>
+    <span class="org-comment-delimiter"># </span><span class="org-comment">substrings have matched, and NOT re-check those already-matched substrings</span>
+    <span class="org-comment-delimiter"># </span><span class="org-comment">in the next iteration. That is, we should match as much as possible each</span>
+    <span class="org-comment-delimiter"># </span><span class="org-comment">time we run the lua script and fetch (this way different parts of the</span>
+    <span class="org-comment-delimiter"># </span><span class="org-comment">output string can match what we want overall).</span>
+
     <span class="org-comment-delimiter">#</span><span class="org-comment">WaitForIt.wait(</span>
     <span class="org-comment-delimiter">#  </span><span class="org-comment">Enum.map(</span>
     <span class="org-comment-delimiter">#    </span><span class="org-comment">want_substrs,</span>
@@ -7859,7 +7901,10 @@ Between each widget, 1 space character is inserted by default. This can be
 adjusted with the <code>delimiter</code> option in the call to <code>render()</code>, like this:
 </p>
 
-<div class="org-src-container"><pre class="src src-lua" id="nil-30">rendered = melbyd.render(widgets, delimiter={str=<span class="org-string">"**"</span>}, render_options={format=<span class="org-string">"RENDER_FORMAT_UNIX_TERMINAL"</span>, color_depth=<span class="org-string">"RENDER_COLOR_DEPTH_24_BIT"</span>})
+<div class="org-src-container"><pre class="src src-lua" id="nil-30">rendered = melbyd.render(widgets,
+                         delimiter={str=<span class="org-string">"**"</span>},
+                         render_options={format=<span class="org-string">"RENDER_FORMAT_UNIX_TERMINAL"</span>,
+                                         color_depth=<span class="org-string">"RENDER_COLOR_DEPTH_24_BIT"</span>})
 </pre></div><p>
 This uses 2 asterisks as a delimiter.
 </p>
@@ -8146,7 +8191,11 @@ and distributing these colors onto the 40 hex characters.
   <span class="org-haskell-operator">-&gt;</span> m <span class="org-haskell-type">MColorizedGitShaResponse</span>
 <span class="org-haskell-definition">getColorizedGitSha</span> req <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">do</span>
   logDebug <span class="org-haskell-operator">$</span> <span class="org-string">"request was: "</span> <span class="org-haskell-operator">&lt;&gt;</span> (T.pack <span class="org-haskell-operator">$</span> show req)
-  pure <span class="org-haskell-operator">$</span> <span class="org-haskell-constructor">MColorizedGitShaResponse</span>{ sha_colorized <span class="org-haskell-operator">=</span> colorize (sha req) (sha_length req) (pad_left req) (pad_right req)}
+  pure <span class="org-haskell-operator">$</span> <span class="org-haskell-constructor">MColorizedGitShaResponse</span>{ sha_colorized <span class="org-haskell-operator">=</span> colorize
+                                                   (sha req)
+                                                   (sha_length req)
+                                                   (pad_left req)
+                                                   (pad_right req)}
   <span class="org-haskell-keyword">where</span>
   colorize bytes len padl padr
     <span class="org-haskell-operator">=</span> renderColorized
@@ -8492,23 +8541,30 @@ space.
         parse pPathAlias <span class="org-string">""</span> <span class="org-string">"hash   -d     foo=/bar   "</span> <span class="org-haskell-operator">`shouldParse`</span> (<span class="org-string">"/bar"</span>, <span class="org-string">"foo"</span>)
     context <span class="org-string">"when parsing a path with an embedded variable"</span> <span class="org-haskell-operator">$</span>
       it <span class="org-string">"works"</span> <span class="org-haskell-operator">$</span>
-        parse pPathAlias <span class="org-string">""</span> <span class="org-string">"hash -d   kk=${HOME}/go/src/k8s.io/kubernetes"</span> <span class="org-haskell-operator">`shouldParse`</span> (<span class="org-string">"${HOME}/go/src/k8s.io/kubernetes"</span>, <span class="org-string">"kk"</span>)
+        parse pPathAlias <span class="org-string">""</span> <span class="org-string">"hash -d   kk=${HOME}/go/src/k8s.io/kubernetes"</span>
+          <span class="org-haskell-operator">`shouldParse`</span> (<span class="org-string">"${HOME}/go/src/k8s.io/kubernetes"</span>, <span class="org-string">"kk"</span>)
     context <span class="org-string">"when parsing a path with multiple embedded variables"</span> <span class="org-haskell-operator">$</span>
       it <span class="org-string">"works"</span> <span class="org-haskell-operator">$</span>
-        parse pPathAlias <span class="org-string">""</span> <span class="org-string">"hash -d   x=${HOME}/foo/${SUBDIR}/baz"</span> <span class="org-haskell-operator">`shouldParse`</span> (<span class="org-string">"${HOME}/foo/${SUBDIR}/baz"</span>, <span class="org-string">"x"</span>)
+        parse pPathAlias <span class="org-string">""</span> <span class="org-string">"hash -d   x=${HOME}/foo/${SUBDIR}/baz"</span>
+          <span class="org-haskell-operator">`shouldParse`</span> (<span class="org-string">"${HOME}/foo/${SUBDIR}/baz"</span>, <span class="org-string">"x"</span>)
     context <span class="org-string">"when parsing a path with a trailing comment"</span> <span class="org-haskell-operator">$</span>
       it <span class="org-string">"works"</span> <span class="org-haskell-operator">$</span>
-        parse pPathAlias <span class="org-string">""</span> <span class="org-string">"hash -d   x=${HOME}/hello # Comment text"</span> <span class="org-haskell-operator">`shouldParse`</span> (<span class="org-string">"${HOME}/hello"</span>, <span class="org-string">"x"</span>)
+        parse pPathAlias <span class="org-string">""</span> <span class="org-string">"hash -d   x=${HOME}/hello # Comment text"</span>
+          <span class="org-haskell-operator">`shouldParse`</span> (<span class="org-string">"${HOME}/hello"</span>, <span class="org-string">"x"</span>)
     <span class="org-comment-delimiter">-- </span><span class="org-comment">Bad cases.</span>
     context <span class="org-string">"when the equal sign has a space to the left"</span> <span class="org-haskell-operator">$</span>
       it <span class="org-string">"fails"</span> <span class="org-haskell-operator">$</span>
-        parse pPathAlias <span class="org-string">""</span> <span class="org-string">"hash   -d     foo =/bar   "</span> <span class="org-haskell-operator">`shouldFailWith`</span> err 17 (utok <span class="org-string">' '</span> <span class="org-haskell-operator">&lt;&gt;</span> etok <span class="org-string">'='</span> <span class="org-haskell-operator">&lt;&gt;</span> elabel <span class="org-string">"alias chars"</span>)
+        parse pPathAlias <span class="org-string">""</span> <span class="org-string">"hash   -d     foo =/bar   "</span>
+          <span class="org-haskell-operator">`shouldFailWith`</span> err 17 (utok <span class="org-string">' '</span> <span class="org-haskell-operator">&lt;&gt;</span> etok <span class="org-string">'='</span> <span class="org-haskell-operator">&lt;&gt;</span> elabel <span class="org-string">"alias chars"</span>)
     context <span class="org-string">"when the equal sign has a space to the right"</span> <span class="org-haskell-operator">$</span>
       it <span class="org-string">"fails"</span> <span class="org-haskell-operator">$</span>
-        parse pPathAlias <span class="org-string">""</span> <span class="org-string">"hash   -d     foo= /bar   "</span> <span class="org-haskell-operator">`shouldFailWith`</span> err 18 (utoks <span class="org-string">" /"</span> <span class="org-haskell-operator">&lt;&gt;</span> elabel <span class="org-string">"directory path"</span>)
+        parse pPathAlias <span class="org-string">""</span> <span class="org-string">"hash   -d     foo= /bar   "</span>
+          <span class="org-haskell-operator">`shouldFailWith`</span> err 18 (utoks <span class="org-string">" /"</span> <span class="org-haskell-operator">&lt;&gt;</span> elabel <span class="org-string">"directory path"</span>)
     context <span class="org-string">"when there is an aberrant dollar sign in the path"</span> <span class="org-haskell-operator">$</span>
       it <span class="org-string">"fails"</span> <span class="org-haskell-operator">$</span>
-        parse pPathAlias <span class="org-string">""</span> <span class="org-string">"hash -d x=/clam-chowder-$oup\n"</span> <span class="org-haskell-operator">`shouldFailWith`</span> err 24 (utok <span class="org-string">'$'</span> <span class="org-haskell-operator">&lt;&gt;</span> elabel <span class="org-string">"directory chars"</span> <span class="org-haskell-operator">&lt;&gt;</span> elabel <span class="org-string">"dollar-and-opening-brace"</span>)
+        parse pPathAlias <span class="org-string">""</span> <span class="org-string">"hash -d x=/clam-chowder-$oup\n"</span>
+          <span class="org-haskell-operator">`shouldFailWith`</span> err 24 (utok <span class="org-string">'$'</span> <span class="org-haskell-operator">&lt;&gt;</span> elabel <span class="org-string">"directory chars"</span>
+                                            <span class="org-haskell-operator">&lt;&gt;</span> elabel <span class="org-string">"dollar-and-opening-brace"</span>)
   describe <span class="org-string">"pPathAliases"</span> <span class="org-haskell-operator">$</span> <span class="org-haskell-keyword">do</span>
     context <span class="org-string">"when there are comment lines"</span> <span class="org-haskell-operator">$</span>
       it <span class="org-string">"works"</span> <span class="org-haskell-operator">$</span>
@@ -8522,14 +8578,19 @@ space.
 <span class="org-haskell-quasi-quote">            # Commented out declaration.</span>
 <span class="org-haskell-quasi-quote">            # hash -d x=/foo</span>
 
-<span class="org-haskell-quasi-quote">            # Unfortunately we have to escape the dollar sign to make it play nicely with Template Haskell.</span>
+<span class="org-haskell-quasi-quote">            # Unfortunately we have to escape the dollar sign to make it play</span>
+<span class="org-haskell-quasi-quote">            # nicely with Template Haskell.</span>
 <span class="org-haskell-quasi-quote">            hash -d kk=$${HOME}/go/src/k8s.io/kubernetes</span>
 
 <span class="org-haskell-quasi-quote">            # Indented entry.</span>
 <span class="org-haskell-quasi-quote">              hash    -d   y=/hello</span>
 <span class="org-haskell-quasi-quote">            # Comment at end of file.</span>
 <span class="org-haskell-quasi-quote">            |</span>]
-        <span class="org-haskell-keyword">in</span> parse pPathAliases <span class="org-string">""</span> x <span class="org-haskell-operator">`shouldParse`</span> M.fromList [(<span class="org-string">"/foo"</span>, <span class="org-string">"x"</span>), (<span class="org-string">"${HOME}/go/src/k8s.io/kubernetes"</span>, <span class="org-string">"kk"</span>), (<span class="org-string">"/hello"</span>, <span class="org-string">"y"</span>)]
+        <span class="org-haskell-keyword">in</span> parse pPathAliases <span class="org-string">""</span> x
+           <span class="org-haskell-operator">`shouldParse`</span> M.fromList
+             [ (<span class="org-string">"/foo"</span>, <span class="org-string">"x"</span>)
+             , (<span class="org-string">"${HOME}/go/src/k8s.io/kubernetes"</span>, <span class="org-string">"kk"</span>)
+             , (<span class="org-string">"/hello"</span>, <span class="org-string">"y"</span>)]
 </pre></div>
 </div>
 </div>
@@ -8896,7 +8957,8 @@ FIXME: should we move this to a common "melby" haskell package?
 <span class="org-haskell-definition">getGitInfo</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">do</span>
   maybeProjectRoot <span class="org-haskell-operator">&lt;-</span> lookupEnv <span class="org-string">"MELBY_PROJECT_ROOT"</span>
   <span class="org-haskell-keyword">case</span> maybeProjectRoot <span class="org-haskell-keyword">of</span>
-    <span class="org-haskell-constructor">Just</span> projectRoot <span class="org-haskell-operator">-&gt;</span> readProcess <span class="org-string">"git"</span> [<span class="org-string">"-C"</span>, projectRoot, <span class="org-string">"describe"</span>, <span class="org-string">"--abbrev=10"</span>, <span class="org-string">"--always"</span>, <span class="org-string">"--dirty"</span>] <span class="org-string">""</span>
+    <span class="org-haskell-constructor">Just</span> projectRoot <span class="org-haskell-operator">-&gt;</span> readProcess <span class="org-string">"git"</span>
+      [<span class="org-string">"-C"</span>, projectRoot, <span class="org-string">"describe"</span>, <span class="org-string">"--abbrev=10"</span>, <span class="org-string">"--always"</span>, <span class="org-string">"--dirty"</span>] <span class="org-string">""</span>
     <span class="org-haskell-constructor">Nothing</span> <span class="org-haskell-operator">-&gt;</span> pure <span class="org-string">"-unknown"</span>
 
 <span class="org-haskell-definition">getTimeInfo</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">IO</span> <span class="org-haskell-type">String</span>
@@ -9559,7 +9621,8 @@ We package up <code>melbyd</code> as a standalone "package".
   <span class="org-nix-attribute">melby</span> = <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../package/build.nix</span>;
   <span class="org-nix-attribute">nifs_ext</span> = <span class="org-nix-keyword">if</span> pkgs.stdenv.isDarwin <span class="org-nix-keyword">then</span> <span class="org-string">"dylib"</span> <span class="org-nix-keyword">else</span> <span class="org-string">"so"</span>;
   <span class="org-comment"># FIXME remove this after confirming that the problem doesn't happen any more?</span>
-  <span class="org-comment"># For whatever reason Rustler insists on searching for .so files, even on Darwin. So we do this to make it happy. The exact error we get on Mac is:</span>
+  <span class="org-comment"># For whatever reason Rustler insists on searching for .so files, even on Darwin.</span>
+  <span class="org-comment"># So we do this to make it happy. The exact error we get on Mac is:</span>
   <span class="org-comment">#</span>
   <span class="org-comment">#    00:46:00.502 [warning] The on_load function for module Elixir.Melbyd.Nifs returned:</span>
   <span class="org-comment">#    {:error,</span>
@@ -9573,7 +9636,11 @@ We package up <code>melbyd</code> as a standalone "package".
   <span class="org-comment"># "file_system" Elixir package does not do this automatically. See</span>
   <span class="org-comment"># https://gist.github.com/jbott/2030c133509e7c1db4f41941b5367475.</span>
   <span class="org-nix-attribute">mac_compile_mac_listener_cmd</span> = pkgs.lib.strings.optionalString pkgs.stdenv.isDarwin <span class="org-string">''</span>
-<span class="org-string">    clang -framework CoreFoundation -framework CoreServices -Wno-deprecated-declarations deps/file_system/c_src/mac/*.c -o $out/bin/mac_listener</span>
+<span class="org-string">    clang \</span>
+<span class="org-string">      -framework CoreFoundation \</span>
+<span class="org-string">      -framework CoreServices \</span>
+<span class="org-string">      -Wno-deprecated-declarations deps/file_system/c_src/mac/*.c \</span>
+<span class="org-string">      -o $out/bin/mac_listener</span>
 <span class="org-string">  ''</span>;
 <span class="org-nix-keyword">in</span>
   packages.mixRelease {
@@ -9960,7 +10027,7 @@ which acts as an allowlist.
 
 <div class="org-src-container"><pre class="src src-sh" id="nil-61"><span class="org-builtin">set</span> -euo pipefail
 
-<span class="org-variable-name">SCRIPT_ROOT</span>=<span class="org-string">"$(dirname "$(realpath "$0")")"</span>
+<span class="org-variable-name">SCRIPT_ROOT</span>=<span class="org-string">"$(</span><span class="org-sh-quoted-exec">dirname "$(realpath "$0"</span><span class="org-string">)")"</span>
 
 <span class="org-comment-delimiter"># </span><span class="org-comment">Files which are tracked outside of our tangling step, but for legitimate</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">reasons (generated code, symlinks to dependencies, or LICENSE files,</span>
@@ -10061,7 +10128,7 @@ which acts as an allowlist.
     <span class="org-comment-delimiter"># </span><span class="org-comment">list should match the sum of all tangled files (modulo HTML and Org</span>
     <span class="org-comment-delimiter"># </span><span class="org-comment">files).</span>
     <span class="org-keyword">if</span> diff -u <span class="org-sh-escaped-newline">\</span>
-        &lt;(printf <span class="org-string">'%s\n'</span> <span class="org-string">"$(tangled_files)"</span> <span class="org-string">"${known_not_tangled[@]}"</span> | sort) <span class="org-sh-escaped-newline">\</span>
+        &lt;(<span class="org-builtin">printf</span> <span class="org-string">'%s\n'</span> <span class="org-string">"$(</span><span class="org-sh-quoted-exec">tangled_files</span><span class="org-string">)"</span> <span class="org-string">"${known_not_tangled[@]}"</span> | sort) <span class="org-sh-escaped-newline">\</span>
         &lt;(tracked_files); <span class="org-keyword">then</span>
 
         &gt;&amp;2 echo <span class="org-string">"OK"</span>

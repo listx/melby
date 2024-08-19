@@ -144,7 +144,16 @@ defmodule MelbydTest do
       frequency: 1000,
       timeout: 5_000
     )
-    # Alternate: wait for all substrings to appear. But actually, this is broken because we run the lua script too many times (once for each substring); so then our backend will purge any already-broadcasted shell message. The right approach is to wait up to 5 seconds, and during that time do fetches 1x per second, and for each fetch we should check how many of the substrings have matched, and NOT re-check those already-matched substrings in the next iteration. That is, we should match as much as possible each time we run the lua script and fetch (this way different parts of the output string can match what we want overall).
+    # Alternate: wait for all substrings to appear. But actually, this is broken
+    # because we run the lua script too many times (once for each substring); so
+    # then our backend will purge any already-broadcasted shell message. The
+    # right approach is to wait up to 5 seconds, and during that time do fetches
+    # 1x per second, and for each fetch we should check how many of the
+    # substrings have matched, and NOT re-check those already-matched substrings
+    # in the next iteration. That is, we should match as much as possible each
+    # time we run the lua script and fetch (this way different parts of the
+    # output string can match what we want overall).
+
     #WaitForIt.wait(
     #  Enum.map(
     #    want_substrs,

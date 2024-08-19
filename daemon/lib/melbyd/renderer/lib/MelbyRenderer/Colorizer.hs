@@ -30,7 +30,11 @@ getColorizedGitSha
   -> m MColorizedGitShaResponse
 getColorizedGitSha req = do
   logDebug $ "request was: " <> (T.pack $ show req)
-  pure $ MColorizedGitShaResponse{ sha_colorized = colorize (sha req) (sha_length req) (pad_left req) (pad_right req)}
+  pure $ MColorizedGitShaResponse{ sha_colorized = colorize
+                                                   (sha req)
+                                                   (sha_length req)
+                                                   (pad_left req)
+                                                   (pad_right req)}
   where
   colorize bytes len padl padr
     = renderColorized

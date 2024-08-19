@@ -132,7 +132,8 @@ pkgs.mkShell ({
     macOS-security
   ];
 
-  # FIXME: how to get the git version into the environment...???? The setting below for MELBY_PROJECT_ROOT only works for the dev env, not the release env
+  # FIXME: how to get the git version into the environment...???? The setting
+  # below for MELBY_PROJECT_ROOT only works for the dev env, not the release env
   shellHook = ''
     # Prefer to use melbyr and melbyc from the local development tree path.
     export PATH=$PWD/daemon/test:$PWD/daemon/lib/melbyd/renderer:$PWD/client:$PATH

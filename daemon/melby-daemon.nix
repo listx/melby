@@ -116,7 +116,8 @@ let
   melby = import ../package/build.nix;
   nifs_ext = if pkgs.stdenv.isDarwin then "dylib" else "so";
   # FIXME remove this after confirming that the problem doesn't happen any more?
-  # For whatever reason Rustler insists on searching for .so files, even on Darwin. So we do this to make it happy. The exact error we get on Mac is:
+  # For whatever reason Rustler insists on searching for .so files, even on Darwin.
+  # So we do this to make it happy. The exact error we get on Mac is:
   #
   #    00:46:00.502 [warning] The on_load function for module Elixir.Melbyd.Nifs returned:
   #    {:error,
@@ -130,7 +131,11 @@ let
   # "file_system" Elixir package does not do this automatically. See
   # https://gist.github.com/jbott/2030c133509e7c1db4f41941b5367475.
   mac_compile_mac_listener_cmd = pkgs.lib.strings.optionalString pkgs.stdenv.isDarwin ''
-    clang -framework CoreFoundation -framework CoreServices -Wno-deprecated-declarations deps/file_system/c_src/mac/*.c -o $out/bin/mac_listener
+    clang \
+      -framework CoreFoundation \
+      -framework CoreServices \
+      -Wno-deprecated-declarations deps/file_system/c_src/mac/*.c \
+      -o $out/bin/mac_listener
   '';
 in
   packages.mixRelease {

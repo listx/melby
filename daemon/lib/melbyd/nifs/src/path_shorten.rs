@@ -1,11 +1,13 @@
-use std::collections::HashMap;
 use envsubst;
+use std::collections::HashMap;
 
 #[rustler::nif]
-pub fn path_shorten(path: &str,
-                    aliases: HashMap<String, String>,
-                    env_vars: HashMap<String, String>,
-                    shorten_threshold: u8) -> String {
+pub fn path_shorten(
+    path: &str,
+    aliases: HashMap<String, String>,
+    env_vars: HashMap<String, String>,
+    shorten_threshold: u8,
+) -> String {
     let path_canonical = make_canonical_path(path, &aliases, &env_vars);
     _path_shorten(&path_canonical, shorten_threshold)
 }
@@ -96,7 +98,7 @@ fn _path_shorten(path_canonical: &str, shorten_threshold: u8) -> String {
 fn make_canonical_path(
     path: &str,
     aliases: &HashMap<String, String>,
-    env_vars: &HashMap<String, String>
+    env_vars: &HashMap<String, String>,
 ) -> String {
     // For every aliased path, replace all matching environment variable
     // references in the path with their actual runtime values. For example, if
@@ -117,8 +119,8 @@ fn make_canonical_path(
     }
 
     for (path_maybe_has_env_vars, name) in aliases.into_iter() {
-        let expanded_path = envsubst::substitute(path_maybe_has_env_vars,
-                                                 &env_vars_cleaned).unwrap();
+        let expanded_path =
+            envsubst::substitute(path_maybe_has_env_vars, &env_vars_cleaned).unwrap();
         aliases_expanded.insert(expanded_path, name.to_string());
     }
 
@@ -142,18 +144,13 @@ fn make_canonical_path(
             format!("~{}", aliased_path)
         }
         // If there is no match, return the path as-is.
-        None => {
-            path.to_string()
-        }
+        None => path.to_string(),
     };
 
     path_canonical
 }
 
-fn get_matching_name(
-    path: &str,
-    aliases: &HashMap<String, String>,
-) -> Option<(String, String)> {
+fn get_matching_name(path: &str, aliases: &HashMap<String, String>) -> Option<(String, String)> {
     let mut aliased_paths = aliases.keys().collect::<Vec<_>>();
     aliased_paths.sort();
     aliased_paths.reverse();
@@ -176,19 +173,31 @@ mod test {
     fn test_make_canonical_path() {
         let mut aliases: HashMap<String, String> = HashMap::new();
         aliases.insert("${HOME}/bar".to_string(), "b".to_string());
-        aliases.insert("${HOME}/bar/baz/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/c".to_string(), "c".to_string());
+        aliases.insert(
+            "${HOME}/bar/baz/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/c".to_string(),
+            "c".to_string(),
+        );
         aliases.insert("${MYPROJECT_DIR}".to_string(), "p".to_string());
         // Handle aliases composed of multiple environment variables.
-        aliases.insert("${MYPROJECT_DIR}/${KOALA_SIZE}".to_string(), "pk".to_string());
+        aliases.insert(
+            "${MYPROJECT_DIR}/${KOALA_SIZE}".to_string(),
+            "pk".to_string(),
+        );
 
         let mut env_vars: HashMap<String, String> = HashMap::new();
         env_vars.insert("HOME".to_string(), "/home/foo".to_string());
-        env_vars.insert("MYPROJECT_DIR".to_string(), "/home/foo/myproject".to_string());
+        env_vars.insert(
+            "MYPROJECT_DIR".to_string(),
+            "/home/foo/myproject".to_string(),
+        );
         env_vars.insert("KOALA_SIZE".to_string(), "big".to_string());
 
         assert_eq!(make_canonical_path("", &aliases, &env_vars), "");
         assert_eq!(make_canonical_path("/", &aliases, &env_vars), "/");
-        assert_eq!(make_canonical_path("/unrecognized/path", &aliases, &env_vars), "/unrecognized/path");
+        assert_eq!(
+            make_canonical_path("/unrecognized/path", &aliases, &env_vars),
+            "/unrecognized/path"
+        );
         assert_eq!(make_canonical_path("/home/foo", &aliases, &env_vars), "~");
         assert_eq!(
             make_canonical_path("/home/foo/bar", &aliases, &env_vars),
@@ -202,8 +211,14 @@ mod test {
             ),
             "~c"
         );
-        assert_eq!(make_canonical_path("/home/foo/myproject", &aliases, &env_vars), "~p");
-        assert_eq!(make_canonical_path("/home/foo/myproject/big", &aliases, &env_vars), "~pk");
+        assert_eq!(
+            make_canonical_path("/home/foo/myproject", &aliases, &env_vars),
+            "~p"
+        );
+        assert_eq!(
+            make_canonical_path("/home/foo/myproject/big", &aliases, &env_vars),
+            "~pk"
+        );
     }
 
     #[test]
@@ -248,47 +263,57 @@ mod test {
         // Extreme cases.
         assert_eq!(
             _path_shorten(
-                "~/aaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccc/hello", 30
+                "~/aaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccc/hello",
+                30
             ),
             "~/a/b/c/hello"
         );
         // Unusual case of just 2 directories, where both are very long.
         assert_eq!(
             _path_shorten(
-                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 30
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                30
             ),
             "a/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         );
         // Non-ASCII (exactly 30 characters).
         assert_eq!(
-            _path_shorten("/일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구", 30),
+            _path_shorten(
+                "/일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구",
+                30
+            ),
             "/일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구"
         );
         assert_eq!(
-            _path_shorten("일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구a", 30),
+            _path_shorten(
+                "일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구a",
+                30
+            ),
             "일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구a"
         );
         assert_eq!(
-            _path_shorten("~일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구", 30),
+            _path_shorten(
+                "~일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구",
+                30
+            ),
             "~일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구"
         );
         // Non-ASCII (over 30 characters).
         assert_eq!(
-            _path_shorten("/일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구/a", 30),
+            _path_shorten(
+                "/일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구/a",
+                30
+            ),
             "/일/일이삼사오육칠팔구/일이삼사오육칠팔구/a"
         );
-        let longstr = concat!("~/일일일일일일일일일일일일일일일일일일일일",
-                                  "/이이이이이이이이이이이이이이이이이이이이",
-                                  "/삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼",
-                                  "/hello");
-        assert_eq!(
-            _path_shorten(longstr, 30),
-            "~/일/이/삼/hello"
+        let longstr = concat!(
+            "~/일일일일일일일일일일일일일일일일일일일일",
+            "/이이이이이이이이이이이이이이이이이이이이",
+            "/삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼",
+            "/hello"
         );
+        assert_eq!(_path_shorten(longstr, 30), "~/일/이/삼/hello");
         // Shorten threshold is disabled, so don't shorten at all.
-        assert_eq!(
-            _path_shorten(longstr, 0),
-            longstr
-        );
+        assert_eq!(_path_shorten(longstr, 0), longstr);
     }
 }

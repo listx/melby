@@ -319,7 +319,8 @@ tangle-profile:
 .PHONY: tangle-profile
 
 tangle-profile-inspect:
-	emacs -Q --load $(LILAC_ROOT)/lilac.el --eval="(profiler-find-profile \"emacs-profile-tangle.txt\"))"
+	emacs -Q --load $(LILAC_ROOT)/lilac.el \
+		--eval="(profiler-find-profile \"emacs-profile-tangle.txt\"))"
 .PHONY: tangle-profile-inspect
 
 tangle-generated:
@@ -574,7 +575,8 @@ pkgs.mkShell ({
     macOS-security
   ];
 
-  # FIXME: how to get the git version into the environment...???? The setting below for MELBY_PROJECT_ROOT only works for the dev env, not the release env
+  # FIXME: how to get the git version into the environment...???? The setting
+  # below for MELBY_PROJECT_ROOT only works for the dev env, not the release env
   shellHook = ''
     # Prefer to use melbyr and melbyc from the local development tree path.
     export PATH=$PWD/daemon/test:$PWD/daemon/lib/melbyd/renderer:$PWD/client:$PATH
@@ -3495,14 +3497,16 @@ end
 #+end_src
 
 #+begin_src rust :tangle daemon/lib/melbyd/nifs/src/path_shorten.rs
-use std::collections::HashMap;
 use envsubst;
+use std::collections::HashMap;
 
 #[rustler::nif]
-pub fn path_shorten(path: &str,
-                    aliases: HashMap<String, String>,
-                    env_vars: HashMap<String, String>,
-                    shorten_threshold: u8) -> String {
+pub fn path_shorten(
+    path: &str,
+    aliases: HashMap<String, String>,
+    env_vars: HashMap<String, String>,
+    shorten_threshold: u8,
+) -> String {
     let path_canonical = make_canonical_path(path, &aliases, &env_vars);
     _path_shorten(&path_canonical, shorten_threshold)
 }
@@ -3593,7 +3597,7 @@ fn _path_shorten(path_canonical: &str, shorten_threshold: u8) -> String {
 fn make_canonical_path(
     path: &str,
     aliases: &HashMap<String, String>,
-    env_vars: &HashMap<String, String>
+    env_vars: &HashMap<String, String>,
 ) -> String {
     // For every aliased path, replace all matching environment variable
     // references in the path with their actual runtime values. For example, if
@@ -3614,8 +3618,8 @@ fn make_canonical_path(
     }
 
     for (path_maybe_has_env_vars, name) in aliases.into_iter() {
-        let expanded_path = envsubst::substitute(path_maybe_has_env_vars,
-                                                 &env_vars_cleaned).unwrap();
+        let expanded_path =
+            envsubst::substitute(path_maybe_has_env_vars, &env_vars_cleaned).unwrap();
         aliases_expanded.insert(expanded_path, name.to_string());
     }
 
@@ -3639,18 +3643,13 @@ fn make_canonical_path(
             format!("~{}", aliased_path)
         }
         // If there is no match, return the path as-is.
-        None => {
-            path.to_string()
-        }
+        None => path.to_string(),
     };
 
     path_canonical
 }
 
-fn get_matching_name(
-    path: &str,
-    aliases: &HashMap<String, String>,
-) -> Option<(String, String)> {
+fn get_matching_name(path: &str, aliases: &HashMap<String, String>) -> Option<(String, String)> {
     let mut aliased_paths = aliases.keys().collect::<Vec<_>>();
     aliased_paths.sort();
     aliased_paths.reverse();
@@ -3673,19 +3672,31 @@ mod test {
     fn test_make_canonical_path() {
         let mut aliases: HashMap<String, String> = HashMap::new();
         aliases.insert("${HOME}/bar".to_string(), "b".to_string());
-        aliases.insert("${HOME}/bar/baz/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/c".to_string(), "c".to_string());
+        aliases.insert(
+            "${HOME}/bar/baz/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/c".to_string(),
+            "c".to_string(),
+        );
         aliases.insert("${MYPROJECT_DIR}".to_string(), "p".to_string());
         // Handle aliases composed of multiple environment variables.
-        aliases.insert("${MYPROJECT_DIR}/${KOALA_SIZE}".to_string(), "pk".to_string());
+        aliases.insert(
+            "${MYPROJECT_DIR}/${KOALA_SIZE}".to_string(),
+            "pk".to_string(),
+        );
 
         let mut env_vars: HashMap<String, String> = HashMap::new();
         env_vars.insert("HOME".to_string(), "/home/foo".to_string());
-        env_vars.insert("MYPROJECT_DIR".to_string(), "/home/foo/myproject".to_string());
+        env_vars.insert(
+            "MYPROJECT_DIR".to_string(),
+            "/home/foo/myproject".to_string(),
+        );
         env_vars.insert("KOALA_SIZE".to_string(), "big".to_string());
 
         assert_eq!(make_canonical_path("", &aliases, &env_vars), "");
         assert_eq!(make_canonical_path("/", &aliases, &env_vars), "/");
-        assert_eq!(make_canonical_path("/unrecognized/path", &aliases, &env_vars), "/unrecognized/path");
+        assert_eq!(
+            make_canonical_path("/unrecognized/path", &aliases, &env_vars),
+            "/unrecognized/path"
+        );
         assert_eq!(make_canonical_path("/home/foo", &aliases, &env_vars), "~");
         assert_eq!(
             make_canonical_path("/home/foo/bar", &aliases, &env_vars),
@@ -3699,8 +3710,14 @@ mod test {
             ),
             "~c"
         );
-        assert_eq!(make_canonical_path("/home/foo/myproject", &aliases, &env_vars), "~p");
-        assert_eq!(make_canonical_path("/home/foo/myproject/big", &aliases, &env_vars), "~pk");
+        assert_eq!(
+            make_canonical_path("/home/foo/myproject", &aliases, &env_vars),
+            "~p"
+        );
+        assert_eq!(
+            make_canonical_path("/home/foo/myproject/big", &aliases, &env_vars),
+            "~pk"
+        );
     }
 
     #[test]
@@ -3745,48 +3762,58 @@ mod test {
         // Extreme cases.
         assert_eq!(
             _path_shorten(
-                "~/aaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccc/hello", 30
+                "~/aaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbb/cccccccccccccccccccccc/hello",
+                30
             ),
             "~/a/b/c/hello"
         );
         // Unusual case of just 2 directories, where both are very long.
         assert_eq!(
             _path_shorten(
-                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 30
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                30
             ),
             "a/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
         );
         // Non-ASCII (exactly 30 characters).
         assert_eq!(
-            _path_shorten("/일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구", 30),
+            _path_shorten(
+                "/일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구",
+                30
+            ),
             "/일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구"
         );
         assert_eq!(
-            _path_shorten("일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구a", 30),
+            _path_shorten(
+                "일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구a",
+                30
+            ),
             "일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구a"
         );
         assert_eq!(
-            _path_shorten("~일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구", 30),
+            _path_shorten(
+                "~일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구",
+                30
+            ),
             "~일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구"
         );
         // Non-ASCII (over 30 characters).
         assert_eq!(
-            _path_shorten("/일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구/a", 30),
+            _path_shorten(
+                "/일이삼사오육칠팔구/일이삼사오육칠팔구/일이삼사오육칠팔구/a",
+                30
+            ),
             "/일/일이삼사오육칠팔구/일이삼사오육칠팔구/a"
         );
-        let longstr = concat!("~/일일일일일일일일일일일일일일일일일일일일",
-                                  "/이이이이이이이이이이이이이이이이이이이이",
-                                  "/삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼",
-                                  "/hello");
-        assert_eq!(
-            _path_shorten(longstr, 30),
-            "~/일/이/삼/hello"
+        let longstr = concat!(
+            "~/일일일일일일일일일일일일일일일일일일일일",
+            "/이이이이이이이이이이이이이이이이이이이이",
+            "/삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼삼",
+            "/hello"
         );
+        assert_eq!(_path_shorten(longstr, 30), "~/일/이/삼/hello");
         // Shorten threshold is disabled, so don't shorten at all.
-        assert_eq!(
-            _path_shorten(longstr, 0),
-            longstr
-        );
+        assert_eq!(_path_shorten(longstr, 0), longstr);
     }
 }
 #+end_src
@@ -3955,7 +3982,10 @@ defmodule Melbyd.Application do
       {Phoenix.PubSub, name: Melbyd.PubSub},
 
       # gRPC service. (controller)
-      {GRPC.Server.Supervisor, endpoint: Melbyd.GRPC, port: Application.get_env(:melbyd, :melbyd_port), start_server: true},
+      {GRPC.Server.Supervisor,
+       endpoint: Melbyd.GRPC,
+       port: Application.get_env(:melbyd, :melbyd_port),
+       start_server: true},
 
       # Haskell "melbyr" service. (view)
       __NREF__melbyr_muontrap
@@ -4414,7 +4444,8 @@ defmodule Melbyd.LuaConfigValidation do
         "paths" ->
           assert_type_paths(val)
 
-        # The contents of a file can be anything (any sequence of bytes), so it's always well-formed.
+        # The contents of a file can be anything (any sequence of bytes), so
+        # it's always well-formed.
         "pathblob" ->
           :ok
 
@@ -4844,7 +4875,8 @@ def_lua_func get_path_pretty([path, options_ref], st0) do
   aliases = options_map["aliases"] |> Melbyd.LuerlUtil.table_to_native_map()
   env = options_map["env"] |> Melbyd.LuerlUtil.table_to_native_map()
 
-  # Create a subset of env vars. This is because we only care about the ones used by the keys in aliases.
+  # Create a subset of env vars. This is because we only care about the ones
+  # used by the keys in aliases.
   {aliases_filtered, env_filtered} =
     Enum.reduce(aliases, {%{}, %{}}, fn {k, v}, {aliases_filtered, env_filtered} ->
       vars = Regex.scan(~r/\$\{(.+?)\}/, k) |> Enum.map(fn [_entire_match, group] -> group end)
@@ -4940,7 +4972,8 @@ def_lua_func get_colorized_sha([sha, sha_length, pad_left, pad_right], st0) do
 
   addr = get_melbyr_addr()
   with {:ok, channel} <- GRPC.Stub.connect(addr, adapter_opts: [retry_timeout: 5]),
-       {:ok, reply} <- channel |> MelbyRenderer.Renderer.Stub.get_colorized_git_sha(req, timeout: 200) do
+       {:ok, reply} <- channel
+         |> MelbyRenderer.Renderer.Stub.get_colorized_git_sha(req, timeout: 200) do
     GRPC.Stub.disconnect(channel)
     {:ok, reply.sha_colorized, st0}
   end
@@ -5950,7 +5983,16 @@ defmodule MelbydTest do
       frequency: 1000,
       timeout: 5_000
     )
-    # Alternate: wait for all substrings to appear. But actually, this is broken because we run the lua script too many times (once for each substring); so then our backend will purge any already-broadcasted shell message. The right approach is to wait up to 5 seconds, and during that time do fetches 1x per second, and for each fetch we should check how many of the substrings have matched, and NOT re-check those already-matched substrings in the next iteration. That is, we should match as much as possible each time we run the lua script and fetch (this way different parts of the output string can match what we want overall).
+    # Alternate: wait for all substrings to appear. But actually, this is broken
+    # because we run the lua script too many times (once for each substring); so
+    # then our backend will purge any already-broadcasted shell message. The
+    # right approach is to wait up to 5 seconds, and during that time do fetches
+    # 1x per second, and for each fetch we should check how many of the
+    # substrings have matched, and NOT re-check those already-matched substrings
+    # in the next iteration. That is, we should match as much as possible each
+    # time we run the lua script and fetch (this way different parts of the
+    # output string can match what we want overall).
+
     #WaitForIt.wait(
     #  Enum.map(
     #    want_substrs,
@@ -6644,7 +6686,10 @@ Between each widget, 1 space character is inserted by default. This can be
 adjusted with the =delimiter= option in the call to =render()=, like this:
 
 #+begin_src lua
-rendered = melbyd.render(widgets, delimiter={str="**"}, render_options={format="RENDER_FORMAT_UNIX_TERMINAL", color_depth="RENDER_COLOR_DEPTH_24_BIT"})
+rendered = melbyd.render(widgets,
+                         delimiter={str="**"},
+                         render_options={format="RENDER_FORMAT_UNIX_TERMINAL",
+                                         color_depth="RENDER_COLOR_DEPTH_24_BIT"})
 #+end_src
 
 This uses 2 asterisks as a delimiter.
@@ -6862,7 +6907,11 @@ getColorizedGitSha
   -> m MColorizedGitShaResponse
 getColorizedGitSha req = do
   logDebug $ "request was: " <> (T.pack $ show req)
-  pure $ MColorizedGitShaResponse{ sha_colorized = colorize (sha req) (sha_length req) (pad_left req) (pad_right req)}
+  pure $ MColorizedGitShaResponse{ sha_colorized = colorize
+                                                   (sha req)
+                                                   (sha_length req)
+                                                   (pad_left req)
+                                                   (pad_right req)}
   where
   colorize bytes len padl padr
     = renderColorized
@@ -7195,23 +7244,30 @@ main = hspec $ do
         parse pPathAlias "" "hash   -d     foo=/bar   " `shouldParse` ("/bar", "foo")
     context "when parsing a path with an embedded variable" $
       it "works" $
-        parse pPathAlias "" "hash -d   kk=${HOME}/go/src/k8s.io/kubernetes" `shouldParse` ("${HOME}/go/src/k8s.io/kubernetes", "kk")
+        parse pPathAlias "" "hash -d   kk=${HOME}/go/src/k8s.io/kubernetes"
+          `shouldParse` ("${HOME}/go/src/k8s.io/kubernetes", "kk")
     context "when parsing a path with multiple embedded variables" $
       it "works" $
-        parse pPathAlias "" "hash -d   x=${HOME}/foo/${SUBDIR}/baz" `shouldParse` ("${HOME}/foo/${SUBDIR}/baz", "x")
+        parse pPathAlias "" "hash -d   x=${HOME}/foo/${SUBDIR}/baz"
+          `shouldParse` ("${HOME}/foo/${SUBDIR}/baz", "x")
     context "when parsing a path with a trailing comment" $
       it "works" $
-        parse pPathAlias "" "hash -d   x=${HOME}/hello # Comment text" `shouldParse` ("${HOME}/hello", "x")
+        parse pPathAlias "" "hash -d   x=${HOME}/hello # Comment text"
+          `shouldParse` ("${HOME}/hello", "x")
     -- Bad cases.
     context "when the equal sign has a space to the left" $
       it "fails" $
-        parse pPathAlias "" "hash   -d     foo =/bar   " `shouldFailWith` err 17 (utok ' ' <> etok '=' <> elabel "alias chars")
+        parse pPathAlias "" "hash   -d     foo =/bar   "
+          `shouldFailWith` err 17 (utok ' ' <> etok '=' <> elabel "alias chars")
     context "when the equal sign has a space to the right" $
       it "fails" $
-        parse pPathAlias "" "hash   -d     foo= /bar   " `shouldFailWith` err 18 (utoks " /" <> elabel "directory path")
+        parse pPathAlias "" "hash   -d     foo= /bar   "
+          `shouldFailWith` err 18 (utoks " /" <> elabel "directory path")
     context "when there is an aberrant dollar sign in the path" $
       it "fails" $
-        parse pPathAlias "" "hash -d x=/clam-chowder-$oup\n" `shouldFailWith` err 24 (utok '$' <> elabel "directory chars" <> elabel "dollar-and-opening-brace")
+        parse pPathAlias "" "hash -d x=/clam-chowder-$oup\n"
+          `shouldFailWith` err 24 (utok '$' <> elabel "directory chars"
+                                            <> elabel "dollar-and-opening-brace")
   describe "pPathAliases" $ do
     context "when there are comment lines" $
       it "works" $
@@ -7225,14 +7281,19 @@ main = hspec $ do
             # Commented out declaration.
             # hash -d x=/foo
 
-            # Unfortunately we have to escape the dollar sign to make it play nicely with Template Haskell.
+            # Unfortunately we have to escape the dollar sign to make it play
+            # nicely with Template Haskell.
             hash -d kk=$${HOME}/go/src/k8s.io/kubernetes
 
             # Indented entry.
               hash    -d   y=/hello
             # Comment at end of file.
             |]
-        in parse pPathAliases "" x `shouldParse` M.fromList [("/foo", "x"), ("${HOME}/go/src/k8s.io/kubernetes", "kk"), ("/hello", "y")]
+        in parse pPathAliases "" x
+           `shouldParse` M.fromList
+             [ ("/foo", "x")
+             , ("${HOME}/go/src/k8s.io/kubernetes", "kk")
+             , ("/hello", "y")]
 #+end_src
 
 *** Boilerplate
@@ -7596,7 +7657,8 @@ getGitInfo :: IO String
 getGitInfo = do
   maybeProjectRoot <- lookupEnv "MELBY_PROJECT_ROOT"
   case maybeProjectRoot of
-    Just projectRoot -> readProcess "git" ["-C", projectRoot, "describe", "--abbrev=10", "--always", "--dirty"] ""
+    Just projectRoot -> readProcess "git"
+      ["-C", projectRoot, "describe", "--abbrev=10", "--always", "--dirty"] ""
     Nothing -> pure "-unknown"
 
 getTimeInfo :: IO String
@@ -8221,7 +8283,8 @@ let
   melby = import ../package/build.nix;
   nifs_ext = if pkgs.stdenv.isDarwin then "dylib" else "so";
   # FIXME remove this after confirming that the problem doesn't happen any more?
-  # For whatever reason Rustler insists on searching for .so files, even on Darwin. So we do this to make it happy. The exact error we get on Mac is:
+  # For whatever reason Rustler insists on searching for .so files, even on Darwin.
+  # So we do this to make it happy. The exact error we get on Mac is:
   #
   #    00:46:00.502 [warning] The on_load function for module Elixir.Melbyd.Nifs returned:
   #    {:error,
@@ -8235,7 +8298,11 @@ let
   # "file_system" Elixir package does not do this automatically. See
   # https://gist.github.com/jbott/2030c133509e7c1db4f41941b5367475.
   mac_compile_mac_listener_cmd = pkgs.lib.strings.optionalString pkgs.stdenv.isDarwin ''
-    clang -framework CoreFoundation -framework CoreServices -Wno-deprecated-declarations deps/file_system/c_src/mac/*.c -o $out/bin/mac_listener
+    clang \
+      -framework CoreFoundation \
+      -framework CoreServices \
+      -Wno-deprecated-declarations deps/file_system/c_src/mac/*.c \
+      -o $out/bin/mac_listener
   '';
 in
   packages.mixRelease {

@@ -32,7 +32,10 @@ defmodule Melbyd.Application do
       {Phoenix.PubSub, name: Melbyd.PubSub},
 
       # gRPC service. (controller)
-      {GRPC.Server.Supervisor, endpoint: Melbyd.GRPC, port: Application.get_env(:melbyd, :melbyd_port), start_server: true},
+      {GRPC.Server.Supervisor,
+       endpoint: Melbyd.GRPC,
+       port: Application.get_env(:melbyd, :melbyd_port),
+       start_server: true},
 
       # Haskell "melbyr" service. (view)
       {MuonTrap.Daemon,

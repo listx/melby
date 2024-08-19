@@ -47,7 +47,8 @@ tangle-profile:
 .PHONY: tangle-profile
 
 tangle-profile-inspect:
-	emacs -Q --load $(LILAC_ROOT)/lilac.el --eval="(profiler-find-profile \"emacs-profile-tangle.txt\"))"
+	emacs -Q --load $(LILAC_ROOT)/lilac.el \
+		--eval="(profiler-find-profile \"emacs-profile-tangle.txt\"))"
 .PHONY: tangle-profile-inspect
 
 tangle-generated:

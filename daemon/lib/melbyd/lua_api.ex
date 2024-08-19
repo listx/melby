@@ -202,7 +202,8 @@ defmodule Melbyd.LuaConfigValidation do
         "paths" ->
           assert_type_paths(val)
 
-        # The contents of a file can be anything (any sequence of bytes), so it's always well-formed.
+        # The contents of a file can be anything (any sequence of bytes), so
+        # it's always well-formed.
         "pathblob" ->
           :ok
 
@@ -704,7 +705,8 @@ defmodule Melbyd.LuaSdk do
     aliases = options_map["aliases"] |> Melbyd.LuerlUtil.table_to_native_map()
     env = options_map["env"] |> Melbyd.LuerlUtil.table_to_native_map()
 
-    # Create a subset of env vars. This is because we only care about the ones used by the keys in aliases.
+    # Create a subset of env vars. This is because we only care about the ones
+    # used by the keys in aliases.
     {aliases_filtered, env_filtered} =
       Enum.reduce(aliases, {%{}, %{}}, fn {k, v}, {aliases_filtered, env_filtered} ->
         vars = Regex.scan(~r/\$\{(.+?)\}/, k) |> Enum.map(fn [_entire_match, group] -> group end)
@@ -794,7 +796,8 @@ defmodule Melbyd.LuaSdk do
 
     addr = get_melbyr_addr()
     with {:ok, channel} <- GRPC.Stub.connect(addr, adapter_opts: [retry_timeout: 5]),
-         {:ok, reply} <- channel |> MelbyRenderer.Renderer.Stub.get_colorized_git_sha(req, timeout: 200) do
+         {:ok, reply} <- channel
+           |> MelbyRenderer.Renderer.Stub.get_colorized_git_sha(req, timeout: 200) do
       GRPC.Stub.disconnect(channel)
       {:ok, reply.sha_colorized, st0}
     end
