@@ -247,7 +247,8 @@ function Config.view (env, shell_pid)
   -- Create a one-shot message for testing (when we want to publish an ad-hoc
   -- message).
   --
-  --local message = {topic="srs_Git", from="/home/l/prog/melby", payload={level="info", text="Hello world"}}
+  --local message = {topic="srs_Git", from="/home/l/prog/melby",
+  --                 payload={level="info", text="Hello world"}}
   --
   --melbyd.broadcast("srs_Git", message)
 
