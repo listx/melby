@@ -529,7 +529,8 @@ Config.view_tests = {
   <span class="org-comment-delimiter">-- </span><span class="org-comment">Create a one-shot message for testing (when we want to publish an ad-hoc</span>
   <span class="org-comment-delimiter">-- </span><span class="org-comment">message).</span>
   <span class="org-comment-delimiter">--</span>
-  <span class="org-comment-delimiter">--</span><span class="org-comment">local message = {topic="srs_Git", from="/home/l/prog/melby", payload={level="info", text="Hello world"}}</span>
+  <span class="org-comment-delimiter">--</span><span class="org-comment">local message = {topic="srs_Git", from="/home/l/prog/melby",</span>
+  <span class="org-comment-delimiter">--                 </span><span class="org-comment">payload={level="info", text="Hello world"}}</span>
   <span class="org-comment-delimiter">--</span>
   <span class="org-comment-delimiter">--</span><span class="org-comment">melbyd.broadcast("srs_Git", message)</span>
 
@@ -1239,16 +1240,16 @@ both additions and deletions are treated as positive numbers).
 {
   <span class="org-variable-name">log_level</span>=<span class="org-string">"${1:-normal}"</span>
 
-  <span class="org-variable-name">GIT_ROOT</span>=<span class="org-string">"$(</span><span class="org-sh-quoted-exec">git rev-parse --show-toplevel</span><span class="org-string">)"</span>
+  <span class="org-variable-name">GIT_ROOT</span>=<span class="org-string">"$(git rev-parse --show-toplevel)"</span>
   <span class="org-builtin">cd</span> <span class="org-string">"${GIT_ROOT}"</span>
 
-  <span class="org-variable-name">bare</span>=<span class="org-string">"$(</span><span class="org-sh-quoted-exec">git rev-parse --is-bare-repository</span><span class="org-string">)"</span>
+  <span class="org-variable-name">bare</span>=<span class="org-string">"$(git rev-parse --is-bare-repository)"</span>
   <span class="org-keyword">if</span> [[ <span class="org-string">"${bare}"</span> == true ]]; <span class="org-keyword">then</span>
       <span class="org-builtin">echo</span> 0
       <span class="org-keyword">exit</span>
   <span class="org-keyword">fi</span>
 
-  <span class="org-builtin">mapfile</span> -t array &lt; &lt;(git diff-index HEAD --cached)
+  mapfile -t array &lt; &lt;(git diff-index HEAD --cached)
 
   <span class="org-variable-name">total</span>=0
   <span class="org-keyword">for</span> line<span class="org-keyword"> in</span> <span class="org-string">"${array[@]}"</span>; <span class="org-keyword">do</span>
@@ -1262,8 +1263,8 @@ both additions and deletions are treated as positive numbers).
     <span class="org-keyword">fi</span>
 
     <span class="org-variable-name">mode</span>=${<span class="org-variable-name">parts</span>[4]}
-    <span class="org-variable-name">old</span>=$(<span class="org-sh-quoted-exec">__bytes ${parts[2]}</span>)
-    <span class="org-variable-name">new</span>=$(<span class="org-sh-quoted-exec">__bytes ${parts[3]}</span>)
+    <span class="org-variable-name">old</span>=$(__bytes ${<span class="org-variable-name">parts</span>[2]})
+    <span class="org-variable-name">new</span>=$(__bytes ${<span class="org-variable-name">parts</span>[3]})
     __log <span class="org-string">"path=${path}"</span>
     __log <span class="org-string">"mode=${mode}"</span>
     __log <span class="org-string">"old=${old}"</span>
@@ -1271,13 +1272,13 @@ both additions and deletions are treated as positive numbers).
     <span class="org-variable-name">delta</span>=0
     <span class="org-keyword">case</span> <span class="org-string">"${mode}"</span><span class="org-keyword"> in</span>
       A) <span class="org-variable-name">delta</span>=<span class="org-string">"${new}"</span> ;;
-      M) <span class="org-variable-name">delta</span>=$(<span class="org-sh-quoted-exec">( new - old </span>)) ;;
+      M) <span class="org-variable-name">delta</span>=$(( new - old )) ;;
       D) <span class="org-variable-name">delta</span>=<span class="org-string">"${old}"</span> ;;
     <span class="org-keyword">esac</span>
     <span class="org-variable-name">delta</span>=<span class="org-string">"${delta#-}"</span>
     __log <span class="org-string">"delta=${delta}"</span>
     __log
-    <span class="org-variable-name">total</span>=$(<span class="org-sh-quoted-exec">( total + delta </span>))
+    <span class="org-variable-name">total</span>=$(( total + delta ))
   <span class="org-keyword">done</span>
 
   <span class="org-builtin">echo</span> <span class="org-string">"${total}"</span>
@@ -2057,7 +2058,7 @@ Org mode.
     <span class="org-keyword">exit</span> 1
 <span class="org-keyword">fi</span>
 
-<span class="org-variable-name">SCRIPT_ROOT</span>=<span class="org-string">"$(</span><span class="org-sh-quoted-exec">dirname "$(realpath "$0"</span><span class="org-string">)")"</span>
+<span class="org-variable-name">SCRIPT_ROOT</span>=<span class="org-string">"$(dirname "$(realpath "$0")")"</span>
 
 <span class="org-function-name">usage</span>()
 {
@@ -2565,7 +2566,7 @@ the <code>main()</code> function.
 
 <div class="org-src-container"><pre class="src src-sh" id="nil-11"><span class="org-builtin">set</span> -euo pipefail
 
-<span class="org-variable-name">SCRIPT_ROOT</span>=<span class="org-string">"$(</span><span class="org-sh-quoted-exec">dirname "$(realpath "$0"</span><span class="org-string">)")"</span>
+<span class="org-variable-name">SCRIPT_ROOT</span>=<span class="org-string">"$(dirname "$(realpath "$0")")"</span>
 
 <span class="org-builtin">export</span> <span class="org-variable-name">HOST</span>=<span class="org-string">"somehost"</span>
 <span class="org-builtin">export</span> <span class="org-variable-name">MELBY_ZSH_KEYMAP_INDICATOR</span>=<span class="org-string">"${1:-I}"</span>
