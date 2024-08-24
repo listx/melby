@@ -398,7 +398,7 @@ We use stack for reproducibility, although we should probably also think of
 moving to Nix.
 
 We're stuck on GHC 8.10.7 because of mu-haskell which currently does not build
-with GHC 9+.
+with GHC 9+. We'll move to [[https://github.com/well-typed/grapesy][Grapesy]] when that library becomes ready for use.
 
 **** Lua
 
