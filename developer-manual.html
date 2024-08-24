@@ -1024,9 +1024,6 @@ We simply tangle all major <code>*.org</code> files in the top-level Makefile.
         user-manual-org \
         image-org
 
-<span class="org-comment-delimiter"># </span><span class="org-comment">Sadly, orgmode does not support including files for tangling. This means we</span>
-<span class="org-comment-delimiter"># </span><span class="org-comment">have to tangle each org file separately, even though they all come together</span>
-<span class="org-comment-delimiter"># </span><span class="org-comment">into main.org.</span>
 <span class="org-makefile-targets">image-org</span>: image.org
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),image.org)
 <span class="org-comment-delimiter"># </span><span class="org-comment">The developer manual generates the toplevel Makefile (this file) and</span>

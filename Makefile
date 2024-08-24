@@ -61,9 +61,6 @@ tangle-sources: developer-manual-org \
 		user-manual-org \
 		image-org
 
-# Sadly, orgmode does not support including files for tangling. This means we
-# have to tangle each org file separately, even though they all come together
-# into main.org.
 image-org: image.org
 	$(call run_emacs,(org-babel-tangle),image.org)
 # The developer manual generates the toplevel Makefile (this file) and
