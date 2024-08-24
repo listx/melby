@@ -162,9 +162,9 @@ This is a Makefile for generating diagrams (SVG format).
 #+caption: =image/Makefile=
 #+begin_src makefile :tangle image/Makefile :eval no
 all: architecture-overall.svg
-%.pdf : %.tex
+%.pdf: %.tex
 	lualatex --halt-on-error $<
-%.svg : %.pdf
+%.svg: %.pdf
 	pdf2svg $< $@.uncropped.svg
 	inkscape \
 		--export-plain-svg \

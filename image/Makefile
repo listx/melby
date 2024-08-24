@@ -1,7 +1,7 @@
 all: architecture-overall.svg
-%.pdf : %.tex
+%.pdf: %.tex
 	lualatex --halt-on-error $<
-%.svg : %.pdf
+%.svg: %.pdf
 	pdf2svg $< $@.uncropped.svg
 	inkscape \
 		--export-plain-svg \

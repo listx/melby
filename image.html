@@ -292,9 +292,9 @@ This is a Makefile for generating diagrams (SVG format).
 </p>
 
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name"><code>image/Makefile</code></label><span class="lilac-caption-link-symbol"><a href="#code-image-Makefile--code">&#x1f517;</a></span></div><pre class="src src-makefile" id="code-image-Makefile--code"><span class="org-makefile-targets">all</span>: architecture-overall.svg
-<span class="org-makefile-targets">%.pdf</span> : %.tex
+<span class="org-makefile-targets">%.pdf</span>: %.tex
     lualatex --halt-on-error $<span class="org-constant">&lt;</span>
-<span class="org-makefile-targets">%.svg</span> : %.pdf
+<span class="org-makefile-targets">%.svg</span>: %.pdf
     pdf2svg $<span class="org-constant">&lt;</span> <span class="org-makefile-targets">$</span><span class="org-makefile-targets"><span class="org-constant">@</span></span>.uncropped.svg
     inkscape \
         --export-plain-svg \
