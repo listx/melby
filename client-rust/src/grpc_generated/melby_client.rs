@@ -2,11 +2,10 @@
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ViewRequest {
-    /// Path to Lua configuration. Delegates reading the config to the server.
+    /// Path to Lua configuration. Delegates reading the config to the daemon.
     #[prost(string, tag = "1")]
     pub config_path: ::prost::alloc::string::String,
-    /// Lua configuration that is given directly. Overrides config_path if not
-    /// empty.
+    /// Lua configuration that is given directly. Currently unusued by the daemon.
     #[prost(string, tag = "2")]
     pub config: ::prost::alloc::string::String,
     /// Environment variables ((name, value) pairs) of interest.

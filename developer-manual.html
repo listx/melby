@@ -1082,10 +1082,13 @@ Because of these issues, the utility has been removed.
 <div id="outline-container-h-gitignore" class="outline-4">
 <h4 id="h-gitignore"><span class="section-number-4">2.3.2.</span> .gitignore</h4>
 <div class="outline-text-4" id="text-h-gitignore">
-<div class="org-src-container"><pre class="src src-text" id="nil-2">.DS_Store
+<div class="org-src-container"><pre class="src src-gitignore" id="nil-2"># Apple file system metadata.
+.DS_Store
+
+# Haskell "stack" tooling metadata.
 .stack-work
-deps/
-dist-newstyle/
+
+# Temporary files related to image generation.
 image/*.pdf
 image/*uncropped*
 </pre></div>
@@ -1561,11 +1564,14 @@ endef
 <div id="outline-container-h-gitignore-1" class="outline-4">
 <h4 id="h-gitignore-1"><span class="section-number-4">3.3.3.</span> .gitignore</h4>
 <div class="outline-text-4" id="text-h-gitignore-1">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">package/.gitignore</label><span class="lilac-caption-link-symbol"><a href="#package--gitignore">&#x1f517;</a></span></div><pre class="src src-text" id="package--gitignore">melby-client
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">package/.gitignore</label><span class="lilac-caption-link-symbol"><a href="#package--gitignore">&#x1f517;</a></span></div><pre class="src src-gitignore" id="package--gitignore"># These links can get created if we build individual targets.
+melby-client
 melby-client-rust
 melby-nifs
 melby-renderer
 melby-daemon
+
+# These result-NUMBER links get created automatically by Nix.
 result*
 </pre></div></div>
 </div>
@@ -1959,7 +1965,7 @@ that can be sourced by the shell. This way all that the shell has to do is
 something like:
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">Example usage of <code>melbyc</code> from your shell's configuration.</label><span class="lilac-caption-link-symbol"><a href="#Example-usage-of--code-melbyc--code--from-your-shell-s-configuration">&#x1f517;</a></span></div><pre class="src src-shell" id="Example-usage-of--code-melbyc--code--from-your-shell-s-configuration"><span class="org-builtin">source</span> <span class="org-string">"$(</span><span class="org-sh-quoted-exec">melbyc view PATH_TO_LUA_CONFIG</span><span class="org-string">)"</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">Example usage of <code>melbyc</code> from your shell's configuration.</label><span class="lilac-caption-link-symbol"><a href="#Example-usage-of--code-melbyc--code--from-your-shell-s-configuration">&#x1f517;</a></span></div><pre class="src src-shell" id="Example-usage-of--code-melbyc--code--from-your-shell-s-configuration"><span class="org-builtin">source</span> <span class="org-string">"$(melbyc view PATH_TO_LUA_CONFIG)"</span>
 </pre></div></div>
 </div>
 </div>
@@ -2520,8 +2526,7 @@ pkgs.haskell.lib.buildStackProject {
 <div id="outline-container-h-gitignore-2" class="outline-4">
 <h4 id="h-gitignore-2"><span class="section-number-4">5.6.5.</span> .gitignore</h4>
 <div class="outline-text-4" id="text-h-gitignore-2">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">client/.gitignore</label><span class="lilac-caption-link-symbol"><a href="#client--gitignore">&#x1f517;</a></span></div><pre class="src src-text" id="client--gitignore">dist-newstyle
-melbyc
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">client/.gitignore</label><span class="lilac-caption-link-symbol"><a href="#client--gitignore">&#x1f517;</a></span></div><pre class="src src-gitignore" id="client--gitignore">melbyc
 .stack-work
 </pre></div></div>
 </div>
@@ -2579,9 +2584,7 @@ See more keys and their definitions at <a href="https://doc.rust-lang.org/cargo/
 And here's the <code>.gitignore</code> for this client.
 </p>
 
-<div class="org-src-container"><pre class="src src-text" id="nil-10">.cargo
-
-target
+<div class="org-src-container"><pre class="src src-gitignore" id="nil-10">target
 </pre></div><p>
 Here's the <code>Makefile</code> for building and testing.
 </p>
@@ -9218,8 +9221,7 @@ pkgs.haskell.lib.buildStackProject {
 <div id="outline-container-h-gitignore-3" class="outline-5">
 <h5 id="h-gitignore-3"><span class="section-number-5">6.5.13.5.</span> .gitignore</h5>
 <div class="outline-text-5" id="text-h-gitignore-3">
-<div class="org-src-container"><pre class="src src-text" id="nil-43">dist-newstyle
-melbyr
+<div class="org-src-container"><pre class="src src-gitignore" id="nil-43">melbyr
 .stack-work
 </pre></div>
 </div>
@@ -9405,35 +9407,11 @@ lib/melbyd/nifs/Cargo.toml diff
 <div id="outline-container-h-gitignore-4" class="outline-5">
 <h5 id="h-gitignore-4"><span class="section-number-5">6.7.1.4.</span> .gitignore</h5>
 <div class="outline-text-5" id="text-h-gitignore-4">
-<div class="org-src-container"><pre class="src src-text" id="nil-46"># The directory Mix will write compiled artifacts to.
+<div class="org-src-container"><pre class="src src-gitignore" id="nil-46"># The directory Mix will write compiled artifacts to.
 /_build/
-
-# If you run "mix test --cover", coverage assets end up here.
-/cover/
 
 # The directory Mix downloads your dependencies sources to.
 /deps/
-
-# Where third-party dependencies like ExDoc output generated docs.
-/doc/
-
-# Ignore .fetch files in case you like to edit your project deps locally.
-/.fetch
-
-# If the VM crashes, it generates a dump, let's ignore it too.
-erl_crash.dump
-
-# Also ignore archive artifacts (built via "mix archive.build").
-*.ez
-
-# Ignore package tarball (built via "mix hex.build").
-melby-*.tar
-
-# Shared object files from Rust NIFs.
-/priv
-
-# Temporary files for e.g. tests
-/tmp
 
 # Files used during testing.
 /test/fake_kube_config
@@ -9931,10 +9909,8 @@ We ignore Cargo.lock for libraries. See
 <a href="https://doc.rust-lang.org/cargo/faq.html#why-do-binaries-have-cargolock-in-version-control-but-not-libraries">https://doc.rust-lang.org/cargo/faq.html#why-do-binaries-have-cargolock-in-version-control-but-not-libraries</a>.
 </p>
 
-<div class="org-src-container"><pre class="src src-text" id="nil-58">/target
+<div class="org-src-container"><pre class="src src-gitignore" id="nil-58">/target
 Cargo.lock
-
-.cargo
 </pre></div>
 </div>
 </div>
@@ -10027,7 +10003,7 @@ which acts as an allowlist.
 
 <div class="org-src-container"><pre class="src src-sh" id="nil-61"><span class="org-builtin">set</span> -euo pipefail
 
-<span class="org-variable-name">SCRIPT_ROOT</span>=<span class="org-string">"$(</span><span class="org-sh-quoted-exec">dirname "$(realpath "$0"</span><span class="org-string">)")"</span>
+<span class="org-variable-name">SCRIPT_ROOT</span>=<span class="org-string">"$(dirname "$(realpath "$0")")"</span>
 
 <span class="org-comment-delimiter"># </span><span class="org-comment">Files which are tracked outside of our tangling step, but for legitimate</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">reasons (generated code, symlinks to dependencies, or LICENSE files,</span>
@@ -10128,7 +10104,7 @@ which acts as an allowlist.
     <span class="org-comment-delimiter"># </span><span class="org-comment">list should match the sum of all tangled files (modulo HTML and Org</span>
     <span class="org-comment-delimiter"># </span><span class="org-comment">files).</span>
     <span class="org-keyword">if</span> diff -u <span class="org-sh-escaped-newline">\</span>
-        &lt;(<span class="org-builtin">printf</span> <span class="org-string">'%s\n'</span> <span class="org-string">"$(</span><span class="org-sh-quoted-exec">tangled_files</span><span class="org-string">)"</span> <span class="org-string">"${known_not_tangled[@]}"</span> | sort) <span class="org-sh-escaped-newline">\</span>
+        &lt;(printf <span class="org-string">'%s\n'</span> <span class="org-string">"$(tangled_files)"</span> <span class="org-string">"${known_not_tangled[@]}"</span> | sort) <span class="org-sh-escaped-newline">\</span>
         &lt;(tracked_files); <span class="org-keyword">then</span>
 
         &gt;&amp;2 echo <span class="org-string">"OK"</span>

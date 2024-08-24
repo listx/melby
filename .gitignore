@@ -1,6 +1,9 @@
+# Apple file system metadata.
 .DS_Store
+
+# Haskell "stack" tooling metadata.
 .stack-work
-deps/
-dist-newstyle/
+
+# Temporary files related to image generation.
 image/*.pdf
 image/*uncropped*

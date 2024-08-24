@@ -366,11 +366,14 @@ Because of these issues, the utility has been removed.
 
 *** .gitignore
 
-#+begin_src text :tangle .gitignore
+#+begin_src gitignore :tangle .gitignore
+# Apple file system metadata.
 .DS_Store
+
+# Haskell "stack" tooling metadata.
 .stack-work
-deps/
-dist-newstyle/
+
+# Temporary files related to image generation.
 image/*.pdf
 image/*uncropped*
 #+end_src
@@ -768,12 +771,15 @@ update-nix:
 *** .gitignore
 
 #+caption: package/.gitignore
-#+begin_src text :tangle package/.gitignore
+#+begin_src gitignore :tangle package/.gitignore
+# These links can get created if we build individual targets.
 melby-client
 melby-client-rust
 melby-nifs
 melby-renderer
 melby-daemon
+
+# These result-NUMBER links get created automatically by Nix.
 result*
 #+end_src
 * How to hack on this project
@@ -1605,8 +1611,7 @@ extra-deps:
 *** .gitignore
 
 #+caption: client/.gitignore
-#+begin_src text :tangle client/.gitignore
-dist-newstyle
+#+begin_src gitignore :tangle client/.gitignore
 melbyc
 .stack-work
 #+end_src
@@ -1655,9 +1660,7 @@ strip = true
 
 And here's the =.gitignore= for this client.
 
-#+begin_src text :tangle client-rust/.gitignore
-.cargo
-
+#+begin_src gitignore :tangle client-rust/.gitignore
 target
 #+end_src
 
@@ -7905,8 +7908,7 @@ extra-deps:
 
 **** .gitignore
 
-#+begin_src text :tangle daemon/lib/melbyd/renderer/.gitignore
-dist-newstyle
+#+begin_src gitignore :tangle daemon/lib/melbyd/renderer/.gitignore
 melbyr
 .stack-work
 #+end_src
@@ -8075,36 +8077,12 @@ end
 
 **** .gitignore
 
-#+begin_src text :tangle daemon/.gitignore
+#+begin_src gitignore :tangle daemon/.gitignore
 # The directory Mix will write compiled artifacts to.
 /_build/
 
-# If you run "mix test --cover", coverage assets end up here.
-/cover/
-
 # The directory Mix downloads your dependencies sources to.
 /deps/
-
-# Where third-party dependencies like ExDoc output generated docs.
-/doc/
-
-# Ignore .fetch files in case you like to edit your project deps locally.
-/.fetch
-
-# If the VM crashes, it generates a dump, let's ignore it too.
-erl_crash.dump
-
-# Also ignore archive artifacts (built via "mix archive.build").
-,*.ez
-
-# Ignore package tarball (built via "mix hex.build").
-melby-*.tar
-
-# Shared object files from Rust NIFs.
-/priv
-
-# Temporary files for e.g. tests
-/tmp
 
 # Files used during testing.
 /test/fake_kube_config
@@ -8580,11 +8558,9 @@ rustler = "0.31.0"
 We ignore Cargo.lock for libraries. See
 https://doc.rust-lang.org/cargo/faq.html#why-do-binaries-have-cargolock-in-version-control-but-not-libraries.
 
-#+begin_src text :tangle daemon/lib/melbyd/nifs/.gitignore
+#+begin_src gitignore :tangle daemon/lib/melbyd/nifs/.gitignore
 /target
 Cargo.lock
-
-.cargo
 #+end_src
 
 *** Haskell (melbyr)
