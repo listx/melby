@@ -1471,14 +1471,12 @@ running unit tests) for all of the various languages we use.
   <span class="org-comment"># (picking only those packages we need as in here).</span>
   <span class="org-nix-attribute">tex</span> = (pkgs.texlive.combine {
     <span class="org-nix-keyword">inherit</span> (pkgs.texlive) scheme-basic
-      amsmath
-      capt-of
       dvisvgm
       fontspec
-      sourcesanspro
+      luatex85
       pgf
-      ulem
-      wrapfig
+      sourcesanspro
+      standalone
       xkeyval;
   });
 <span class="org-nix-keyword">in</span>
@@ -1509,8 +1507,6 @@ pkgs.mkShell ({
 
     <span class="org-comment"># Tangling and weaving for Literate Programming.</span>
     pkgs.emacs29-nox
-    pkgs.inkscape
-    pkgs.pdf2svg
     tex
 
     <span class="org-comment"># For updating Nix dependencies.</span>
