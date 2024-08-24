@@ -166,10 +166,8 @@ weave-profile-inspect:
 		--eval="(profiler-find-profile \"emacs-profile-weave.txt\"))"
 .PHONY: weave-profile-inspect
 
-# FIXME: This is not efficient because it always generates images even if the
-# image.org file hasn't changed.
 build-images: image-org
-	$(MAKE) -C image -B
+	$(MAKE) -C image
 
 build-html: main.html image.html developer-manual.html user-manual.html
 

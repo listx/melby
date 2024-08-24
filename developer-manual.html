@@ -840,10 +840,8 @@ endef
         <span class="org-variable-name">--eval</span>=<span class="org-string">"(profiler-find-profile \"emacs-profile-weave.txt\"))"</span>
 <span class="org-makefile-targets">.PHONY</span>: weave-profile-inspect
 
-<span class="org-comment-delimiter"># </span><span class="org-comment">FIXME: This is not efficient because it always generates images even if the</span>
-<span class="org-comment-delimiter"># </span><span class="org-comment">image.org file hasn't changed.</span>
 <span class="org-makefile-targets">build-images</span>: image-org
-    $(<span class="org-variable-name">MAKE</span>) -C image -B
+    $(<span class="org-variable-name">MAKE</span>) -C image
 
 <span class="org-makefile-targets">build-html</span>: main.html image.html developer-manual.html user-manual.html
 
