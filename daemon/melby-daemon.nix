@@ -115,14 +115,9 @@ let
   ];
   melby = import ../package/build.nix;
   nifs_ext = if pkgs.stdenv.isDarwin then "dylib" else "so";
-  # FIXME remove this after confirming that the problem doesn't happen any more?
-  # For whatever reason Rustler insists on searching for .so files, even on Darwin.
-  # So we do this to make it happy. The exact error we get on Mac is:
-  #
-  #    00:46:00.502 [warning] The on_load function for module Elixir.Melbyd.Nifs returned:
-  #    {:error,
-  #     {:load_failed,
-  #      'Failed to load NIF library: \'dlopen(/private/tmp/nix-build-melby-server-0-dev.drv-0/melby-server/_build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so, 0x0002): tried: \'/private/tmp/nix-build-melby-server-0-dev.drv-0/melby-server/_build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so\' (no such file), \'/System/Volumes/Preboot/Cryptexes/OS/private/tmp/nix-build-melby-server-0-dev.drv-0/melby-server/_build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so\' (no such file), \'/private/tmp/nix-build-melby-server-0-dev.drv-0/melby-server/_build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so\' (no such file)\''}}
+  # For whatever reason Rustler insists on searching for .so files, even on
+  # Darwin. Luckily we can just copy over the generated .dylib files to .so
+  # files.
   nifs_cp_lib_cmd = pkgs.lib.strings.optionalString pkgs.stdenv.isDarwin ''
     cp _build/prod/lib/melbyd/priv/native/libmelbyd_nifs.dylib \
        _build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so

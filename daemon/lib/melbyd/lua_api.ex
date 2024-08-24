@@ -485,7 +485,8 @@ defmodule Melbyd.LuaSdkLoadable do
   defmacro __before_compile__(_env) do
     quote do
 
-      # install/1 is called by Luerl's load_module() function. This is documented in https://github.com/rvirding/luerl/blob/bc655178dc8f59f29199fd7df77a7c314c0f2e02/src/NOTES#L115.
+      # install/1 is called by Luerl's load_module() function. This is documented in
+      # https://github.com/rvirding/luerl/blob/bc655178dc8f59f29199fd7df77a7c314c0f2e02/src/NOTES#L115.
       def install(st) do
         table = Loader.load(@loadable_functions, __MODULE__)
         :luerl_heap.alloc_table(table, st)

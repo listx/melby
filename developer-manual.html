@@ -6787,7 +6787,8 @@ The Lua config should know what topics to subscribe to.
   <span class="org-keyword">defmacro</span> __before_compile__(<span class="org-comment">_env</span>) <span class="org-keyword">do</span>
     <span class="org-keyword">quote</span> <span class="org-keyword">do</span>
 
-      <span class="org-comment-delimiter"># </span><span class="org-comment">install/1 is called by Luerl's load_module() function. This is documented in https://github.com/rvirding/luerl/blob/bc655178dc8f59f29199fd7df77a7c314c0f2e02/src/NOTES#L115.</span>
+      <span class="org-comment-delimiter"># </span><span class="org-comment">install/1 is called by Luerl's load_module() function. This is documented in</span>
+      <span class="org-comment-delimiter"># </span><span class="org-comment">https://github.com/rvirding/luerl/blob/bc655178dc8f59f29199fd7df77a7c314c0f2e02/src/NOTES#L115.</span>
       <span class="org-keyword">def</span> <span class="org-function-name">install</span>(st) <span class="org-keyword">do</span>
         <span class="org-variable-name">table</span> = <span class="org-type">Loader</span>.load(<span class="org-elixir-attribute">@loadable_functions</span>, <span class="org-constant">__MODULE__</span>)
         <span class="org-elixir-atom">:luerl_heap</span>.alloc_table(table, st)
@@ -9634,14 +9635,9 @@ We package up <code>melbyd</code> as a standalone "package".
   ];
   <span class="org-nix-attribute">melby</span> = <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../package/build.nix</span>;
   <span class="org-nix-attribute">nifs_ext</span> = <span class="org-nix-keyword">if</span> pkgs.stdenv.isDarwin <span class="org-nix-keyword">then</span> <span class="org-string">"dylib"</span> <span class="org-nix-keyword">else</span> <span class="org-string">"so"</span>;
-  <span class="org-comment"># FIXME remove this after confirming that the problem doesn't happen any more?</span>
-  <span class="org-comment"># For whatever reason Rustler insists on searching for .so files, even on Darwin.</span>
-  <span class="org-comment"># So we do this to make it happy. The exact error we get on Mac is:</span>
-  <span class="org-comment">#</span>
-  <span class="org-comment">#    00:46:00.502 [warning] The on_load function for module Elixir.Melbyd.Nifs returned:</span>
-  <span class="org-comment">#    {:error,</span>
-  <span class="org-comment">#     {:load_failed,</span>
-  <span class="org-comment">#      'Failed to load NIF library: \'dlopen(/private/tmp/nix-build-melby-server-0-dev.drv-0/melby-server/_build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so, 0x0002): tried: \'/private/tmp/nix-build-melby-server-0-dev.drv-0/melby-server/_build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so\' (no such file), \'/System/Volumes/Preboot/Cryptexes/OS/private/tmp/nix-build-melby-server-0-dev.drv-0/melby-server/_build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so\' (no such file), \'/private/tmp/nix-build-melby-server-0-dev.drv-0/melby-server/_build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so\' (no such file)\''}}</span>
+  <span class="org-comment"># For whatever reason Rustler insists on searching for .so files, even on</span>
+  <span class="org-comment"># Darwin. Luckily we can just copy over the generated .dylib files to .so</span>
+  <span class="org-comment"># files.</span>
   <span class="org-nix-attribute">nifs_cp_lib_cmd</span> = pkgs.lib.strings.optionalString pkgs.stdenv.isDarwin <span class="org-string">''</span>
 <span class="org-string">    cp _build/prod/lib/melbyd/priv/native/libmelbyd_nifs.dylib \</span>
 <span class="org-string">       _build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so</span>
