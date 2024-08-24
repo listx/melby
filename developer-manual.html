@@ -9348,9 +9348,9 @@ else
         $(<span class="org-variable-name">PWD</span>)/_build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so || true
 endif
 <span class="org-makefile-targets">PHONY</span>: fix-rustler
-<span class="org-makefile-targets">compile-prod</span>:
+<span class="org-makefile-targets">compile-prod</span>: fix-rustler
     <span class="org-variable-name">MIX_ENV</span>=prod mix compile
-<span class="org-makefile-targets">compile-dev</span>:
+<span class="org-makefile-targets">compile-dev</span>: fix-rustler
     <span class="org-variable-name">MIX_ENV</span>=dev mix compile
 <span class="org-makefile-targets">run-dev</span>: compile-dev
     <span class="org-variable-name">MIX_ENV</span>=dev elixir --sname melbyd-dev -S mix run --no-compile --no-halt

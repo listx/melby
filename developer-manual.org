@@ -8019,9 +8019,9 @@ else
 		$(PWD)/_build/prod/lib/melbyd/priv/native/libmelbyd_nifs.so || true
 endif
 PHONY: fix-rustler
-compile-prod:
+compile-prod: fix-rustler
 	MIX_ENV=prod mix compile
-compile-dev:
+compile-dev: fix-rustler
 	MIX_ENV=dev mix compile
 run-dev: compile-dev
 	MIX_ENV=dev elixir --sname melbyd-dev -S mix run --no-compile --no-halt
