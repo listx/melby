@@ -304,9 +304,10 @@
 </li>
 <li><a href="#h-Development-environment">3.2. Development environment</a>
 <ul>
-<li><a href="#h-Nix-shell">3.2.1. Nix shell</a>
+<li><a href="#h-nix-direnv">3.2.1. nix-direnv</a></li>
+<li><a href="#h-Nix-shell">3.2.2. Nix shell</a>
 <ul>
-<li><a href="#h-Make-Stack-understand-Nix">3.2.1.1. Make Stack understand Nix</a></li>
+<li><a href="#h-Make-Stack-understand-Nix">3.2.2.1. Make Stack understand Nix</a></li>
 </ul>
 </li>
 </ul>
@@ -1082,7 +1083,10 @@ Because of these issues, the utility has been removed.
 <div id="outline-container-h-gitignore" class="outline-4">
 <h4 id="h-gitignore"><span class="section-number-4">2.3.2.</span> .gitignore</h4>
 <div class="outline-text-4" id="text-h-gitignore">
-<div class="org-src-container"><pre class="src src-gitignore" id="nil-2"># Apple file system metadata.
+<div class="org-src-container"><pre class="src src-gitignore" id="nil-2"># Cache directory used by the .envrc file.
+.direnv
+
+# Apple file system metadata.
 .DS_Store
 
 # Haskell "stack" tooling metadata.
@@ -1197,21 +1201,44 @@ first before we can release. And so we discuss the development environment here.
 </p>
 
 <p>
-We use Nix to set up the environment.
+We use <a href="https://github.com/NixOS/nixpkgs">Nixpkgs</a> (aka "Nix") to set up the environment, because it is the largest
+package repository that's available on both Mac (via <a href="https://github.com/LnL7/nix-darwin">nix-darwin</a>) and Linux. So
+it makes developing software that spans across multiple different programming
+language ecosystems that much easier.
 </p>
 </div>
 
+<div id="outline-container-h-nix-direnv" class="outline-4">
+<h4 id="h-nix-direnv"><span class="section-number-4">3.2.1.</span> nix-direnv</h4>
+<div class="outline-text-4" id="text-h-nix-direnv">
+<p>
+The <a href="https://direnv.net/">direnv</a> tool looks for <code>.envrc</code> files in folders; then you can configure your
+shell so that it picks up project-specific settings whenever your shell moves
+in/out of such a folder. We invoke <code>use nix</code> so that it picks up the environment
+defined inside <a href="shell.nix">shell.nix</a> (see <a href="#h-Nix-shell">3.2.2</a> below).
+</p>
+
+<div class="org-src-container"><pre class="src src-sh" id="nil-3">use nix
+</pre></div><p>
+There are a number of <a href="https://github.com/direnv/direnv/wiki/Nix">similar projects</a> that make the above <code>use nix</code> invocation
+faster. We recommend using <code>nix-direnv</code>. On <a href="https://github.com/LnL7/nix-darwin">nix-darwin</a>, installing <code>nix-direnv</code> also
+installs <code>direnv</code> for us on the system.
+</p>
+</div>
+</div>
+
 <div id="outline-container-h-Nix-shell" class="outline-4">
-<h4 id="h-Nix-shell"><span class="section-number-4">3.2.1.</span> Nix shell</h4>
+<h4 id="h-Nix-shell"><span class="section-number-4">3.2.2.</span> Nix shell</h4>
 <div class="outline-text-4" id="text-h-Nix-shell">
 <p>
-This is taken from <a href="https://github.com/tweag/haskell-stack-nix-example/blob/b9383e35416a2b0e21fbc97ed079538f9f395b6a/shell.nix#L1">here</a>.
+This is taken from <a href="https://github.com/tweag/haskell-stack-nix-example/blob/b9383e35416a2b0e21fbc97ed079538f9f395b6a/shell.nix#L1">here</a>, and it's what <code>direnv</code> will use when we enter the
+top-level directory in the shell.
 </p>
 
 <p>
-Note that we first have to do <code>nix-shell --pure</code> in Melby's top-level directory,
-then <code>cd</code> into <code>melbyc</code> and only from here we are able to do <code>stack exec -- ghci</code>
-to see the right version of GHC.
+If <code>direnv</code> is not available, then we have to manually run the equivalent of the
+<code>use nix</code> line in <a href=".envrc">.envrc</a>, which would be <code>nix-shell --pure</code>. You can also do
+this by running <code>make shell</code>.
 </p>
 
 <p>
@@ -1383,7 +1410,7 @@ pkgs.mkShell ({
 </div>
 
 <div id="outline-container-h-Make-Stack-understand-Nix" class="outline-5">
-<h5 id="h-Make-Stack-understand-Nix"><span class="section-number-5">3.2.1.1.</span> Make Stack understand Nix</h5>
+<h5 id="h-Make-Stack-understand-Nix"><span class="section-number-5">3.2.2.1.</span> Make Stack understand Nix</h5>
 <div class="outline-text-5" id="text-h-Make-Stack-understand-Nix">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">package/nix/stack.nix</label><span class="lilac-caption-link-symbol"><a href="#package-nix-stack-nix">&#x1f517;</a></span></div><pre class="src src-nix" id="package-nix-stack-nix"><span class="org-nix-keyword">let</span>
   <span class="org-nix-attribute">sources</span> = <span class="org-nix-builtin">import</span> <span class="org-nix-constant">./sources.nix</span>;
@@ -1495,7 +1522,7 @@ to not conflict with the dev environment. Even better, add these settings in our
 Elixir code so that the user does not (normally) have to configure them.
 </p>
 
-<pre class="example" id="org0000014">
+<pre class="example" id="org0000016">
 RELEASE_COOKIE=path/to/cookie
 </pre>
 
@@ -1503,7 +1530,7 @@ RELEASE_COOKIE=path/to/cookie
 Then populate <code>path/to/cookie</code> with a random text string like this:
 </p>
 
-<pre class="example" id="org0000015">
+<pre class="example" id="org0000017">
 $ cd ~/.melby
 $ openssl rand -base64 48 &gt; cookie
 $ chmod 600 cookie
@@ -1607,7 +1634,7 @@ You then need to stand up each individual Melby component.
 <div id="outline-container-h-melbyr---renderer--required-by-daemon" class="outline-4">
 <h4 id="h-melbyr---renderer--required-by-daemon"><span class="section-number-4">4.1.1.</span> <code>melbyr</code> (renderer; required by daemon)</h4>
 <div class="outline-text-4" id="text-h-melbyr---renderer--required-by-daemon">
-<pre class="example" id="org000001a">
+<pre class="example" id="org000001c">
 cd daemon/lib/melbyd/renderer; make
 </pre>
 </div>
@@ -1616,7 +1643,7 @@ cd daemon/lib/melbyd/renderer; make
 <div id="outline-container-h-melbyd---daemon" class="outline-4">
 <h4 id="h-melbyd---daemon"><span class="section-number-4">4.1.2.</span> <code>melbyd</code> (daemon)</h4>
 <div class="outline-text-4" id="text-h-melbyd---daemon">
-<pre class="example" id="org000001b">
+<pre class="example" id="org000001d">
 cd daemon &amp;&amp; make
 </pre>
 
@@ -1624,7 +1651,7 @@ cd daemon &amp;&amp; make
 And then to run the daemon, do
 </p>
 
-<pre class="example" id="org000001c">
+<pre class="example" id="org000001e">
 cd daemon &amp;&amp; make run_dev
 </pre>
 
@@ -1641,7 +1668,7 @@ you are running.
 <div id="outline-container-h-melbyc---client" class="outline-3">
 <h3 id="h-melbyc---client"><span class="section-number-3">4.2.</span> <code>melbyc</code> (client)</h3>
 <div class="outline-text-3" id="text-h-melbyc---client">
-<pre class="example" id="org000001d">
+<pre class="example" id="org000001f">
 cd client; make
 </pre>
 
@@ -1763,7 +1790,7 @@ stub. We also use it to generate the Elixir server stubs (used by the daemon).
 FIXME: add link to where it's used in Elixir.
 </p>
 
-<div class="org-src-container"><pre class="src src-protobuf" id="nil-3">syntax = <span class="org-string">"proto3"</span>;
+<div class="org-src-container"><pre class="src src-protobuf" id="nil-4">syntax = <span class="org-string">"proto3"</span>;
 
 <span class="org-keyword">package</span> <span class="org-type">melby_client</span>;
 
@@ -2104,7 +2131,7 @@ namely the <code>melbyd-lens</code> Haskell service that runs as part of melbyd.
 FIXME: break this up into smaller chunks
 </p>
 
-<div class="org-src-container"><pre class="src src-haskell" id="nil-4"><span class="org-haskell-pragma">{-# language CPP                   #-}</span>
+<div class="org-src-container"><pre class="src src-haskell" id="nil-5"><span class="org-haskell-pragma">{-# language CPP                   #-}</span>
 <span class="org-haskell-pragma">{-# language DataKinds             #-}</span>
 <span class="org-haskell-pragma">{-# language DeriveAnyClass        #-}</span>
 <span class="org-haskell-pragma">{-# language DeriveGeneric         #-}</span>
@@ -2223,7 +2250,7 @@ as part of the <code>&lt;&lt;main&gt;&gt;</code> block of code:
 The underlying plumbing that handles this is done in FIXME path:
 </p>
 
-<div class="org-src-container"><pre class="src src-haskell" id="nil-5"><span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">MelbyClient.GitVersion</span>
+<div class="org-src-container"><pre class="src src-haskell" id="nil-6"><span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">MelbyClient.GitVersion</span>
   ( gitVersion
   ) <span class="org-haskell-keyword">where</span>
 
@@ -2286,7 +2313,7 @@ The underlying plumbing that handles this is done in FIXME path:
 <div id="outline-container-h-Makefile-1" class="outline-4">
 <h4 id="h-Makefile-1"><span class="section-number-4">5.6.1.</span> Makefile</h4>
 <div class="outline-text-4" id="text-h-Makefile-1">
-<div class="org-src-container"><pre class="src src-makefile" id="nil-6"><span class="org-comment-delimiter"># </span><span class="org-comment">NOTE: Below is an installation rule for a Nix + Cabal workflow. It may be</span>
+<div class="org-src-container"><pre class="src src-makefile" id="nil-7"><span class="org-comment-delimiter"># </span><span class="org-comment">NOTE: Below is an installation rule for a Nix + Cabal workflow. It may be</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">useful to do this in case stack doesn't work for some reason. Originally we</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">wanted to use this workflow instead but ran up against a Nix + MacOS breakage</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">(https://github.com/NixOS/nixpkgs/pull/149942). Currently only stack works, so</span>
@@ -2328,7 +2355,7 @@ because Git will still figure out how to run <code>git describe</code>. We just 
 <div id="outline-container-h-Cabal" class="outline-4">
 <h4 id="h-Cabal"><span class="section-number-4">5.6.2.</span> Cabal</h4>
 <div class="outline-text-4" id="text-h-Cabal">
-<div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-7"><span class="org-keyword">name</span>: melby-client
+<div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-8"><span class="org-keyword">name</span>: melby-client
 <span class="org-keyword">version</span>: 1.0.0.0
 <span class="org-keyword">author</span>: Linus Arver
 <span class="org-keyword">maintainer</span>: linusa@google.com
@@ -2409,7 +2436,7 @@ because Git will still figure out how to run <code>git describe</code>. We just 
     , template-haskell
     , text &gt;=1.2 &amp;&amp; &lt;2
     , time
-</pre></div><div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-8"><span class="org-keyword">executable-stripping</span>: <span class="org-constant">True</span>
+</pre></div><div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-9"><span class="org-keyword">executable-stripping</span>: <span class="org-constant">True</span>
 <span class="org-keyword">packages</span>:
   ./melby-client.cabal
 </pre></div>
@@ -2425,7 +2452,7 @@ simply because Stack's LTS snapshots stay frozen, whereas Nix keeps evolving to
 support the latest and greatest packages.
 </p>
 
-<div class="org-src-container"><pre class="src src-nix" id="nil-9"><span class="org-nix-keyword">let</span>
+<div class="org-src-container"><pre class="src src-nix" id="nil-10"><span class="org-nix-keyword">let</span>
   <span class="org-nix-attribute">sources</span> = <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../package/nix/sources.nix</span>;
   <span class="org-nix-attribute">pkgs</span> = <span class="org-nix-builtin">import</span> sources.nixpkgs { };
   <span class="org-comment"># Nix never copies the .git directory as input to generate a derivation,</span>
@@ -2584,12 +2611,12 @@ See more keys and their definitions at <a href="https://doc.rust-lang.org/cargo/
 And here's the <code>.gitignore</code> for this client.
 </p>
 
-<div class="org-src-container"><pre class="src src-gitignore" id="nil-10">target
+<div class="org-src-container"><pre class="src src-gitignore" id="nil-11">target
 </pre></div><p>
 Here's the <code>Makefile</code> for building and testing.
 </p>
 
-<div class="org-src-container"><pre class="src src-makefile" id="nil-11"><span class="org-makefile-targets">build_dev</span>:
+<div class="org-src-container"><pre class="src src-makefile" id="nil-12"><span class="org-makefile-targets">build_dev</span>:
     cargo build
 <span class="org-makefile-targets">.PHONY</span>: build_dev
 
@@ -2750,7 +2777,7 @@ View the output of running the Lua configuration inside melbyd.
 <div id="outline-container-h-Packaging-1" class="outline-4">
 <h4 id="h-Packaging-1"><span class="section-number-4">5.7.2.</span> Packaging</h4>
 <div class="outline-text-4" id="text-h-Packaging-1">
-<div class="org-src-container"><pre class="src src-nix" id="nil-12">{ sources ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../package/nix/sources.nix</span> }:
+<div class="org-src-container"><pre class="src src-nix" id="nil-13">{ sources ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../package/nix/sources.nix</span> }:
 <span class="org-nix-keyword">let</span>
   <span class="org-comment"># Overlays</span>
   <span class="org-nix-attribute">oxalica-rust-overlay</span> = <span class="org-nix-builtin">import</span> sources.rust-overlay;
@@ -2804,7 +2831,7 @@ most of the interesting things happen.
 <div id="outline-container-h-Proto-1" class="outline-3">
 <h3 id="h-Proto-1"><span class="section-number-3">6.2.</span> Proto</h3>
 <div class="outline-text-3" id="text-h-Proto-1">
-<div class="org-src-container"><pre class="src src-protobuf" id="nil-13">syntax = <span class="org-string">"proto3"</span>;
+<div class="org-src-container"><pre class="src src-protobuf" id="nil-14">syntax = <span class="org-string">"proto3"</span>;
 
 <span class="org-keyword">package</span> <span class="org-type">melby</span>;
 
@@ -2920,7 +2947,7 @@ down this process.
 <div id="outline-container-h-Proto-2" class="outline-5">
 <h5 id="h-Proto-2"><span class="section-number-5">6.5.1.1.</span> Proto</h5>
 <div class="outline-text-5" id="text-h-Proto-2">
-<div class="org-src-container"><pre class="src src-protobuf" id="nil-14">syntax = <span class="org-string">"proto3"</span>;
+<div class="org-src-container"><pre class="src src-protobuf" id="nil-15">syntax = <span class="org-string">"proto3"</span>;
 
 <span class="org-keyword">package</span> <span class="org-type">melby_daemon</span>;
 
@@ -2946,7 +2973,7 @@ down this process.
 <div id="outline-container-h-Implementation" class="outline-5">
 <h5 id="h-Implementation"><span class="section-number-5">6.5.1.2.</span> Implementation</h5>
 <div class="outline-text-5" id="text-h-Implementation">
-<div class="org-src-container"><pre class="src src-elixir" id="nil-15"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.StandardResource</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-16"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.StandardResource</span> <span class="org-keyword">do</span>
   <span class="org-comment-delimiter"># </span><span class="org-comment">If a Standard Resource Service process dies, don't restart it, because it</span>
   <span class="org-comment-delimiter"># </span><span class="org-comment">will be restarted on the next use (when a client requests info for it).</span>
   <span class="org-keyword">use</span> <span class="org-type">GenServer</span>, <span class="org-elixir-atom">restart:</span> <span class="org-elixir-atom">:temporary</span>
@@ -3372,7 +3399,7 @@ down this process.
 <div id="outline-container-h-Tick" class="outline-5">
 <h5 id="h-Tick"><span class="section-number-5">6.5.1.3.</span> Tick</h5>
 <div class="outline-text-5" id="text-h-Tick">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_tick</a></span>(1/1) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_tick">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_tick"><span class="org-comment-delimiter"># </span><span class="org-comment">Send a "tick" message to our GenServer in 1 second. See</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_srs_tick</a></span>(1/1) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_tick">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_tick"><span class="org-comment-delimiter"># </span><span class="org-comment">Send a "tick" message to our GenServer in 1 second. See</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">https://stackoverflow.com/a/32097971/437583.</span>
 <span class="org-keyword">defp</span> <span class="org-function-name">tick</span>(ttl, notify_on_exit_pid) <span class="org-keyword">do</span>
   <span class="org-keyword">case</span> ttl <span class="org-keyword">do</span>
@@ -3402,7 +3429,7 @@ down this process.
       <span class="org-type">Process</span>.send_after(self(), <span class="org-elixir-atom">:tick</span>, <span class="org-elixir-attribute">@tick_interval</span>)
   <span class="org-keyword">end</span>
 <span class="org-keyword">end</span>
-</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_handle_info</a></span>(1/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-1">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-1"><span class="org-comment-delimiter"># </span><span class="org-comment">Process tick. The tick must handle the true and false cases for the "stale"</span>
+</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_srs_handle_info</a></span>(1/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-1">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-1"><span class="org-comment-delimiter"># </span><span class="org-comment">Process tick. The tick must handle the true and false cases for the "stale"</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">key of the state. First we handle the case where stale is true (we must</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">re-read data).</span>
 <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_tick_do_work">melbyd_srs_tick_do_work</a></span>
@@ -3470,7 +3497,7 @@ down this process.
     %{state | <span class="org-elixir-atom">ttl:</span> ttl - <span class="org-elixir-number">1</span>}
   <span class="org-keyword">end</span>
 <span class="org-keyword">end</span>
-</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_handle_call</a></span>(1/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_call-1">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_call-1"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_srs_handle_call</a></span>(1/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_call-1">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_call-1"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_call</span>(
       <span class="org-elixir-atom">:tick</span>,
       <span class="org-comment">_from</span>,
@@ -3497,7 +3524,7 @@ If we mark an SRS GenServer as stale, this forces the re-reading of state such
 that it is loaded as the newest element in the <code>state_hist</code> queue.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_staleness</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_staleness">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_staleness"><span class="org-keyword">defp</span> <span class="org-function-name">mark_stale</span>(id) <span class="org-keyword">do</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_srs_staleness</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_staleness">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_staleness"><span class="org-keyword">defp</span> <span class="org-function-name">mark_stale</span>(id) <span class="org-keyword">do</span>
   <span class="org-type">GenServer</span>.cast(via_tuple(id), <span class="org-elixir-atom">:mark_stale</span>)
 <span class="org-keyword">end</span>
 </pre></div></div><p>
@@ -3515,7 +3542,7 @@ state between now and the next tick() will know that we've recognized the need
 to refresh the state on the next tick().
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_handle_cast</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_cast">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_cast"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_srs_handle_cast</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_cast">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_cast"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_cast</span>(<span class="org-elixir-atom">:mark_stale</span>, %{<span class="org-elixir-atom">stale:</span> <span class="org-constant">_</span>, <span class="org-elixir-atom">state_hist:</span> [current | rest]} = state) <span class="org-keyword">do</span>
   {<span class="org-elixir-atom">:noreply</span>,
    %{
@@ -3530,7 +3557,7 @@ can be more precise with how its state is updated with a followup coordinated
 <code>:tick</code> message (also a <code>call</code>).
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_handle_call</a></span>(2/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_call-2">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_call-2"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_srs_handle_call</a></span>(2/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_call-2">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_call-2"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_call</span>(<span class="org-elixir-atom">:mark_stale</span>, <span class="org-comment">_from</span>, %{<span class="org-elixir-atom">stale:</span> <span class="org-constant">_</span>, <span class="org-elixir-atom">state_hist:</span> [current | rest]} = state) <span class="org-keyword">do</span>
   {<span class="org-elixir-atom">:reply</span>,
    <span class="org-elixir-atom">:ok</span>,
@@ -3576,7 +3603,7 @@ Conceivably, other SRS GenServers that rely on filesystem staleness probably
 want the same <code>mark_all_stale_from/1</code> behavior.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_handle_info</a></span>(2/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-2">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-2"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_srs_handle_info</a></span>(2/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-2">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-2"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       {<span class="org-elixir-atom">:file_event</span>, <span class="org-comment">_watcher_pid</span>, {path, events}},
       %{
@@ -3621,7 +3648,7 @@ to -1 is important because it signals to the other <code>handle_call</code> call
 accepts the <code>:read</code> atom that it should not reset the TTL back up to <code>ttl_max</code>.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_handle_info</a></span>(3/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-3">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-3"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_srs_handle_info</a></span>(3/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-3">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-3"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       {<span class="org-elixir-atom">:file_event</span>, watcher_pid, <span class="org-elixir-atom">:stop</span>},
       %{
@@ -3643,7 +3670,7 @@ tick, when we see that we're in a stale state, we will regenerate the state and
 mark ourselves as being fresh (<code>stale: false</code>) again.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_handle_info</a></span>(4/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-4">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-4"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_srs_handle_info</a></span>(4/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-4">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-4"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       {<span class="org-elixir-atom">:file_event</span>, <span class="org-comment">_watcher_pid</span>, {<span class="org-comment">_path</span>, <span class="org-comment">_events</span>}},
       %{
@@ -3671,7 +3698,7 @@ When the user specifies a directory to watch, we watch it and all of it
 subdirectories for changes.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_staleness_detector_setup</a></span>(1/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_staleness_detector_setup-1">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_staleness_detector_setup-1"><span class="org-keyword">defp</span> <span class="org-function-name">setup_staleness_flagger</span>(
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_srs_staleness_detector_setup</a></span>(1/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_staleness_detector_setup-1">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_staleness_detector_setup-1"><span class="org-keyword">defp</span> <span class="org-function-name">setup_staleness_flagger</span>(
        %{<span class="org-string">"type"</span> <span class="org-keyword">=&gt;</span> <span class="org-string">"filesystem"</span>,
          <span class="org-string">"watch_paths"</span> <span class="org-keyword">=&gt;</span> watch_paths_lua_array,
          <span class="org-string">"fs_event_handler"</span> <span class="org-keyword">=&gt;</span> fs_event_handler} =
@@ -3703,7 +3730,7 @@ Here are some helper functions. The main workhorse here is
 the root directory (<code>/</code>) as stale.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_staleness_filesystem_helpers</a></span>(1/1) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_staleness_filesystem_helpers">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_staleness_filesystem_helpers"><span class="org-comment-delimiter"># </span><span class="org-comment">Mark the given path as stale, as well as all other SRS GenServers whose id's</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_srs_staleness_filesystem_helpers</a></span>(1/1) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_staleness_filesystem_helpers">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_staleness_filesystem_helpers"><span class="org-comment-delimiter"># </span><span class="org-comment">Mark the given path as stale, as well as all other SRS GenServers whose id's</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">are of the form "{resource_type, path}" where "path" is a parent path.</span>
 <span class="org-keyword">defp</span> <span class="org-function-name">mark_all_paths_stale_from</span>({resource_type, path}) <span class="org-keyword">do</span>
   get_all_parents(path)
@@ -3752,7 +3779,7 @@ discussion about timers and durations. There they mention
 <a href="https://hex.pm/packages/quantum">https://hex.pm/packages/quantum</a> which is basically cron but for Elixir.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_handle_info</a></span>(5/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-5">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-5"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_srs_handle_info</a></span>(5/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-5">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-5"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       <span class="org-elixir-atom">:duration_event</span>,
       %{
@@ -3770,7 +3797,7 @@ Similar to filesystem-based staleness, we ignore the <code>:duration_event</code
 state has already been marked stale (because it is redundant).
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_handle_info</a></span>(6/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-6">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-6"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_srs_handle_info</a></span>(6/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-6">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-6"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       <span class="org-elixir-atom">:duration_event</span>,
       %{
@@ -3787,7 +3814,7 @@ which has everything we need. The duration must be set using ISO 8601 notation,
 and is only precise to 1 whole second (sub-second durations are ignored).
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_staleness_detector_setup</a></span>(2/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_staleness_detector_setup-2">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_staleness_detector_setup-2"><span class="org-keyword">defp</span> <span class="org-function-name">setup_staleness_flagger</span>(
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_srs_staleness_detector_setup</a></span>(2/2) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_staleness_detector_setup-2">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_staleness_detector_setup-2"><span class="org-keyword">defp</span> <span class="org-function-name">setup_staleness_flagger</span>(
        %{<span class="org-string">"type"</span> <span class="org-keyword">=&gt;</span> <span class="org-string">"duration"</span>, <span class="org-string">"duration"</span> <span class="org-keyword">=&gt;</span> duration} = <span class="org-comment">_staleness_flagger</span>,
        initial_state
      ) <span class="org-keyword">do</span>
@@ -3822,7 +3849,7 @@ and is only precise to 1 whole second (sub-second durations are ignored).
 <div id="outline-container-h-Graceful-shutdown" class="outline-5">
 <h5 id="h-Graceful-shutdown"><span class="section-number-5">6.5.1.5.</span> Graceful shutdown</h5>
 <div class="outline-text-5" id="text-h-Graceful-shutdown">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_handle_info</a></span>(7/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-7">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-7"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_srs_handle_info</a></span>(7/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-7">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-7"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       {<span class="org-elixir-atom">:EXIT</span>, from_pid, reason},
       %{
@@ -3872,7 +3899,7 @@ generating the state from scratch, based on the Lua configuration, is left to
 the <code>run_readers/2</code> private method.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_client_interface</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_client_interface">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_client_interface"><span class="org-keyword">def</span> <span class="org-function-name">read</span>(resource, resource_opts) <span class="org-keyword">do</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_srs_client_interface</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_client_interface">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_client_interface"><span class="org-keyword">def</span> <span class="org-function-name">read</span>(resource, resource_opts) <span class="org-keyword">do</span>
   <span class="org-comment-delimiter"># </span><span class="org-comment">At this point we have all the information we need in order to instantiate a</span>
   <span class="org-comment-delimiter"># </span><span class="org-comment">new SRS GenServer. We need to start it up (if necessary) and get information</span>
   <span class="org-comment-delimiter"># </span><span class="org-comment">out of it. This optional startup can be handled by the DynamicSupervisor,</span>
@@ -4042,7 +4069,7 @@ one that reaches out to <code>Melbyd.StandardResourceSupervisor</code> to start 
 <code>Melbyd.StandardResource</code> knows how to supervise itself.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-15">melbyd_srs_supervisor</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_supervisor">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_supervisor"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.StandardResourceSupervisor</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_srs_supervisor</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_supervisor">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_supervisor"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.StandardResourceSupervisor</span> <span class="org-keyword">do</span>
   <span class="org-elixir-attribute">@moduledoc</span> <span class="org-doc">"""</span>
 <span class="org-doc">  StandardResource GenServers are created dynamically during runtime. This</span>
 <span class="org-doc">  module supervises these servers so that they are restarted if they fail</span>
@@ -4111,7 +4138,7 @@ is up to the user's Lua configuration). And then it's up to SLGs to
 subscribe to these topics and display these messages to the user.
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-16"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.ShellLogger</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-17"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.ShellLogger</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">GenServer</span>, <span class="org-elixir-atom">restart:</span> <span class="org-elixir-atom">:temporary</span>
   <span class="org-keyword">require</span> <span class="org-type">Logger</span>
 
@@ -4244,7 +4271,7 @@ subscribe to these topics and display these messages to the user.
 This is modeled after <code>Melbyd.StandardResource.tick/2</code>.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_sps_tick</a></span>(1/1) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_tick">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_tick"><span class="org-comment-delimiter"># </span><span class="org-comment">FIXME: This code is identical to the one in Melbyd.StandardResource.tick/2. Can</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-17">melbyd_sps_tick</a></span>(1/1) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_tick">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_tick"><span class="org-comment-delimiter"># </span><span class="org-comment">FIXME: This code is identical to the one in Melbyd.StandardResource.tick/2. Can</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">we make it DRY somehow?</span>
 <span class="org-keyword">defp</span> <span class="org-function-name">tick</span>(ttl, notify_on_exit_pid) <span class="org-keyword">do</span>
   <span class="org-keyword">case</span> ttl <span class="org-keyword">do</span>
@@ -4268,7 +4295,7 @@ This is modeled after <code>Melbyd.StandardResource.tick/2</code>.
       <span class="org-type">Process</span>.send_after(self(), <span class="org-elixir-atom">:tick</span>, <span class="org-elixir-attribute">@tick_interval</span>)
   <span class="org-keyword">end</span>
 <span class="org-keyword">end</span>
-</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_sps_handle_info</a></span>(1/3) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_handle_info-1">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_handle_info-1"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-17">melbyd_sps_handle_info</a></span>(1/3) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_handle_info-1">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_handle_info-1"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       <span class="org-elixir-atom">:tick</span>,
       %{
@@ -4293,7 +4320,7 @@ about a Git repo at <code>/a/b/c</code> where <code>c</code> is the repo root, b
 process) is currently located at <code>/a/b</code>, then we need to discard this message.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_sps_handle_info</a></span>(2/3) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_handle_info-2">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_handle_info-2"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-17">melbyd_sps_handle_info</a></span>(2/3) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_handle_info-2">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_handle_info-2"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       %{<span class="org-elixir-atom">topic:</span> topic, <span class="org-elixir-atom">from:</span> <span class="org-comment">_from</span>, <span class="org-elixir-atom">payload:</span> <span class="org-comment">_payload</span>} = message,
       %{
@@ -4341,7 +4368,7 @@ FIXME: Can we make it DRY? Maybe use a macro, or some new utility functions? Or
 a behaviour or protocol&#x2026;?
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_sps_handle_info</a></span>(3/3) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_handle_info-3">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_handle_info-3"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-17">melbyd_sps_handle_info</a></span>(3/3) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_handle_info-3">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_handle_info-3"><span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
       {<span class="org-elixir-atom">:EXIT</span>, from_pid, reason},
       %{<span class="org-elixir-atom">shell_pid:</span> shell_pid} = state
@@ -4383,7 +4410,7 @@ yet, just creates one.
 The internals here mirror the design in <code>Melbyd.StandardResource.read/2</code>.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_sps_client_interface</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_client_interface">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_client_interface"><span class="org-keyword">def</span> <span class="org-function-name">get_messages</span>(shell_pid, topic_handlers, env_vars) <span class="org-keyword">do</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-17">melbyd_sps_client_interface</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_client_interface">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_client_interface"><span class="org-keyword">def</span> <span class="org-function-name">get_messages</span>(shell_pid, topic_handlers, env_vars) <span class="org-keyword">do</span>
   <span class="org-keyword">case</span> <span class="org-elixir-atom">:gproc</span>.lookup_pids({<span class="org-elixir-atom">:n</span>, <span class="org-elixir-atom">:l</span>, {<span class="org-type">Melbyd.ShellLogger</span>, shell_pid}}) <span class="org-keyword">do</span>
     [pid] <span class="org-keyword">-&gt;</span>
       <span class="org-type">Logger</span>.info(<span class="org-string">"Found existing pid for </span><span class="org-variable-name">#{inspect(shell_pid)}</span><span class="org-string">: </span><span class="org-variable-name">#{inspect(pid)}</span><span class="org-string">"</span>)
@@ -4408,7 +4435,7 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
 <div id="outline-container-h-Supervisor-1" class="outline-5">
 <h5 id="h-Supervisor-1"><span class="section-number-5">6.5.2.5.</span> Supervisor</h5>
 <div class="outline-text-5" id="text-h-Supervisor-1">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-16">melbyd_sps_supervisor</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_supervisor">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_supervisor"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.ShellLoggerSupervisor</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-17">melbyd_sps_supervisor</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_sps_supervisor">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_sps_supervisor"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.ShellLoggerSupervisor</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">DynamicSupervisor</span>
 
   <span class="org-keyword">require</span> <span class="org-type">Logger</span>
@@ -4457,7 +4484,7 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
 <div id="outline-container-h-Path" class="outline-5">
 <h5 id="h-Path"><span class="section-number-5">6.5.3.1.</span> Path</h5>
 <div class="outline-text-5" id="text-h-Path">
-<div class="org-src-container"><pre class="src src-elixir" id="nil-17"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Path</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-18"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Path</span> <span class="org-keyword">do</span>
   <span class="org-elixir-attribute">@moduledoc</span> <span class="org-doc">"""</span>
 <span class="org-doc">  Caching wrapper around path shortening function.</span>
 <span class="org-doc">  """</span>
@@ -4494,7 +4521,7 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
     <span class="org-keyword">end</span>
   <span class="org-keyword">end</span>
 <span class="org-keyword">end</span>
-</pre></div><div class="org-src-container"><pre class="src src-rust" id="nil-18"><span class="org-keyword">use</span> <span class="org-constant">envsubst</span>;
+</pre></div><div class="org-src-container"><pre class="src src-rust" id="nil-19"><span class="org-keyword">use</span> <span class="org-constant">envsubst</span>;
 <span class="org-keyword">use</span> <span class="org-constant">std</span>::<span class="org-constant">collections</span>::<span class="org-type">HashMap</span>;
 
 <span class="org-preprocessor">#[rustler::nif]</span>
@@ -4830,7 +4857,7 @@ We only keep a cache size of 256 because in practice we only move around a
 handful of directories during a typical computing session.
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-19"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Cache.PathShorten</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-20"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Cache.PathShorten</span> <span class="org-keyword">do</span>
   <span class="org-elixir-attribute">@moduledoc</span> <span class="org-doc">"""</span>
 <span class="org-doc">  path-shorten Cache</span>
 <span class="org-doc">  """</span>
@@ -4865,7 +4892,7 @@ point of using a NIF here isn't so much about speed, but more about the
 convenience of being able to use this library.
 </p>
 
-<div class="org-src-container"><pre class="src src-rust" id="nil-20"><span class="org-keyword">use</span> <span class="org-constant">csscolorparser</span>::<span class="org-type">Color</span>;
+<div class="org-src-container"><pre class="src src-rust" id="nil-21"><span class="org-keyword">use</span> <span class="org-constant">csscolorparser</span>::<span class="org-type">Color</span>;
 
 <span class="org-preprocessor">#[derive(rustler::NifTuple, Default, Debug, PartialEq, Eq)]</span>
 <span class="org-keyword">pub</span> <span class="org-keyword">struct</span> <span class="org-type">Color24BitRust</span> {
@@ -4916,7 +4943,7 @@ convenience of being able to use this library.
         <span class="org-preprocessor">assert_eq!</span>(_parse_color(<span class="org-string">"hello world"</span>), [127, 127, 127, 255]);
     }
 }
-</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-21"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Color</span> <span class="org-keyword">do</span>
+</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-22"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Color</span> <span class="org-keyword">do</span>
   <span class="org-elixir-attribute">@moduledoc</span> <span class="org-doc">"""</span>
 <span class="org-doc">  Color parsing.</span>
 <span class="org-doc">  """</span>
@@ -5064,7 +5091,7 @@ add link), there is a single View service.
 The View service is shown below.
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-22"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.GRPC</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-23"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.GRPC</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">GRPC.Endpoint</span>
 
   intercept <span class="org-type">GRPC.Server.Interceptors.Logger</span>, <span class="org-elixir-atom">level:</span> <span class="org-elixir-atom">:info</span>
@@ -5102,7 +5129,7 @@ Below is <code>melby-client</code>'s <code>ViewRequest</code> that we handle. As
 we will need to call out to the melbyr Haskell server over gRPC.
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-23"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.View</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-24"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.View</span> <span class="org-keyword">do</span>
   <span class="org-elixir-attribute">@moduledoc</span> <span class="org-doc">"""</span>
 <span class="org-doc">  Module to generate an arbitrary view (string).</span>
 <span class="org-doc">  """</span>
@@ -6881,12 +6908,12 @@ by providing a list of keys to look up. For example, for a native Elixir map
 with nested maps, the syntax would look like this:
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-24">foo_map[<span class="org-string">"a"</span>][<span class="org-string">"b"</span>][<span class="org-string">"c"</span>]
+<div class="org-src-container"><pre class="src src-elixir" id="nil-25">foo_map[<span class="org-string">"a"</span>][<span class="org-string">"b"</span>][<span class="org-string">"c"</span>]
 </pre></div><p>
 and we want to do something similar to a table returned by Luerl. Something like this:
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-25">lookup(foo_table, [<span class="org-string">"a"</span>, <span class="org-string">"b"</span>, <span class="org-string">"c"</span>])
+<div class="org-src-container"><pre class="src src-elixir" id="nil-26">lookup(foo_table, [<span class="org-string">"a"</span>, <span class="org-string">"b"</span>, <span class="org-string">"c"</span>])
 </pre></div><p>
 The key (no pun intended) is to do a linear search of all tuples to find the
 right tuple, and to repeat this search on the resulting value as many times as
@@ -7010,12 +7037,12 @@ We have a Lua smoke test to check that Lua/Elixir interop is working. This tests
 the sample Lua configuration to ensure that it is a fully working example.
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-26"><span class="org-keyword">import</span> <span class="org-type">Config</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-27"><span class="org-keyword">import</span> <span class="org-type">Config</span>
 
 <span class="org-comment-delimiter"># </span><span class="org-comment">Log everything during tests. We want to see all logs in case a test fails.</span>
 config <span class="org-elixir-atom">:logger</span>,
   <span class="org-elixir-atom">level:</span> <span class="org-elixir-atom">:debug</span>
-</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-27"><span class="org-keyword">defmodule</span> <span class="org-type">MelbydTest</span> <span class="org-keyword">do</span>
+</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-28"><span class="org-keyword">defmodule</span> <span class="org-type">MelbydTest</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">ExUnit.Case</span>
   <span class="org-keyword">require</span> <span class="org-type">Logger</span>
   <span class="org-keyword">require</span> <span class="org-type">WaitForIt</span>
@@ -7682,7 +7709,7 @@ We would like <code>melbyr</code> to observe the following behaviors.
 <div id="outline-container-h-Proto-3" class="outline-6">
 <h6 id="h-Proto-3"><span class="section-number-6">6.5.9.1.1.</span> Proto</h6>
 <div class="outline-text-6" id="text-h-Proto-3">
-<div class="org-src-container"><pre class="src src-protobuf" id="nil-28">syntax = <span class="org-string">"proto3"</span>;
+<div class="org-src-container"><pre class="src src-protobuf" id="nil-29">syntax = <span class="org-string">"proto3"</span>;
 
 <span class="org-keyword">package</span> <span class="org-type">melby_renderer</span>;
 
@@ -7892,7 +7919,7 @@ terminal. Widgets are encoded in Lua directly in the user configuration. Here is
 an example:
 </p>
 
-<div class="org-src-container"><pre class="src src-lua" id="nil-29">foo = {str=<span class="org-string">" foo "</span>, fg=<span class="org-string">"white"</span>, bg=<span class="org-string">"blue"</span>, styles={<span class="org-string">"bold"</span>}}
+<div class="org-src-container"><pre class="src src-lua" id="nil-30">foo = {str=<span class="org-string">" foo "</span>, fg=<span class="org-string">"white"</span>, bg=<span class="org-string">"blue"</span>, styles={<span class="org-string">"bold"</span>}}
 </pre></div><p>
 This encodes the <code>" foo "</code> string with a blue background with white, bold
 text. The user can then just send over a list of these widgets to be rendered on
@@ -7904,7 +7931,7 @@ Between each widget, 1 space character is inserted by default. This can be
 adjusted with the <code>delimiter</code> option in the call to <code>render()</code>, like this:
 </p>
 
-<div class="org-src-container"><pre class="src src-lua" id="nil-30">rendered = melbyd.render(widgets,
+<div class="org-src-container"><pre class="src src-lua" id="nil-31">rendered = melbyd.render(widgets,
                          delimiter={str=<span class="org-string">"**"</span>},
                          render_options={format=<span class="org-string">"RENDER_FORMAT_UNIX_TERMINAL"</span>,
                                          color_depth=<span class="org-string">"RENDER_COLOR_DEPTH_24_BIT"</span>})
@@ -8003,7 +8030,7 @@ Actually we can do the above with just recursion. See <code>injectDelimiters</co
 <div id="outline-container-h-Implementation-1" class="outline-6">
 <h6 id="h-Implementation-1"><span class="section-number-6">6.5.11.1.3.</span> Implementation</h6>
 <div class="outline-text-6" id="text-h-Implementation-1">
-<div class="org-src-container"><pre class="src src-haskell" id="nil-31"><span class="org-haskell-pragma">{-# LANGUAGE DataKinds #-}</span>
+<div class="org-src-container"><pre class="src src-haskell" id="nil-32"><span class="org-haskell-pragma">{-# LANGUAGE DataKinds #-}</span>
 <span class="org-haskell-pragma">{-# LANGUAGE FlexibleContexts #-}</span>
 <span class="org-haskell-pragma">{-# LANGUAGE TypeApplications #-}</span>
 
@@ -8162,7 +8189,7 @@ and distributing these colors onto the 40 hex characters.
 <div id="outline-container-h-Overview" class="outline-6">
 <h6 id="h-Overview"><span class="section-number-6">6.5.11.2.1.</span> Overview</h6>
 <div class="outline-text-6" id="text-h-Overview">
-<div class="org-src-container"><pre class="src src-haskell" id="nil-32"><span class="org-haskell-pragma">{-# LANGUAGE DataKinds #-}</span>
+<div class="org-src-container"><pre class="src src-haskell" id="nil-33"><span class="org-haskell-pragma">{-# LANGUAGE DataKinds #-}</span>
 <span class="org-haskell-pragma">{-# LANGUAGE FlexibleContexts #-}</span>
 <span class="org-haskell-pragma">{-# LANGUAGE TypeApplications #-}</span>
 
@@ -8273,7 +8300,7 @@ don't follow that guide because the work has already been done for us in the
 space.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-32">melbyr_perceived_lightness</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_perceived_lightness">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_perceived_lightness"><span class="org-haskell-definition">getPerceivedLightness</span> <span class="org-haskell-operator">::</span> (<span class="org-haskell-type">Floating</span> b, <span class="org-haskell-type">RealFrac</span> b) <span class="org-haskell-operator">=&gt;</span> <span class="org-haskell-type">Colour</span> b <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Double</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-33">melbyr_perceived_lightness</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_perceived_lightness">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_perceived_lightness"><span class="org-haskell-definition">getPerceivedLightness</span> <span class="org-haskell-operator">::</span> (<span class="org-haskell-type">Floating</span> b, <span class="org-haskell-type">RealFrac</span> b) <span class="org-haskell-operator">=&gt;</span> <span class="org-haskell-type">Colour</span> b <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Double</span>
 <span class="org-haskell-definition">getPerceivedLightness</span> c <span class="org-haskell-operator">=</span> lightness d65 <span class="org-haskell-operator">$</span> sRGB24 r g b
   <span class="org-haskell-keyword">where</span>
   m <span class="org-haskell-operator">=</span> toSRGB24 c
@@ -8293,7 +8320,7 @@ space.
 
 <li><a id="h-Implementation-2"></a>Implementation<br>
 <div class="outline-text-7" id="text-h-Implementation-2">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-32">melbyr_colorize_git_sha_24_bit</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_colorize_git_sha_24_bit">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_colorize_git_sha_24_bit"><span class="org-haskell-definition">colorizeGitSha24bit</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">T.Text</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Word32</span> <span class="org-haskell-operator">-&gt;</span> [(<span class="org-haskell-type">SGR</span>, <span class="org-haskell-type">T.Text</span>)]
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-33">melbyr_colorize_git_sha_24_bit</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_colorize_git_sha_24_bit">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_colorize_git_sha_24_bit"><span class="org-haskell-definition">colorizeGitSha24bit</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">T.Text</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Word32</span> <span class="org-haskell-operator">-&gt;</span> [(<span class="org-haskell-type">SGR</span>, <span class="org-haskell-type">T.Text</span>)]
 <span class="org-haskell-definition">colorizeGitSha24bit</span> shaStr len
   <span class="org-haskell-operator">=</span> reverse
   <span class="org-haskell-operator">.</span> zip colorCodes
@@ -8327,7 +8354,7 @@ space.
   buildOutput acc hexChars <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">case</span> T.length (T.take 4 hexChars) <span class="org-haskell-keyword">of</span>
     0 <span class="org-haskell-operator">-&gt;</span> acc
     <span class="org-haskell-keyword">_</span> <span class="org-haskell-operator">-&gt;</span> buildOutput (T.take 4 hexChars <span class="org-haskell-constructor">:</span> acc) (T.drop 4 hexChars)
-</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-32">melbyr_add_padding</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_add_padding">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_add_padding"><span class="org-haskell-definition">addPadding</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">Word32</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Word32</span> <span class="org-haskell-operator">-&gt;</span> [(<span class="org-haskell-type">SGR</span>, <span class="org-haskell-type">T.Text</span>)] <span class="org-haskell-operator">-&gt;</span> [(<span class="org-haskell-type">SGR</span>, <span class="org-haskell-type">T.Text</span>)]
+</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-33">melbyr_add_padding</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_add_padding">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_add_padding"><span class="org-haskell-definition">addPadding</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">Word32</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Word32</span> <span class="org-haskell-operator">-&gt;</span> [(<span class="org-haskell-type">SGR</span>, <span class="org-haskell-type">T.Text</span>)] <span class="org-haskell-operator">-&gt;</span> [(<span class="org-haskell-type">SGR</span>, <span class="org-haskell-type">T.Text</span>)]
 <span class="org-haskell-definition">addPadding</span> padl padr colorized <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">case</span> colorized <span class="org-haskell-keyword">of</span>
   <span class="org-haskell-constructor">[]</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-constructor">[]</span>
   (c, t)<span class="org-haskell-constructor">:[]</span> <span class="org-haskell-operator">-&gt;</span> [(c, prefix <span class="org-haskell-operator">&lt;&gt;</span> t <span class="org-haskell-operator">&lt;&gt;</span> suffix)]
@@ -8340,7 +8367,7 @@ space.
   <span class="org-haskell-keyword">where</span>
   prefix <span class="org-haskell-operator">=</span> T.replicate (fromIntegral padl) <span class="org-string">" "</span>
   suffix <span class="org-haskell-operator">=</span> T.replicate (fromIntegral padr) <span class="org-string">" "</span>
-</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-32">melbyr_render_misc</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_render_misc">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_render_misc"><span class="org-haskell-definition">renderColorized</span> <span class="org-haskell-operator">::</span> [(<span class="org-haskell-type">SGR</span>, <span class="org-haskell-type">T.Text</span>)] <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">T.Text</span>
+</pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-33">melbyr_render_misc</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_render_misc">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_render_misc"><span class="org-haskell-definition">renderColorized</span> <span class="org-haskell-operator">::</span> [(<span class="org-haskell-type">SGR</span>, <span class="org-haskell-type">T.Text</span>)] <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">T.Text</span>
 <span class="org-haskell-definition">renderColorized</span> <span class="org-haskell-operator">=</span> T.concat <span class="org-haskell-operator">.</span> map f
   <span class="org-haskell-keyword">where</span>
   f (code, hexChars) <span class="org-haskell-operator">=</span> T.pack (setSGRCode [code]) <span class="org-haskell-operator">&lt;&gt;</span> fgColor <span class="org-haskell-operator">&lt;&gt;</span> hexChars
@@ -8364,7 +8391,7 @@ space.
 <div id="outline-container-h-Parse-path-aliases" class="outline-5">
 <h5 id="h-Parse-path-aliases"><span class="section-number-5">6.5.11.3.</span> Parse path aliases</h5>
 <div class="outline-text-5" id="text-h-Parse-path-aliases">
-<div class="org-src-container"><pre class="src src-haskell" id="nil-33"><span class="org-haskell-pragma">{-# LANGUAGE FlexibleContexts #-}</span>
+<div class="org-src-container"><pre class="src src-haskell" id="nil-34"><span class="org-haskell-pragma">{-# LANGUAGE FlexibleContexts #-}</span>
 
 <span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">MelbyRenderer.PathAliases</span>
   ( parsePathAliases
@@ -8520,7 +8547,7 @@ space.
 
 <span class="org-haskell-definition">symbol</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">T.Text</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Megaparser</span> <span class="org-haskell-type">T.Text</span>
 <span class="org-haskell-definition">symbol</span> <span class="org-haskell-operator">=</span> L.symbol sc
-</pre></div><div class="org-src-container"><pre class="src src-haskell" id="nil-34"><span class="org-haskell-pragma">{-# LANGUAGE QuasiQuotes #-}</span>
+</pre></div><div class="org-src-container"><pre class="src src-haskell" id="nil-35"><span class="org-haskell-pragma">{-# LANGUAGE QuasiQuotes #-}</span>
 
 <span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">Main</span> (main) <span class="org-haskell-keyword">where</span>
 
@@ -8685,7 +8712,7 @@ space.
 FIXME: break this up into smaller chunks
 </p>
 
-<div class="org-src-container"><pre class="src src-haskell" id="nil-35"><span class="org-haskell-pragma">{-# language CPP                   #-}</span>
+<div class="org-src-container"><pre class="src src-haskell" id="nil-36"><span class="org-haskell-pragma">{-# language CPP                   #-}</span>
 <span class="org-haskell-pragma">{-# language DataKinds             #-}</span>
 <span class="org-haskell-pragma">{-# language DeriveAnyClass        #-}</span>
 <span class="org-haskell-pragma">{-# language DeriveGeneric         #-}</span>
@@ -8722,7 +8749,7 @@ FIXME: break this up into smaller chunks
 <div id="outline-container-h-Colorized-Git-SHA-2" class="outline-6">
 <h6 id="h-Colorized-Git-SHA-2"><span class="section-number-6">6.5.12.3.1.</span> Colorized Git SHA</h6>
 <div class="outline-text-6" id="text-h-Colorized-Git-SHA-2">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-35">melbyr_schema_colorized_git_sha</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_colorized_git_sha">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_colorized_git_sha"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MColorizedGitShaRequest</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MColorizedGitShaRequest</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-36">melbyr_schema_colorized_git_sha</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_colorized_git_sha">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_colorized_git_sha"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MColorizedGitShaRequest</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MColorizedGitShaRequest</span>
   <span class="org-comment-delimiter">-- </span><span class="org-comment">In mu-haskell, nested types must be contained in a Maybe. See</span>
   <span class="org-comment-delimiter">-- </span><span class="org-comment">https://github.com/higherkindness/mu-haskell/issues/255#issuecomment-730468011.</span>
   { sha <span class="org-haskell-operator">::</span> <span class="org-haskell-type">T.Text</span>
@@ -8746,7 +8773,7 @@ FIXME: break this up into smaller chunks
 <div id="outline-container-h-Render-options" class="outline-6">
 <h6 id="h-Render-options"><span class="section-number-6">6.5.12.3.2.</span> Render options</h6>
 <div class="outline-text-6" id="text-h-Render-options">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-35">melbyr_schema_render_options</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_render_options">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_render_options"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MRenderOptions</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MRenderOptions</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-36">melbyr_schema_render_options</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_render_options">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_render_options"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MRenderOptions</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MRenderOptions</span>
   { format <span class="org-haskell-operator">::</span> <span class="org-haskell-type">MRenderFormat</span>
   , color_depth <span class="org-haskell-operator">::</span> <span class="org-haskell-type">MRenderColorDepth</span>
   } <span class="org-haskell-keyword">deriving</span> (<span class="org-haskell-constructor">Eq</span>, <span class="org-haskell-constructor">Ord</span>, <span class="org-haskell-constructor">Show</span>, <span class="org-haskell-constructor">Generic</span>
@@ -8774,7 +8801,7 @@ FIXME: break this up into smaller chunks
 <div id="outline-container-h-Widgets" class="outline-6">
 <h6 id="h-Widgets"><span class="section-number-6">6.5.12.3.3.</span> Widgets</h6>
 <div class="outline-text-6" id="text-h-Widgets">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-35">melbyr_schema_widgets</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_widgets">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_widgets"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MRenderWidgetsRequest</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MRenderWidgetsRequest</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-36">melbyr_schema_widgets</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_widgets">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_widgets"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MRenderWidgetsRequest</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MRenderWidgetsRequest</span>
   { widgets <span class="org-haskell-operator">::</span> [<span class="org-haskell-type">MWidget</span>]
   , delimiter <span class="org-haskell-operator">::</span> <span class="org-haskell-type">Maybe</span> <span class="org-haskell-type">MWidget</span>
   <span class="org-comment-delimiter">-- </span><span class="org-comment">FIXME: allow duplicate fields once we move to GHC 9 (waiting on mu-haskell)</span>
@@ -8844,7 +8871,7 @@ FIXME: break this up into smaller chunks
 <div id="outline-container-h-Parse-path-aliases-1" class="outline-6">
 <h6 id="h-Parse-path-aliases-1"><span class="section-number-6">6.5.12.3.4.</span> Parse path aliases</h6>
 <div class="outline-text-6" id="text-h-Parse-path-aliases-1">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-35">melbyr_schema_parse_path_aliases</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_parse_path_aliases">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_parse_path_aliases"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MParsePathAliasesRequest</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MParsePathAliasesRequest</span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-36">melbyr_schema_parse_path_aliases</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_schema_parse_path_aliases">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_schema_parse_path_aliases"><span class="org-haskell-keyword">data</span> <span class="org-haskell-type">MParsePathAliasesRequest</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">MParsePathAliasesRequest</span>
   { path_aliases_raw <span class="org-haskell-operator">::</span> <span class="org-haskell-type">T.Text</span>
   } <span class="org-haskell-keyword">deriving</span> (<span class="org-haskell-constructor">Eq</span>, <span class="org-haskell-constructor">Show</span>, <span class="org-haskell-constructor">Ord</span>, <span class="org-haskell-constructor">Generic</span>
              , <span class="org-haskell-constructor">ToSchema</span> <span class="org-haskell-constructor">MelbyRendererSchema</span> <span class="org-string">"ParsePathAliasesRequest"</span>
@@ -8873,7 +8900,7 @@ FIXME: break this up into smaller chunks
 <div id="outline-container-h-Logging" class="outline-5">
 <h5 id="h-Logging"><span class="section-number-5">6.5.12.4.</span> Logging</h5>
 <div class="outline-text-5" id="text-h-Logging">
-<div class="org-src-container"><pre class="src src-haskell" id="nil-36"><span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">MelbyRenderer.Log</span> <span class="org-haskell-keyword">where</span>
+<div class="org-src-container"><pre class="src src-haskell" id="nil-37"><span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">MelbyRenderer.Log</span> <span class="org-haskell-keyword">where</span>
 
 <span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Control.Monad.Logger</span>
 <span class="org-haskell-keyword">import</span> <span class="org-haskell-constructor">Control.Monad.Logger.Prefix</span>
@@ -8938,7 +8965,7 @@ FIXME: break this up into smaller chunks
 FIXME: should we move this to a common "melby" haskell package?
 </p>
 
-<div class="org-src-container"><pre class="src src-haskell" id="nil-37"><span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">MelbyRenderer.GitVersion</span>
+<div class="org-src-container"><pre class="src src-haskell" id="nil-38"><span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">MelbyRenderer.GitVersion</span>
   ( gitVersion
   ) <span class="org-haskell-keyword">where</span>
 
@@ -8984,7 +9011,7 @@ FIXME: should we move this to a common "melby" haskell package?
 This follows the Makefile for <code>melbyc</code> (FIXME: add link).
 </p>
 
-<div class="org-src-container"><pre class="src src-makefile" id="nil-38"><span class="org-variable-name">ZLIB_SO_DIR</span>=$(<span class="org-variable-name">shell</span> pkg-config --libs-only-L zlib)
+<div class="org-src-container"><pre class="src src-makefile" id="nil-39"><span class="org-variable-name">ZLIB_SO_DIR</span>=$(<span class="org-variable-name">shell</span> pkg-config --libs-only-L zlib)
 <span class="org-variable-name">ZLIB_H_DIR</span>=$(<span class="org-variable-name">shell</span> pkg-config --cflags-only-I zlib)
 
 <span class="org-makefile-targets">all</span>: melbyr
@@ -9015,7 +9042,7 @@ This follows the Makefile for <code>melbyc</code> (FIXME: add link).
 <div id="outline-container-h-Cabal-1" class="outline-5">
 <h5 id="h-Cabal-1"><span class="section-number-5">6.5.13.2.</span> Cabal</h5>
 <div class="outline-text-5" id="text-h-Cabal-1">
-<div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-39"><span class="org-keyword">name</span>: melby-renderer
+<div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-40"><span class="org-keyword">name</span>: melby-renderer
 <span class="org-keyword">version</span>: 1.0.0.0
 <span class="org-keyword">author</span>: Linus Arver
 <span class="org-keyword">maintainer</span>: linusa@google.com
@@ -9126,7 +9153,7 @@ This follows the Makefile for <code>melbyc</code> (FIXME: add link).
     , hspec-megaparsec
     , megaparsec &gt;= 9.0.1
     , neat-interpolation
-</pre></div><div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-40"><span class="org-keyword">executable-stripping</span>: <span class="org-constant">True</span>
+</pre></div><div class="org-src-container"><pre class="src src-haskell-cabal" id="nil-41"><span class="org-keyword">executable-stripping</span>: <span class="org-constant">True</span>
 <span class="org-keyword">packages</span>:
   ./melby-renderer.cabal
 </pre></div>
@@ -9136,7 +9163,7 @@ This follows the Makefile for <code>melbyc</code> (FIXME: add link).
 <div id="outline-container-h-Nix" class="outline-5">
 <h5 id="h-Nix"><span class="section-number-5">6.5.13.3.</span> Nix</h5>
 <div class="outline-text-5" id="text-h-Nix">
-<div class="org-src-container"><pre class="src src-nix" id="nil-41"><span class="org-nix-keyword">let</span>
+<div class="org-src-container"><pre class="src src-nix" id="nil-42"><span class="org-nix-keyword">let</span>
   <span class="org-nix-attribute">sources</span> = <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../../../../package/nix/sources.nix</span>;
   <span class="org-nix-attribute">pkgs</span> = <span class="org-nix-builtin">import</span> sources.nixpkgs { };
   <span class="org-nix-attribute">fakeGit</span> = pkgs.writeShellScriptBin <span class="org-string">"git"</span>
@@ -9186,7 +9213,7 @@ pkgs.haskell.lib.buildStackProject {
 <div id="outline-container-h-Stack-1" class="outline-5">
 <h5 id="h-Stack-1"><span class="section-number-5">6.5.13.4.</span> Stack</h5>
 <div class="outline-text-5" id="text-h-Stack-1">
-<div class="org-src-container"><pre class="src src-yaml" id="nil-42"><span class="org-variable-name">resolver</span>: lts-18.28
+<div class="org-src-container"><pre class="src src-yaml" id="nil-43"><span class="org-variable-name">resolver</span>: lts-18.28
 <span class="org-variable-name">allow-newer</span>: <span class="org-constant">true</span>
 
 <span class="org-variable-name">packages</span>:
@@ -9221,7 +9248,7 @@ pkgs.haskell.lib.buildStackProject {
 <div id="outline-container-h-gitignore-3" class="outline-5">
 <h5 id="h-gitignore-3"><span class="section-number-5">6.5.13.5.</span> .gitignore</h5>
 <div class="outline-text-5" id="text-h-gitignore-3">
-<div class="org-src-container"><pre class="src src-gitignore" id="nil-43">melbyr
+<div class="org-src-container"><pre class="src src-gitignore" id="nil-44">melbyr
 .stack-work
 </pre></div>
 </div>
@@ -9239,7 +9266,7 @@ We use Nix for both Linux and Mac (via <a href="https://github.com/LnL7/nix-darw
 <div id="outline-container-h-Linux" class="outline-4">
 <h4 id="h-Linux"><span class="section-number-4">6.6.1.</span> Linux</h4>
 <div class="outline-text-4" id="text-h-Linux">
-<div class="org-src-container"><pre class="src src-text" id="nil-44">[Unit]
+<div class="org-src-container"><pre class="src src-text" id="nil-45">[Unit]
 Description=melby service
 After=network.target
 StartLimitIntervalSec=0
@@ -9349,7 +9376,7 @@ lib/melbyd/nifs/Cargo.toml diff
 <div id="outline-container-h-Mix-tool-configuration" class="outline-5">
 <h5 id="h-Mix-tool-configuration"><span class="section-number-5">6.7.1.3.</span> Mix tool configuration</h5>
 <div class="outline-text-5" id="text-h-Mix-tool-configuration">
-<div class="org-src-container"><pre class="src src-elixir" id="nil-45"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.MixProject</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-46"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.MixProject</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">Mix.Project</span>
 
   <span class="org-keyword">def</span> <span class="org-function-name">project</span> <span class="org-keyword">do</span>
@@ -9407,7 +9434,7 @@ lib/melbyd/nifs/Cargo.toml diff
 <div id="outline-container-h-gitignore-4" class="outline-5">
 <h5 id="h-gitignore-4"><span class="section-number-5">6.7.1.4.</span> .gitignore</h5>
 <div class="outline-text-5" id="text-h-gitignore-4">
-<div class="org-src-container"><pre class="src src-gitignore" id="nil-46"># The directory Mix will write compiled artifacts to.
+<div class="org-src-container"><pre class="src src-gitignore" id="nil-47"># The directory Mix will write compiled artifacts to.
 /_build/
 
 # The directory Mix downloads your dependencies sources to.
@@ -9422,7 +9449,7 @@ lib/melbyd/nifs/Cargo.toml diff
 <div id="outline-container-h-Formatter" class="outline-5">
 <h5 id="h-Formatter"><span class="section-number-5">6.7.1.5.</span> Formatter</h5>
 <div class="outline-text-5" id="text-h-Formatter">
-<div class="org-src-container"><pre class="src src-elixir" id="nil-47"><span class="org-comment-delimiter"># </span><span class="org-comment">Used by "mix format"</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-48"><span class="org-comment-delimiter"># </span><span class="org-comment">Used by "mix format"</span>
 [
   <span class="org-elixir-atom">inputs:</span> [<span class="org-string">"{mix,.formatter}.exs"</span>, <span class="org-string">"{config,lib,test}/**/*.{ex,exs}"</span>]
 ]
@@ -9439,7 +9466,7 @@ package it ourselves by writing our own derivation. This allows us to have a
 working <code>nix-shell</code> where we can generate Elixir code from <code>*.proto</code> files.
 </p>
 
-<div class="org-src-container"><pre class="src src-nix" id="nil-48">{ sources ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">./nix/sources.nix</span>
+<div class="org-src-container"><pre class="src src-nix" id="nil-49">{ sources ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">./nix/sources.nix</span>
 , pkgs ? <span class="org-nix-builtin">import</span> sources.nixpkgs {} }:
 <span class="org-nix-keyword">let</span>
   <span class="org-nix-attribute">packages</span> = pkgs.beam.packagesWith pkgs.beam.interpreters.erlangR26;
@@ -9706,7 +9733,7 @@ We package up <code>melbyd</code> as a standalone "package".
 Build our Rust library (<code>melbyd_nifs</code>).
 </p>
 
-<div class="org-src-container"><pre class="src src-nix" id="nil-49">{ sources ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../../../../package/nix/sources.nix</span> }:
+<div class="org-src-container"><pre class="src src-nix" id="nil-50">{ sources ? <span class="org-nix-builtin">import</span> <span class="org-nix-constant">../../../../package/nix/sources.nix</span> }:
 <span class="org-nix-keyword">let</span>
   <span class="org-nix-attribute">files</span> = [
     <span class="org-nix-constant">./Cargo.toml</span>
@@ -9752,7 +9779,7 @@ Build our Rust library (<code>melbyd_nifs</code>).
 <div id="outline-container-h-Additional-application-configuration" class="outline-5">
 <h5 id="h-Additional-application-configuration"><span class="section-number-5">6.7.1.8.</span> Additional application configuration</h5>
 <div class="outline-text-5" id="text-h-Additional-application-configuration">
-<div class="org-src-container"><pre class="src src-elixir" id="nil-50"><span class="org-keyword">import</span> <span class="org-type">Config</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-51"><span class="org-keyword">import</span> <span class="org-type">Config</span>
 
 config <span class="org-elixir-atom">:logger</span>, <span class="org-elixir-atom">:console</span>,
   <span class="org-elixir-atom">format:</span> <span class="org-string">"$time [$level] $metadata $message\n"</span>,
@@ -9767,15 +9794,15 @@ config <span class="org-elixir-atom">:elixir</span>, <span class="org-elixir-ato
 <span class="org-comment-delimiter"># </span><span class="org-comment">This imports config/test.exs when we run unit tests. Otherwise that</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">configuration (used during "mix test", called by "make test") is not used.</span>
 import_config <span class="org-string">"</span><span class="org-variable-name">#{config_env()}</span><span class="org-string">.exs"</span>
-</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-51"><span class="org-comment-delimiter"># </span><span class="org-comment">Stub.</span>
-</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-52"><span class="org-keyword">import</span> <span class="org-type">Config</span>
+</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-52"><span class="org-comment-delimiter"># </span><span class="org-comment">Stub.</span>
+</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-53"><span class="org-keyword">import</span> <span class="org-type">Config</span>
 
 config <span class="org-elixir-atom">:logger</span>,
   <span class="org-elixir-atom">backends:</span> [<span class="org-elixir-atom">:console</span>],
   <span class="org-elixir-atom">compile_time_purge_matching:</span> [
     [<span class="org-elixir-atom">level_lower_than:</span> <span class="org-elixir-atom">:info</span>]
   ]
-</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-53"><span class="org-keyword">import</span> <span class="org-type">Config</span>
+</pre></div><div class="org-src-container"><pre class="src src-elixir" id="nil-54"><span class="org-keyword">import</span> <span class="org-type">Config</span>
 
 config <span class="org-elixir-atom">:melbyd</span>,
   <span class="org-elixir-atom">env:</span> config_env(),
@@ -9829,7 +9856,7 @@ both the Elixir and Rust side.
 <div id="outline-container-h-Elixir-wrapper" class="outline-5">
 <h5 id="h-Elixir-wrapper"><span class="section-number-5">6.7.2.1.</span> Elixir wrapper</h5>
 <div class="outline-text-5" id="text-h-Elixir-wrapper">
-<div class="org-src-container"><pre class="src src-elixir" id="nil-54"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Nifs</span> <span class="org-keyword">do</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-55"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.Nifs</span> <span class="org-keyword">do</span>
   <span class="org-keyword">use</span> <span class="org-type">Rustler</span>,
     <span class="org-elixir-atom">otp_app:</span> <span class="org-elixir-atom">:melbyd</span>,
     <span class="org-elixir-atom">crate:</span> <span class="org-elixir-atom">:melbyd_nifs</span>,
@@ -9849,7 +9876,7 @@ both the Elixir and Rust side.
 <div id="outline-container-h-Rust-wrapper" class="outline-5">
 <h5 id="h-Rust-wrapper"><span class="section-number-5">6.7.2.2.</span> Rust wrapper</h5>
 <div class="outline-text-5" id="text-h-Rust-wrapper">
-<div class="org-src-container"><pre class="src src-rust" id="nil-55"><span class="org-keyword">pub</span> <span class="org-keyword">mod</span> <span class="org-constant">color</span>;
+<div class="org-src-container"><pre class="src src-rust" id="nil-56"><span class="org-keyword">pub</span> <span class="org-keyword">mod</span> <span class="org-constant">color</span>;
 <span class="org-keyword">pub</span> <span class="org-keyword">mod</span> <span class="org-constant">path_shorten</span>;
 
 <span class="org-constant">rustler</span>::<span class="org-preprocessor">init!</span>(
@@ -9871,7 +9898,7 @@ both the Elixir and Rust side.
 <div id="outline-container-h-Makefile-4" class="outline-6">
 <h6 id="h-Makefile-4"><span class="section-number-6">6.7.2.3.1.</span> Makefile</h6>
 <div class="outline-text-6" id="text-h-Makefile-4">
-<div class="org-src-container"><pre class="src src-makefile" id="nil-56"><span class="org-makefile-targets">test</span>:
+<div class="org-src-container"><pre class="src src-makefile" id="nil-57"><span class="org-makefile-targets">test</span>:
     cargo test
 </pre></div>
 </div>
@@ -9880,7 +9907,7 @@ both the Elixir and Rust side.
 <div id="outline-container-h-Cargo" class="outline-6">
 <h6 id="h-Cargo"><span class="section-number-6">6.7.2.3.2.</span> Cargo</h6>
 <div class="outline-text-6" id="text-h-Cargo">
-<div class="org-src-container"><pre class="src src-makefile" id="nil-57">[package]
+<div class="org-src-container"><pre class="src src-makefile" id="nil-58">[package]
 <span class="org-variable-name">name</span> = <span class="org-string">"melbyd_nifs"</span>
 <span class="org-variable-name">version</span> = <span class="org-string">"0.1.0"</span>
 <span class="org-variable-name">authors</span> = []
@@ -9909,7 +9936,7 @@ We ignore Cargo.lock for libraries. See
 <a href="https://doc.rust-lang.org/cargo/faq.html#why-do-binaries-have-cargolock-in-version-control-but-not-libraries">https://doc.rust-lang.org/cargo/faq.html#why-do-binaries-have-cargolock-in-version-control-but-not-libraries</a>.
 </p>
 
-<div class="org-src-container"><pre class="src src-gitignore" id="nil-58">/target
+<div class="org-src-container"><pre class="src src-gitignore" id="nil-59">/target
 Cargo.lock
 </pre></div>
 </div>
@@ -9932,7 +9959,7 @@ See (FIXME: add link) for the build system for melbyr.
 These are development defaults for interacting with GHCi.
 </p>
 
-<div class="org-src-container"><pre class="src src-text" id="nil-59">:set -XOverloadedStrings
+<div class="org-src-container"><pre class="src src-text" id="nil-60">:set -XOverloadedStrings
 </pre></div>
 </div>
 </div>
@@ -9947,7 +9974,7 @@ This probably should be in a separate file, as it requires a pretty big context
 switch.
 </p>
 
-<div class="org-src-container"><pre class="src src-elixir" id="nil-60"><span class="org-comment-delimiter"># </span><span class="org-comment">Instead of printing logs, capture them. Only print them for tests that fail.</span>
+<div class="org-src-container"><pre class="src src-elixir" id="nil-61"><span class="org-comment-delimiter"># </span><span class="org-comment">Instead of printing logs, capture them. Only print them for tests that fail.</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">See https://hashrocket.com/blog/posts/silence-logger-messages-in-exunit.</span>
 <span class="org-type">ExUnit</span>.start(<span class="org-elixir-atom">capture_log:</span> <span class="org-elixir-atom">true</span>)
 </pre></div>
@@ -10001,7 +10028,7 @@ The script also takes into account a list of known non-tangled tracked files
 which acts as an allowlist.
 </p>
 
-<div class="org-src-container"><pre class="src src-sh" id="nil-61"><span class="org-builtin">set</span> -euo pipefail
+<div class="org-src-container"><pre class="src src-sh" id="nil-62"><span class="org-builtin">set</span> -euo pipefail
 
 <span class="org-variable-name">SCRIPT_ROOT</span>=<span class="org-string">"$(dirname "$(realpath "$0")")"</span>
 

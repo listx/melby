@@ -367,6 +367,9 @@ Because of these issues, the utility has been removed.
 *** .gitignore
 
 #+begin_src gitignore :tangle .gitignore
+# Cache directory used by the .envrc file.
+.direnv
+
 # Apple file system metadata.
 .DS_Store
 
@@ -428,15 +431,34 @@ There are several pieces of software we need to build (compile from source):
 Developing is intimately tied to releasing. And of course, development must come
 first before we can release. And so we discuss the development environment here.
 
-We use Nix to set up the environment.
+We use [[https://github.com/NixOS/nixpkgs][Nixpkgs]] (aka "Nix") to set up the environment, because it is the largest
+package repository that's available on both Mac (via [[https://github.com/LnL7/nix-darwin][nix-darwin]]) and Linux. So
+it makes developing software that spans across multiple different programming
+language ecosystems that much easier.
+
+*** nix-direnv
+
+The [[https://direnv.net/][direnv]] tool looks for =.envrc= files in folders; then you can configure your
+shell so that it picks up project-specific settings whenever your shell moves
+in/out of such a folder. We invoke =use nix= so that it picks up the environment
+defined inside [[file:shell.nix]] (see [[*Nix shell]] below).
+
+#+begin_src sh :tangle .envrc :eval no
+use nix
+#+end_src
+
+There are a number of [[https://github.com/direnv/direnv/wiki/Nix][similar projects]] that make the above =use nix= invocation
+faster. We recommend using =nix-direnv=. On [[https://github.com/LnL7/nix-darwin][nix-darwin]], installing =nix-direnv= also
+installs =direnv= for us on the system.
 
 *** Nix shell
 
-This is taken from [[https://github.com/tweag/haskell-stack-nix-example/blob/b9383e35416a2b0e21fbc97ed079538f9f395b6a/shell.nix#L1][here]].
+This is taken from [[https://github.com/tweag/haskell-stack-nix-example/blob/b9383e35416a2b0e21fbc97ed079538f9f395b6a/shell.nix#L1][here]], and it's what =direnv= will use when we enter the
+top-level directory in the shell.
 
-Note that we first have to do =nix-shell --pure= in Melby's top-level directory,
-then =cd= into =melbyc= and only from here we are able to do =stack exec -- ghci=
-to see the right version of GHC.
+If =direnv= is not available, then we have to manually run the equivalent of the
+=use nix= line in [[file:.envrc]], which would be =nix-shell --pure=. You can also do
+this by running =make shell=.
 
 This is the main development shell and brings in all of our dependencies to
 build all of our code. It's great for development and testing things out (e.g.,

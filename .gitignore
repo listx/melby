@@ -1,3 +1,6 @@
+# Cache directory used by the .envrc file.
+.direnv
+
 # Apple file system metadata.
 .DS_Store
 
