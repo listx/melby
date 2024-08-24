@@ -605,11 +605,13 @@ This manual covers several topics:
 </p>
 
 <ul class="org-ul">
-<li>The build system for Literate Programming (LP), which explains how LP is used
-in this project.</li>
-<li>The build system for packaging Melby, which explains how Melby can be packaged
-up using the Nix Package Manager. This is useful for developing Melby locally
-(setting up a development environment).</li>
+<li>The build system for Literate Programming (LP), which explains how LP is
+used in this project.</li>
+
+<li>The build system for packaging Melby, which explains how Melby can be
+packaged up using the Nix Package Manager. This is useful for developing
+Melby locally (setting up a development environment).</li>
+
 <li>The daemon and client programs that make up the Melby implementation.</li>
 </ul>
 
@@ -629,14 +631,17 @@ We use several programming languages: Elixir, Lua, Rust, and Haskell.
 <ul class="org-ul">
 <li><b>Elixir</b>: Elixir is the main language used in this project because of it
 leverages the famed Erlang runtime, known for its world-class reliability.
-Elixir is used for programming the base system, as well as testing all of the
-components together.</li>
+Elixir is used for programming the base system, as well as testing all of
+the components together.</li>
+
 <li><b>Lua</b>: Lua is used as our configuration language, because of its power
-(especially by integrating with <a href="https://github.com/rvirding/luerl">Luerl</a>, which allows us to interop with Elixir)
-and flexibility.</li>
+(especially by integrating with <a href="https://github.com/rvirding/luerl">Luerl</a>, which allows us to interop with
+Elixir) and flexibility.</li>
+
 <li><b>Rust</b>: Rust is used in some places where static typing and performance might
 come in handy. Typically it's used for smaller, pure (lacking side effects)
 functions as NIFs (Native Inline Functions) inside Elixir.</li>
+
 <li><b>Haskell</b>: Haskell is used for the Melby client binary <code>melbyc</code>, and also the
 <code>melbyr</code> rendering service. Haskell maximizes code maintainability and
 stability, and so it is the preferred language for building smaller
@@ -654,14 +659,17 @@ several languages for weaving:
 <ul class="org-ul">
 <li><b>Emacs Lisp</b>: We use Emacs Lisp to tame Emacs Org mode for LP. Emacs Org mode
 is used for LP in this project because it is probably the most flexible and
-widely-used LP system out there. LaTeX + Noweb is another possibility, but it
-was not chosen because Org mode by default looks reasonable in plaintext.</li>
+widely-used LP system out there. LaTeX + Noweb is another possibility, but
+it was not chosen because Org mode by default looks reasonable in plaintext.</li>
+
 <li><b>TikZ</b>: <a href="https://en.wikipedia.org/wiki/PGF/TikZ">PGF/TikZ</a> is used for writing all of the diagrams and figures used for
 documentation. This is because TikZ is extremely stable, powerful, and
-flexible for creating diagrams of all sorts. SVG is the preferred file format.</li>
+flexible for creating diagrams of all sorts. SVG is the preferred file
+format.</li>
+
 <li><b>HTML/CSS</b>: HTML and CSS power the documentation. Although PDF output can be
-very beautiful, HTML is simply more accessible and also does not require code
-listings to be broken across multiple pages.</li>
+very beautiful, HTML is simply more accessible and also does not require
+code listings to be broken across multiple pages.</li>
 </ul>
 </div>
 </div>
@@ -691,12 +699,27 @@ to clients.
 </div>
 
 <ol class="org-ol">
-<li><code>melbyd</code>: The daemon (server), which itself is composed of two smaller pieces:
-a. The core application written in Elixir and Rust.
-b. The renderer (<code>melbyr</code>) written in Haskell. This is a separate child
-   process controlled by the core app.</li>
-<li><code>melbyc</code>: The client, written in Haskell.
-a. <code>melbyc-rust</code> is an equivalent client written in Rust.</li>
+<li><p>
+<code>melbyd</code>: The daemon (server), which itself is composed of two smaller
+pieces:
+</p>
+
+<p>
+a) The core application written in Elixir and Rust.
+</p>
+
+<p>
+b) The renderer (<code>melbyr</code>) written in Haskell. This is a separate child
+   process controlled by the core app.
+</p></li>
+
+<li><p>
+<code>melbyc</code>: The client, written in Haskell.
+</p>
+
+<p>
+a) <code>melbyc-rust</code> is an equivalent client written in Rust.
+</p></li>
 </ol>
 
 <p>
@@ -704,11 +727,14 @@ The pieces above work like this:
 </p>
 
 <ol class="org-ol">
-<li>User writes a Lua script to specify what pieces of information it wants, and
-how it should be presented.</li>
+<li>User writes a Lua script to specify what pieces of information it wants,
+and how it should be presented.</li>
+
 <li><code>melbyc</code> sends this script to <code>melbyd</code> for processing.</li>
-<li><code>melbyd</code> gathers the necessary data (e.g., Git status or Kubernetes metadata) and
-sends it <code>melbyr</code> for generating the final view (an arbitrary string).</li>
+
+<li><code>melbyd</code> gathers the necessary data (e.g., Git status or Kubernetes metadata)
+and sends it <code>melbyr</code> for generating the final view (an arbitrary string).</li>
+
 <li>The view is sent back to <code>melbyc</code>, which then prints it to STDOUT.</li>
 </ol>
 </div>
@@ -1874,8 +1900,10 @@ We would like our client to observe the following behaviors.
 
 <ol class="org-ol">
 <li>Allow users to talk to the daemon.</li>
+
 <li>Run very quickly (the synchronous call to the daemon should finish in under
 500 milliseconds).</li>
+
 <li>Have basic command-line argument handling.</li>
 </ol>
 
@@ -2323,6 +2351,7 @@ FIXME: break this up into smaller chunks
 <h4 id="h-Other"><span class="section-number-4">5.5.4.</span> Other</h4>
 <div class="outline-text-4" id="text-h-Other">
 </div>
+
 <div id="outline-container-h-Pragmas" class="outline-5">
 <h5 id="h-Pragmas"><span class="section-number-5">5.5.4.1.</span> Pragmas</h5>
 <div class="outline-text-5" id="text-h-Pragmas">
@@ -3015,14 +3044,16 @@ With that out of the way, let's look at the flow of a request:
 <ol class="org-ol">
 <li><code>GetView</code> gRPC method called by melbyc (client): The client sends the path to
 the main Lua configuration file on disk.</li>
+
 <li>Melbyd (daemon) reads the Lua configuration and interprets it. The Lua code
 contains calls to the Melby SDK. That is, the Lua code is allowed to call
 into melbyd (Elixir) to <b>generate data</b> (melbyd), as well as <b>format/render</b>
 that data (ultimately through melbyr).</li>
+
 <li>The formatted data is returned as a <code>ViewResponse</code>. Currently the response is
-just inline shell code which can be sourced directly by the shell. The inline
-code assigns values to certain shell variables, and these shell variables are
-meant to be combined into the user's <code>PS1</code> shell variable.</li>
+just inline shell code which can be sourced directly by the shell. The
+inline code assigns values to certain shell variables, and these shell
+variables are meant to be combined into the user's <code>PS1</code> shell variable.</li>
 </ol>
 </div>
 </div>
@@ -3060,6 +3091,7 @@ In summary (FIXME: add diagram), we store 2 things:
 
 <ol class="org-ol">
 <li>the history of states (has at least the 2 most recent "readings"), and</li>
+
 <li>a message box to store notable changes to the state history.</li>
 </ol>
 
@@ -5165,11 +5197,12 @@ will be deleted in the future (to be replaced entirely with gRPC calls).
 <div class="outline-text-5" id="text-h-melbyr-dependency">
 <p>
 Interacting with the view requires us to call into melbyr (Haskell server) from
-Elixir. We need to:
+Elixir. We need to
 </p>
 
 <ol class="org-ol">
 <li>run the melbyr server, and</li>
+
 <li>call its gRPC methods to interact with it.</li>
 </ol>
 
@@ -5332,8 +5365,9 @@ notion of history of previous states. The two main selling points are:
 </p>
 
 <ol class="org-ol">
-<li>it can be used to implement the Kubernetes controller pattern (FIXME: insert
-link); and</li>
+<li>it can be used to implement the Kubernetes controller pattern (FIXME:
+insert link); and</li>
+
 <li>unlike typical Elixir GenServers, it can be configured at runtime with Lua.</li>
 </ol>
 
@@ -5384,10 +5418,12 @@ here:
 
 <dl class="org-dl">
 <div class="lilac-description-list-entry"><dt><code>Melbyd.LuaInterop</code></dt><dd>Expose Lua capability to the rest of melbyd</dd></div>
+
 <div class="lilac-description-list-entry"><dt><code>Melbyd.LuaSdk</code></dt><dd>Autoloaded "Melbyd Lua SDK"</dd></div>
-<div class="lilac-description-list-entry"><dt><code>Melbyd.LuaSdkAutoload</code></dt><dd>Boilerplate to make <code>Melbyd.LuaSdk</code> easier to
-write. Defines a behaviour that can be implemented by any other Elixir module
-that wants to be exposed to the Lua environment.</dd></div>
+
+<div class="lilac-description-list-entry"><dt><code>Melbyd.LuaSdkAutoload</code></dt><dd>Boilerplate to make <code>Melbyd.LuaSdk</code> easier to write.
+Defines a behaviour that can be implemented by any other Elixir module that
+wants to be exposed to the Lua environment.</dd></div>
 </dl>
 </div>
 
@@ -5461,12 +5497,16 @@ inputs to the configuration are controlled.
 <p>
 The steps involved are roughly:
 </p>
+
 <ol class="org-ol">
-<li>Modify the SRS reader functions to read the "fake" fixture data that are part
-of each SRS's definition</li>
+<li>Modify the SRS reader functions to read the "fake" fixture data that are
+part of each SRS's definition</li>
+
 <li>Run the "Config.view" function, using a set of fake environment variables</li>
+
 <li>Check that the result from step 2 contains some substrings we expect to get
 (also defined in the Lua config).</li>
+
 <li>Repeat steps 2 and 3 for each "Config.view_tests" entry defined in the Lua
 config.</li>
 </ol>
@@ -5932,6 +5972,7 @@ There are basically 2 categories of functions we expose to Lua:
 
 <ol class="org-ol">
 <li>functions to fetch data (Git data, etc), and</li>
+
 <li>functions to format the data for saving into the shell's <code>$PS1</code> prompt
 variable.</li>
 </ol>
@@ -7813,8 +7854,9 @@ There are basically 2 concrete things that <code>melbyr</code> can do:
 </p>
 
 <ol class="org-ol">
-<li>Convert existing composite data types into a string token ("render" the data
-into a string representation).</li>
+<li>Convert existing composite data types into a string token ("render" the
+data into a string representation).</li>
+
 <li>Convert a list of string tokens into a new string ("render" the tokens down
 into a final string output).</li>
 </ol>
@@ -8296,8 +8338,10 @@ but they both have the following properties:
 
 <ol class="org-ol">
 <li>colorize all 40 hex characters,</li>
+
 <li>feed the underlying bits of the hex characters themselves into the
 colorization algorithm (to make it deterministic), and</li>
+
 <li>make it so that even if 2 different commit SHAs have the same leading N hex
 characters, that these two are colorized very differently.</li>
 </ol>

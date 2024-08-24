@@ -70,9 +70,10 @@ the LUA_PATH environment variable [[https://github.com/rvirding/luerl/blob/fc668
 
 In our case, we should do 2 things:
 
-1. in tests, make sure to set the LUA_PATH correctly (to the sample config
-   folder as above), and
-2. in production, add the $HOME/.melby folder as a path.
+  1) in tests, make sure to set the LUA_PATH correctly (to the sample config
+     folder as above), and
+
+  2) in production, add the $HOME/.melby folder as a path.
 
 Another option is to modify the package.path global variable like this:
 
@@ -1413,12 +1414,13 @@ will pretend that it is set to =$HOME/.kube/config=.
 
 There are 2 types of information we want to retrieve:
 
-1. The current Kubernetes context (and namespace) via =kubectl config
-   current-context= (to get the current context) and =kubectl config
-   get-contexts= (to get the associated non-default namespace for this context,
-   if any).
-2. Cluster health information for those contexts described in
-   =MELBY_KUBE_CONTEXTS=.
+  1) The current Kubernetes context (and namespace) via =kubectl config
+     current-context= (to get the current context) and =kubectl config
+     get-contexts= (to get the associated non-default namespace for this context,
+     if any).
+
+  2) Cluster health information for those contexts described in
+     =MELBY_KUBE_CONTEXTS=.
 
 We assume that =MELBY_KUBE_CONTEXTS= only points to contexts that could be
 reached by looking at =KUBECONFIG= (that these environment variables move in
@@ -1447,16 +1449,19 @@ this per-cluster information.
 We should let users configure each command with an optional timeout and/or error
 response detector, such that:
 
-- if a command times out (still is running after waiting N seconds), we cancel
-  it and generate a message for SLG telling the user that a command timed out
-  - this should catch cases where kubectl or gcloud return nothing due to either
-    network connectivity issues (wifi missing) or missing authentication (didn't
-    run =gcloud auth print-access-token= yet)
-  - when the user sees the message about the command(s) misbehaving, they can
-    run something that will (e.g.) reset their auth credentials so that the
-    commands can work again
-- if a command errors out (and we expect it to succeed), we mark a subset of the
-  entire data we read as "stale" ... ?
+  - if a command times out (still is running after waiting N seconds), we cancel
+    it and generate a message for SLG telling the user that a command timed out
+
+    - this should catch cases where kubectl or gcloud return nothing due to either
+      network connectivity issues (wifi missing) or missing authentication (didn't
+      run =gcloud auth print-access-token= yet)
+
+    - when the user sees the message about the command(s) misbehaving, they can
+      run something that will (e.g.) reset their auth credentials so that the
+      commands can work again
+
+  - if a command errors out (and we expect it to succeed), we mark a subset of the
+    entire data we read as "stale" ... ?
 
 *** Implementation for =KubeCurrent.lua= (get current context/namespace)
 

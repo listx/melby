@@ -23,12 +23,14 @@
 
 This manual covers several topics:
 
-- The build system for Literate Programming (LP), which explains how LP is used
-  in this project.
-- The build system for packaging Melby, which explains how Melby can be packaged
-  up using the Nix Package Manager. This is useful for developing Melby locally
-  (setting up a development environment).
-- The daemon and client programs that make up the Melby implementation.
+  - The build system for Literate Programming (LP), which explains how LP is
+    used in this project.
+
+  - The build system for packaging Melby, which explains how Melby can be
+    packaged up using the Nix Package Manager. This is useful for developing
+    Melby locally (setting up a development environment).
+
+  - The daemon and client programs that make up the Melby implementation.
 
 Before we get into the details, let's take a quick look at the tech stack used
 and the architectural overview of how the different pieces fit together.
@@ -37,20 +39,23 @@ and the architectural overview of how the different pieces fit together.
 
 We use several programming languages: Elixir, Lua, Rust, and Haskell.
 
-- *Elixir*: Elixir is the main language used in this project because of it
-  leverages the famed Erlang runtime, known for its world-class reliability.
-  Elixir is used for programming the base system, as well as testing all of the
-  components together.
-- *Lua*: Lua is used as our configuration language, because of its power
-  (especially by integrating with [[https://github.com/rvirding/luerl][Luerl]], which allows us to interop with Elixir)
-  and flexibility.
-- *Rust*: Rust is used in some places where static typing and performance might
-  come in handy. Typically it's used for smaller, pure (lacking side effects)
-  functions as NIFs (Native Inline Functions) inside Elixir.
-- *Haskell*: Haskell is used for the Melby client binary =melbyc=, and also the
-  =melbyr= rendering service. Haskell maximizes code maintainability and
-  stability, and so it is the preferred language for building smaller
-  independent components outside of the base (Elixir) system.
+  - *Elixir*: Elixir is the main language used in this project because of it
+    leverages the famed Erlang runtime, known for its world-class reliability.
+    Elixir is used for programming the base system, as well as testing all of
+    the components together.
+
+  - *Lua*: Lua is used as our configuration language, because of its power
+    (especially by integrating with [[https://github.com/rvirding/luerl][Luerl]], which allows us to interop with
+    Elixir) and flexibility.
+
+  - *Rust*: Rust is used in some places where static typing and performance might
+    come in handy. Typically it's used for smaller, pure (lacking side effects)
+    functions as NIFs (Native Inline Functions) inside Elixir.
+
+  - *Haskell*: Haskell is used for the Melby client binary =melbyc=, and also the
+    =melbyr= rendering service. Haskell maximizes code maintainability and
+    stability, and so it is the preferred language for building smaller
+    independent components outside of the base (Elixir) system.
 
 We also use [[https://en.wikipedia.org/wiki/Literate_programming][Literate Programming]] (LP). To this end, we use Emacs Org mode
 (=*.org= files) as the source of truth. These files are /tangled/ into the above
@@ -58,16 +63,19 @@ languages for the application binaries. These same Org files are /woven/ to
 produce HTML files for documentation (what you are probably reading now). We use
 several languages for weaving:
 
-- *Emacs Lisp*: We use Emacs Lisp to tame Emacs Org mode for LP. Emacs Org mode
-  is used for LP in this project because it is probably the most flexible and
-  widely-used LP system out there. LaTeX + Noweb is another possibility, but it
-  was not chosen because Org mode by default looks reasonable in plaintext.
-- *TikZ*: [[https://en.wikipedia.org/wiki/PGF/TikZ][PGF/TikZ]] is used for writing all of the diagrams and figures used for
-  documentation. This is because TikZ is extremely stable, powerful, and
-  flexible for creating diagrams of all sorts. SVG is the preferred file format.
-- *HTML/CSS*: HTML and CSS power the documentation. Although PDF output can be
-  very beautiful, HTML is simply more accessible and also does not require code
-  listings to be broken across multiple pages.
+  - *Emacs Lisp*: We use Emacs Lisp to tame Emacs Org mode for LP. Emacs Org mode
+    is used for LP in this project because it is probably the most flexible and
+    widely-used LP system out there. LaTeX + Noweb is another possibility, but
+    it was not chosen because Org mode by default looks reasonable in plaintext.
+
+  - *TikZ*: [[https://en.wikipedia.org/wiki/PGF/TikZ][PGF/TikZ]] is used for writing all of the diagrams and figures used for
+    documentation. This is because TikZ is extremely stable, powerful, and
+    flexible for creating diagrams of all sorts. SVG is the preferred file
+    format.
+
+  - *HTML/CSS*: HTML and CSS power the documentation. Although PDF output can be
+    very beautiful, HTML is simply more accessible and also does not require
+    code listings to be broken across multiple pages.
 
 ** Architectural overview of Melby components
 
@@ -84,21 +92,29 @@ servers where the local machine characteristics of such servers are irrelevant
 to clients.
 #+end_sidenote
 
-1. =melbyd=: The daemon (server), which itself is composed of two smaller pieces:
-   a. The core application written in Elixir and Rust.
-   b. The renderer (=melbyr=) written in Haskell. This is a separate child
-      process controlled by the core app.
-2. =melbyc=: The client, written in Haskell.
-   a. =melbyc-rust= is an equivalent client written in Rust.
+  1) =melbyd=: The daemon (server), which itself is composed of two smaller
+     pieces:
+
+     a) The core application written in Elixir and Rust.
+
+     b) The renderer (=melbyr=) written in Haskell. This is a separate child
+        process controlled by the core app.
+
+  2) =melbyc=: The client, written in Haskell.
+
+     a) =melbyc-rust= is an equivalent client written in Rust.
 
 The pieces above work like this:
 
-1. User writes a Lua script to specify what pieces of information it wants, and
-   how it should be presented.
-2. =melbyc= sends this script to =melbyd= for processing.
-3. =melbyd= gathers the necessary data (e.g., Git status or Kubernetes metadata) and
-   sends it =melbyr= for generating the final view (an arbitrary string).
-4. The view is sent back to =melbyc=, which then prints it to STDOUT.
+  1) User writes a Lua script to specify what pieces of information it wants,
+     and how it should be presented.
+
+  2) =melbyc= sends this script to =melbyd= for processing.
+
+  3) =melbyd= gathers the necessary data (e.g., Git status or Kubernetes metadata)
+     and sends it =melbyr= for generating the final view (an arbitrary string).
+
+  4) The view is sent back to =melbyc=, which then prints it to STDOUT.
 
 * Build System for Literate Programming
 
@@ -1016,10 +1032,12 @@ daemon).
 
 We would like our client to observe the following behaviors.
 
-1. Allow users to talk to the daemon.
-2. Run very quickly (the synchronous call to the daemon should finish in under
-   500 milliseconds).
-3. Have basic command-line argument handling.
+  1) Allow users to talk to the daemon.
+
+  2) Run very quickly (the synchronous call to the daemon should finish in under
+     500 milliseconds).
+
+  3) Have basic command-line argument handling.
 
 These points are the main things (or problems) that our program has to worry
 about. We look at each of these requirements below.
@@ -1418,6 +1436,7 @@ data MViewStatus
 #+end_src
 
 *** Other
+
 **** Pragmas
 
 The language pragmas are not that interesting, as their purpose is to basically
@@ -2075,16 +2094,18 @@ user can use in our test folder.
 
 With that out of the way, let's look at the flow of a request:
 
-1. =GetView= gRPC method called by melbyc (client): The client sends the path to
-   the main Lua configuration file on disk.
-2. Melbyd (daemon) reads the Lua configuration and interprets it. The Lua code
-   contains calls to the Melby SDK. That is, the Lua code is allowed to call
-   into melbyd (Elixir) to *generate data* (melbyd), as well as *format/render*
-   that data (ultimately through melbyr).
-3. The formatted data is returned as a =ViewResponse=. Currently the response is
-   just inline shell code which can be sourced directly by the shell. The inline
-   code assigns values to certain shell variables, and these shell variables are
-   meant to be combined into the user's =PS1= shell variable.
+  1) =GetView= gRPC method called by melbyc (client): The client sends the path to
+     the main Lua configuration file on disk.
+
+  2) Melbyd (daemon) reads the Lua configuration and interprets it. The Lua code
+     contains calls to the Melby SDK. That is, the Lua code is allowed to call
+     into melbyd (Elixir) to *generate data* (melbyd), as well as *format/render*
+     that data (ultimately through melbyr).
+
+  3) The formatted data is returned as a =ViewResponse=. Currently the response is
+     just inline shell code which can be sourced directly by the shell. The
+     inline code assigns values to certain shell variables, and these shell
+     variables are meant to be combined into the user's =PS1= shell variable.
 
 ** Internals
 
@@ -2111,8 +2132,9 @@ difference worth noting.
 
 In summary (FIXME: add diagram), we store 2 things:
 
-1. the history of states (has at least the 2 most recent "readings"), and
-2. a message box to store notable changes to the state history.
+  1) the history of states (has at least the 2 most recent "readings"), and
+
+  2) a message box to store notable changes to the state history.
 
 We keep track of a standard resource, where the state for this resource is
 generated via shell commands and parsed via Lua configuration. This is a
@@ -4167,10 +4189,11 @@ end
 **** melbyr dependency
 
 Interacting with the view requires us to call into melbyr (Haskell server) from
-Elixir. We need to:
+Elixir. We need to
 
-1. run the melbyr server, and
-2. call its gRPC methods to interact with it.
+  1) run the melbyr server, and
+
+  2) call its gRPC methods to interact with it.
 
 The first part is guaranteed by using the [[https://github.com/fhunleth/muontrap][MuonTrap]] library which handles running
 OS processes reliably (restarting them if they crash). The second part is
@@ -4311,9 +4334,10 @@ end
 The Standard Resource Service (SRS) is a general-purpose Elixir GenServer with a
 notion of history of previous states. The two main selling points are:
 
-1. it can be used to implement the Kubernetes controller pattern (FIXME: insert
-   link); and
-2. unlike typical Elixir GenServers, it can be configured at runtime with Lua.
+  1) it can be used to implement the Kubernetes controller pattern (FIXME:
+     insert link); and
+
+  2) unlike typical Elixir GenServers, it can be configured at runtime with Lua.
 
 SRS was designed to solve the problem of long-running shell commands that are
 long enough to be annoying but short enough that little effort has gone into
@@ -4345,11 +4369,13 @@ We provide a Lua API for =melbyc= (our users) because we want to make it easy to
 configure advanced functionality for generating the prompt. There are 3 modules
 here:
 
-- =Melbyd.LuaInterop= :: Expose Lua capability to the rest of melbyd
-- =Melbyd.LuaSdk= :: Autoloaded "Melbyd Lua SDK"
-- =Melbyd.LuaSdkAutoload= :: Boilerplate to make =Melbyd.LuaSdk= easier to
-  write. Defines a behaviour that can be implemented by any other Elixir module
-  that wants to be exposed to the Lua environment.
+  - =Melbyd.LuaInterop= :: Expose Lua capability to the rest of melbyd
+
+  - =Melbyd.LuaSdk= :: Autoloaded "Melbyd Lua SDK"
+
+  - =Melbyd.LuaSdkAutoload= :: Boilerplate to make =Melbyd.LuaSdk= easier to write.
+    Defines a behaviour that can be implemented by any other Elixir module that
+    wants to be exposed to the Lua environment.
 
 **** =Melbyd.LuaInterop=
 
@@ -4413,13 +4439,17 @@ configuration, but through a special, modified Lua SDK environment where all
 inputs to the configuration are controlled.
 
 The steps involved are roughly:
-1. Modify the SRS reader functions to read the "fake" fixture data that are part
-   of each SRS's definition
-2. Run the "Config.view" function, using a set of fake environment variables
-3. Check that the result from step 2 contains some substrings we expect to get
-   (also defined in the Lua config).
-4. Repeat steps 2 and 3 for each "Config.view_tests" entry defined in the Lua
-   config.
+
+  1) Modify the SRS reader functions to read the "fake" fixture data that are
+     part of each SRS's definition
+
+  2) Run the "Config.view" function, using a set of fake environment variables
+
+  3) Check that the result from step 2 contains some substrings we expect to get
+     (also defined in the Lua config).
+
+  4) Repeat steps 2 and 3 for each "Config.view_tests" entry defined in the Lua
+     config.
 
 When the above steps are being executed, purely for validation, we don't expect
 any of the resulting side effects to interfere with the real side effects of
@@ -4872,9 +4902,10 @@ auto-loaded modules, but currently there is no need.
 
 There are basically 2 categories of functions we expose to Lua:
 
-1. functions to fetch data (Git data, etc), and
-2. functions to format the data for saving into the shell's =$PS1= prompt
-   variable.
+  1) functions to fetch data (Git data, etc), and
+
+  2) functions to format the data for saving into the shell's =$PS1= prompt
+     variable.
 
 The Elixir functions must all take 2 arguments: the first argument is a list
 which captures the function arguments sent from the Lua side, and the second
@@ -6634,10 +6665,11 @@ interpreted and presented by some other program (e.g., Zsh prompt display).
 
 There are basically 2 concrete things that =melbyr= can do:
 
-1. Convert existing composite data types into a string token ("render" the data
-   into a string representation).
-2. Convert a list of string tokens into a new string ("render" the tokens down
-   into a final string output).
+  1) Convert existing composite data types into a string token ("render" the
+     data into a string representation).
+
+  2) Convert a list of string tokens into a new string ("render" the tokens down
+     into a final string output).
 
 The second step involves interpreting layout tokens such as =FILL= and =SPACE=.
 
@@ -7012,11 +7044,13 @@ to all standard terminals) and 24-bit color (available to most modern
 terminals). The colorization algorithms for these modes differ significantly,
 but they both have the following properties:
 
-1. colorize all 40 hex characters,
-2. feed the underlying bits of the hex characters themselves into the
-   colorization algorithm (to make it deterministic), and
-3. make it so that even if 2 different commit SHAs have the same leading N hex
-   characters, that these two are colorized very differently.
+  1) colorize all 40 hex characters,
+
+  2) feed the underlying bits of the hex characters themselves into the
+     colorization algorithm (to make it deterministic), and
+
+  3) make it so that even if 2 different commit SHAs have the same leading N hex
+     characters, that these two are colorized very differently.
 
 The last property is important because most users will want to only display the
 leading 7 to 10 characters of the hex string because this is typically enough in
