@@ -17,5 +17,7 @@ deps/
 *.html
 
 # Temporary files related to image generation.
+image/*.aux
+image/*.log
 image/*.pdf
 image/*uncropped*

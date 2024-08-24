@@ -220,14 +220,39 @@
 
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#h-Architecture">1. Architecture</a></li>
-<li><a href="#h-Makefile">2. Makefile</a></li>
+<li><a href="#h-Templates">1. Templates</a>
+<ul>
+<li><a href="#h-LaTeX-preamble-for-TikZ">1.1. LaTeX preamble for TikZ</a></li>
+</ul>
+</li>
+<li><a href="#h-Architecture">2. Architecture</a></li>
+<li><a href="#h-Makefile">3. Makefile</a></li>
 </ul>
 </div>
 </div>
 
+<div id="outline-container-h-Templates" class="outline-2">
+<h2 id="h-Templates"><span class="section-number-2">1.</span> Templates</h2>
+<div class="outline-text-2" id="text-h-Templates">
+</div>
+
+<div id="outline-container-h-LaTeX-preamble-for-TikZ" class="outline-3">
+<h3 id="h-LaTeX-preamble-for-TikZ"><span class="section-number-3">1.1.</span> LaTeX preamble for TikZ</h3>
+<div class="outline-text-3" id="text-h-LaTeX-preamble-for-TikZ">
+<p>
+Define custom wrappers for LaTeX files that define images. This way we don't
+have to repeat ourselves as much.
+</p>
+
+<p>
+The ending is not as interesting, but still important.
+</p>
+</div>
+</div>
+</div>
+
 <div id="outline-container-h-Architecture" class="outline-2">
-<h2 id="h-Architecture"><span class="section-number-2">1.</span> Architecture</h2>
+<h2 id="h-Architecture"><span class="section-number-2">2.</span> Architecture</h2>
 <div class="outline-text-2" id="text-h-Architecture">
 <p>
 The SVG file we generate here is not deterministic (changes every time we
@@ -260,13 +285,15 @@ and all PDF (images) files, and a second pass with pdf2svg to generate the SVGs.
 </div>
 
 <div id="outline-container-h-Makefile" class="outline-2">
-<h2 id="h-Makefile"><span class="section-number-2">2.</span> Makefile</h2>
+<h2 id="h-Makefile"><span class="section-number-2">3.</span> Makefile</h2>
 <div class="outline-text-2" id="text-h-Makefile">
 <p>
 This is a Makefile for generating diagrams (SVG format).
 </p>
 
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name"><code>image/Makefile</code></label><span class="lilac-caption-link-symbol"><a href="#code-image-Makefile--code">&#x1f517;</a></span></div><pre class="src src-makefile" id="code-image-Makefile--code"><span class="org-makefile-targets">all</span>: architecture-overall.svg
+<span class="org-makefile-targets">%.pdf</span> : %.tex
+    lualatex --halt-on-error $<span class="org-constant">&lt;</span>
 <span class="org-makefile-targets">%.svg</span> : %.pdf
     pdf2svg $<span class="org-constant">&lt;</span> <span class="org-makefile-targets">$</span><span class="org-makefile-targets"><span class="org-constant">@</span></span>.uncropped.svg
     inkscape \

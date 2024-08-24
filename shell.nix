@@ -69,6 +69,7 @@ let
       amsmath
       capt-of
       dvisvgm
+      fontspec
       sourcesanspro
       pgf
       ulem

@@ -64,7 +64,7 @@ tangle-sources: developer-manual-org \
 # Sadly, orgmode does not support including files for tangling. This means we
 # have to tangle each org file separately, even though they all come together
 # into main.org.
-image-org: developer-manual.org
+image-org: image.org
 	$(call run_emacs,(org-babel-tangle),image.org)
 # The developer manual generates the toplevel Makefile (this file) and
 # image/Makefile (overwriting them if necessary) to bootstrap the whole
@@ -95,8 +95,9 @@ weave-profile-inspect:
 		--eval="(profiler-find-profile \"emacs-profile-weave.txt\"))"
 .PHONY: weave-profile-inspect
 
-build-images:
-	$(call run_emacs,(org-babel-execute-buffer),image.org)
+# FIXME: This is not efficient because it always generates images even if the
+# image.org file hasn't changed.
+build-images: image-org
 	$(MAKE) -C image -B
 
 build-html: main.html image.html developer-manual.html user-manual.html

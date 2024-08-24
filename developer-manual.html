@@ -840,8 +840,9 @@ endef
         <span class="org-variable-name">--eval</span>=<span class="org-string">"(profiler-find-profile \"emacs-profile-weave.txt\"))"</span>
 <span class="org-makefile-targets">.PHONY</span>: weave-profile-inspect
 
-<span class="org-makefile-targets">build-images</span>:
-    $(<span class="org-variable-name">call</span> run_emacs,(org-babel-execute-buffer),image.org)
+<span class="org-comment-delimiter"># </span><span class="org-comment">FIXME: This is not efficient because it always generates images even if the</span>
+<span class="org-comment-delimiter"># </span><span class="org-comment">image.org file hasn't changed.</span>
+<span class="org-makefile-targets">build-images</span>: image-org
     $(<span class="org-variable-name">MAKE</span>) -C image -B
 
 <span class="org-makefile-targets">build-html</span>: main.html image.html developer-manual.html user-manual.html
@@ -1028,7 +1029,7 @@ We simply tangle all major <code>*.org</code> files in the top-level Makefile.
 <span class="org-comment-delimiter"># </span><span class="org-comment">Sadly, orgmode does not support including files for tangling. This means we</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">have to tangle each org file separately, even though they all come together</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">into main.org.</span>
-<span class="org-makefile-targets">image-org</span>: developer-manual.org
+<span class="org-makefile-targets">image-org</span>: image.org
     $(<span class="org-variable-name">call</span> run_emacs,(org-babel-tangle),image.org)
 <span class="org-comment-delimiter"># </span><span class="org-comment">The developer manual generates the toplevel Makefile (this file) and</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">image/Makefile (overwriting them if necessary) to bootstrap the whole</span>
@@ -1088,6 +1089,8 @@ deps/
 *.html
 
 # Temporary files related to image generation.
+image/*.aux
+image/*.log
 image/*.pdf
 image/*uncropped*
 </pre></div>
@@ -1450,6 +1453,7 @@ running unit tests) for all of the various languages we use.
       amsmath
       capt-of
       dvisvgm
+      fontspec
       sourcesanspro
       pgf
       ulem

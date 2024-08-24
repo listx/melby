@@ -1,4 +1,6 @@
 all: architecture-overall.svg
+%.pdf : %.tex
+	lualatex --halt-on-error $<
 %.svg : %.pdf
 	pdf2svg $< $@.uncropped.svg
 	inkscape \
