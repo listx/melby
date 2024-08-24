@@ -376,6 +376,15 @@ Because of these issues, the utility has been removed.
 # Haskell "stack" tooling metadata.
 .stack-work
 
+# This folder holds dependencies we bring into this project via Git submodules.
+# Ignore them here so that we don't search into them when we invoke ripgrep to
+# perform text searches.
+deps/
+
+# By the same token, ignore all HTML files because we don't want ripgrep to
+# search them either.
+*.html
+
 # Temporary files related to image generation.
 image/*.pdf
 image/*uncropped*
