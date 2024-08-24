@@ -32,7 +32,7 @@ We can now convert the minimal 1-page PDF into an SVG using either [[https://git
 [[https://github.com/dawbarton/pdf2svg][pdf2svg]]. Currently (September 2022) there is [[https://github.com/mgieseki/dvisvgm/issues/183][a bug]] with dvisvgm so we have to
 use the latter. Ideally Org mode can take care of this but currently it appears
 to be buggy, so we perform the manual conversion ourselves. We might even want
-to create a separate Org mode doc for all of the SVG image processing. FIXME
+to create a separate Org mode doc for all of the SVG image processing.
 
 FIXME: Also, we need to basically do 2 passes --- run emacs to generate the HTML
 and all PDF (images) files, and a second pass with pdf2svg to generate the SVGs.
