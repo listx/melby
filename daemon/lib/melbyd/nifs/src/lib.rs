@@ -1,6 +1,7 @@
 pub mod color;
 pub mod path_shorten;
 
+#[cfg(feature = "elixir_support")]
 rustler::init!(
     "Elixir.Melbyd.Nifs",
     [

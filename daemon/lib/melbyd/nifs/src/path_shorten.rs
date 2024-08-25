@@ -1,7 +1,7 @@
 use envsubst;
 use std::collections::HashMap;
 
-#[rustler::nif]
+#[cfg_attr(feature = "elixir_support", rustler::nif)]
 pub fn path_shorten(
     path: &str,
     aliases: HashMap<String, String>,

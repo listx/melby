@@ -4683,7 +4683,7 @@ The internals here mirror the design in <code>Melbyd.StandardResource.read/2</co
 </pre></div><div class="org-src-container"><pre class="src src-rust" id="nil-20"><span class="org-keyword">use</span> <span class="org-constant">envsubst</span>;
 <span class="org-keyword">use</span> <span class="org-constant">std</span>::<span class="org-constant">collections</span>::<span class="org-type">HashMap</span>;
 
-<span class="org-preprocessor">#[rustler::nif]</span>
+<span class="org-preprocessor">#[cfg_attr(feature = </span><span class="org-string">"elixir_support"</span><span class="org-preprocessor">, rustler::nif)]</span>
 <span class="org-keyword">pub</span> <span class="org-keyword">fn</span> <span class="org-function-name">path_shorten</span>(
     <span class="org-variable-name">path</span>: <span class="org-rust-ampersand">&amp;</span><span class="org-type">str</span>,
     <span class="org-variable-name">aliases</span>: <span class="org-type">HashMap</span>&lt;<span class="org-type">String</span>, <span class="org-type">String</span>&gt;,
@@ -5053,7 +5053,8 @@ convenience of being able to use this library.
 
 <div class="org-src-container"><pre class="src src-rust" id="nil-22"><span class="org-keyword">use</span> <span class="org-constant">csscolorparser</span>::<span class="org-type">Color</span>;
 
-<span class="org-preprocessor">#[derive(rustler::NifTuple, Default, Debug, PartialEq, Eq)]</span>
+<span class="org-preprocessor">#[derive(Default, Debug, PartialEq, Eq)]</span>
+<span class="org-preprocessor">#[cfg_attr(feature = </span><span class="org-string">"elixir_support"</span><span class="org-preprocessor">, derive(rustler::NifTuple))]</span>
 <span class="org-keyword">pub</span> <span class="org-keyword">struct</span> <span class="org-type">Color24BitRust</span> {
     <span class="org-keyword">pub</span> <span class="org-variable-name">red</span>: <span class="org-type">u8</span>,
     <span class="org-keyword">pub</span> <span class="org-variable-name">green</span>: <span class="org-type">u8</span>,
@@ -5061,7 +5062,7 @@ convenience of being able to use this library.
     <span class="org-keyword">pub</span> <span class="org-variable-name">alpha</span>: <span class="org-type">u8</span>,
 }
 
-<span class="org-preprocessor">#[rustler::nif]</span>
+<span class="org-preprocessor">#[cfg_attr(feature = </span><span class="org-string">"elixir_support"</span><span class="org-preprocessor">, rustler::nif)]</span>
 <span class="org-keyword">pub</span> <span class="org-keyword">fn</span> <span class="org-function-name">parse_color</span>(<span class="org-variable-name">color_str</span>: <span class="org-rust-ampersand">&amp;</span><span class="org-type">str</span>) -&gt; <span class="org-type">Color24BitRust</span> {
     <span class="org-keyword">let</span> <span class="org-variable-name">vals</span> = <span class="org-keyword">match</span> color_str.parse::&lt;<span class="org-type">Color</span>&gt;() {
         <span class="org-type">Ok</span>(color) =&gt; color.to_rgba8(),
@@ -10046,6 +10047,7 @@ both the Elixir and Rust side.
 <div class="org-src-container"><pre class="src src-rust" id="nil-57"><span class="org-keyword">pub</span> <span class="org-keyword">mod</span> <span class="org-constant">color</span>;
 <span class="org-keyword">pub</span> <span class="org-keyword">mod</span> <span class="org-constant">path_shorten</span>;
 
+<span class="org-preprocessor">#[cfg(feature = </span><span class="org-string">"elixir_support"</span><span class="org-preprocessor">)]</span>
 <span class="org-constant">rustler</span>::<span class="org-preprocessor">init!</span>(
     <span class="org-string">"Elixir.Melbyd.Nifs"</span>,
     [
@@ -10090,7 +10092,11 @@ both the Elixir and Rust side.
 <span class="org-variable-name">envsubst</span> = <span class="org-string">"0.2.1"</span>
 <span class="org-variable-name">serde</span> = { version = <span class="org-string">"1.0"</span>, features = [<span class="org-string">"derive"</span>] }
 <span class="org-variable-name">serde_json</span> = <span class="org-string">"1.0"</span>
-<span class="org-variable-name">rustler</span> = <span class="org-string">"0.31.0"</span>
+<span class="org-variable-name">rustler</span> = { version = <span class="org-string">"0.31.0"</span>, optional = true }
+
+[features]
+<span class="org-variable-name">default</span> = [<span class="org-string">"elixir_support"</span>]
+<span class="org-variable-name">elixir_support</span> = [<span class="org-string">"dep:rustler"</span>]
 </pre></div>
 </div>
 </div>

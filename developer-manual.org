@@ -3675,7 +3675,7 @@ end
 use envsubst;
 use std::collections::HashMap;
 
-#[rustler::nif]
+#[cfg_attr(feature = "elixir_support", rustler::nif)]
 pub fn path_shorten(
     path: &str,
     aliases: HashMap<String, String>,
@@ -4034,7 +4034,8 @@ convenience of being able to use this library.
 #+begin_src rust :tangle daemon/lib/melbyd/nifs/src/color.rs
 use csscolorparser::Color;
 
-#[derive(rustler::NifTuple, Default, Debug, PartialEq, Eq)]
+#[derive(Default, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "elixir_support", derive(rustler::NifTuple))]
 pub struct Color24BitRust {
     pub red: u8,
     pub green: u8,
@@ -4042,7 +4043,7 @@ pub struct Color24BitRust {
     pub alpha: u8,
 }
 
-#[rustler::nif]
+#[cfg_attr(feature = "elixir_support", rustler::nif)]
 pub fn parse_color(color_str: &str) -> Color24BitRust {
     let vals = match color_str.parse::<Color>() {
         Ok(color) => color.to_rgba8(),
@@ -8693,6 +8694,7 @@ end
 pub mod color;
 pub mod path_shorten;
 
+#[cfg(feature = "elixir_support")]
 rustler::init!(
     "Elixir.Melbyd.Nifs",
     [
@@ -8730,7 +8732,11 @@ csscolorparser = "0.6.2"
 envsubst = "0.2.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-rustler = "0.31.0"
+rustler = { version = "0.31.0", optional = true }
+
+[features]
+default = ["elixir_support"]
+elixir_support = ["dep:rustler"]
 #+end_src
 
 ***** .gitignore

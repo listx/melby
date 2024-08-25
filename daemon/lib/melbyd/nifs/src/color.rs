@@ -1,6 +1,7 @@
 use csscolorparser::Color;
 
-#[derive(rustler::NifTuple, Default, Debug, PartialEq, Eq)]
+#[derive(Default, Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "elixir_support", derive(rustler::NifTuple))]
 pub struct Color24BitRust {
     pub red: u8,
     pub green: u8,
@@ -8,7 +9,7 @@ pub struct Color24BitRust {
     pub alpha: u8,
 }
 
-#[rustler::nif]
+#[cfg_attr(feature = "elixir_support", rustler::nif)]
 pub fn parse_color(color_str: &str) -> Color24BitRust {
     let vals = match color_str.parse::<Color>() {
         Ok(color) => color.to_rgba8(),
