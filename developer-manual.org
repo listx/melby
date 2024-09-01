@@ -424,9 +424,8 @@ with GHC 9+. We'll move to [[https://github.com/well-typed/grapesy][Grapesy]] wh
 
 We use [[https://github.com/rvirding/luerl][luerl]], which uses Lua 5.2 with some 5.3 support.
 
-*** Check if tangled files are in sync
 
-** Audit of what's tangled
+*** Audit of what's tangled
 
 Some files in this project are not tangled for convenience. Below is a script
 that asks Git for a list of all tracked files, and compares it against what's
