@@ -848,7 +848,7 @@ endef
     make -C $(<span class="org-variable-name">PROJ_ROOT</span>) -j$(<span class="org-variable-name">PROCS</span>) tangle
     make -C $(<span class="org-variable-name">PROJ_ROOT</span>)/daemon repl
 
-<span class="lilac-child-link-from-parent"><a href="#__NREF__Makefile-tangle">Makefile-tangle</a></span>
+&lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__Makefile-tangle">Makefile-tangle</a></span>&gt;&gt;
 
 <span class="org-makefile-targets">weave</span>: build-html build-images
 
@@ -2032,14 +2032,14 @@ All of the business logic lies in the <code>melby-client.hs</code> file, which h
 following structure:
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">Layout of <code>melby-client.hs</code></label><span class="lilac-caption-link-symbol"><a href="#Layout-of--code-melby-client-hs--code">&#x1f517;</a></span></div><pre class="src src-haskell" id="Layout-of--code-melby-client-hs--code"><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_pragmas">melbyc_pragmas</a></span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">Layout of <code>melby-client.hs</code></label><span class="lilac-caption-link-symbol"><a href="#Layout-of--code-melby-client-hs--code">&#x1f517;</a></span></div><pre class="src src-haskell" id="Layout-of--code-melby-client-hs--code"><span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_pragmas">melbyc_pragmas</a></span><span class="org-haskell-operator">&gt;&gt;</span>
 
 <span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">Main</span> <span class="org-haskell-keyword">where</span>
 
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_imports">melbyc_imports</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_business_logic">melbyc_business_logic</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_option_handling">melbyc_option_handling</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_main">melbyc_main</a></span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_imports">melbyc_imports</a></span><span class="org-haskell-operator">&gt;&gt;</span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_business_logic">melbyc_business_logic</a></span><span class="org-haskell-operator">&gt;&gt;</span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_option_handling">melbyc_option_handling</a></span><span class="org-haskell-operator">&gt;&gt;</span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_main">melbyc_main</a></span><span class="org-haskell-operator">&gt;&gt;</span>
 </pre></div></div><p>
 The more interesting bits are in the <code>&lt;&lt;business-logic&gt;&gt;</code> section, which
 actually performs the gRPC call to melbyd. Everything else is mostly boilerplate
@@ -2064,16 +2064,16 @@ to the Lua script we want to send to melbyd. We do this in the <code>getView</co
 function.
 </p>
 
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-client-hs--code">melbyc_business_logic</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyc_business_logic">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyc_business_logic"><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_getView">melbyc_getView</a></span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-client-hs--code">melbyc_business_logic</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyc_business_logic">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyc_business_logic"><span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_getView">melbyc_getView</a></span><span class="org-haskell-operator">&gt;&gt;</span>
 </pre></div></div><p>
 Now let's construct the <code>getView</code> function.
 </p>
 
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__melbyc_business_logic">melbyc_getView</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyc_getView">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyc_getView"><span class="org-haskell-definition">getView</span> <span class="org-haskell-operator">::</span> <span class="org-haskell-type">GRpcConnection</span> <span class="org-haskell-type">View</span> '<span class="org-haskell-type">MsgProtoBuf</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">FilePath</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">T.Text</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">Int</span> <span class="org-haskell-operator">-&gt;</span> <span class="org-haskell-type">IO</span> <span class="org-haskell-constructor">()</span>
 <span class="org-haskell-definition">getView</span> conn configPath' config' shell_pid' <span class="org-haskell-operator">=</span> <span class="org-haskell-keyword">do</span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_getView_construct_payload">melbyc_getView_construct_payload</a></span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_getView_call_melbyd">melbyc_getView_call_melbyd</a></span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_getView_handle_payload">melbyc_getView_handle_payload</a></span>
+  <span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_getView_construct_payload">melbyc_getView_construct_payload</a></span><span class="org-haskell-operator">&gt;&gt;</span>
+  <span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_getView_call_melbyd">melbyc_getView_call_melbyd</a></span><span class="org-haskell-operator">&gt;&gt;</span>
+  <span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_getView_handle_payload">melbyc_getView_handle_payload</a></span><span class="org-haskell-operator">&gt;&gt;</span>
 </pre></div></div><p>
 Below we construct a gRPC message payload (request) for melbyd.
 </p>
@@ -2154,9 +2154,9 @@ something like:
 <div id="outline-container-h-Option-handling" class="outline-4">
 <h4 id="h-Option-handling"><span class="section-number-4">5.5.1.</span> Option handling</h4>
 <div class="outline-text-4" id="text-h-Option-handling">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-client-hs--code">melbyc_option_handling</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyc_option_handling">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyc_option_handling"><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_option_handling_types">melbyc_option_handling_types</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_option_handling_parsers">melbyc_option_handling_parsers</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_option_handling_dispatcher">melbyc_option_handling_dispatcher</a></span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-client-hs--code">melbyc_option_handling</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyc_option_handling">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyc_option_handling"><span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_option_handling_types">melbyc_option_handling_types</a></span><span class="org-haskell-operator">&gt;&gt;</span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_option_handling_parsers">melbyc_option_handling_parsers</a></span><span class="org-haskell-operator">&gt;&gt;</span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_option_handling_dispatcher">melbyc_option_handling_dispatcher</a></span><span class="org-haskell-operator">&gt;&gt;</span>
 </pre></div></div><p>
 The types here are what we read in from the command line.
 </p>
@@ -2253,7 +2253,7 @@ successful parse of command line arguments) to the business logic.
     <span class="org-haskell-operator">&lt;*&gt;</span> optionsP
   infoMod <span class="org-haskell-operator">=</span> fullDesc
     <span class="org-haskell-operator">&lt;&gt;</span> header <span class="org-string">"melbyc - CLI for interacting with the melby daemon (melbyd)"</span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_gitVersion">melbyc_gitVersion</a></span>
+  <span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyc_gitVersion">melbyc_gitVersion</a></span><span class="org-haskell-operator">&gt;&gt;</span>
 </pre></div></div>
 </div>
 </div>
@@ -2809,10 +2809,10 @@ package. We do that below.
 <div id="outline-container-h-Main-function" class="outline-5">
 <h5 id="h-Main-function"><span class="section-number-5">5.7.1.1.</span> Main function</h5>
 <div class="outline-text-5" id="text-h-Main-function">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">main.rs for client-rust</label><span class="lilac-caption-link-symbol"><a href="#main-rs-for-client-rust">&#x1f517;</a></span></div><pre class="src src-rust" id="main-rs-for-client-rust"><span class="lilac-child-link-from-parent"><a href="#__NREF__client-rust--imports-1">client-rust--imports</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__client-rust--option-handling-1">client-rust--option-handling</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__client-rust--main">client-rust--main</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__client-rust--business-logic">client-rust--business-logic</a></span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">main.rs for client-rust</label><span class="lilac-caption-link-symbol"><a href="#main-rs-for-client-rust">&#x1f517;</a></span></div><pre class="src src-rust" id="main-rs-for-client-rust">&lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__client-rust--imports-1">client-rust--imports</a></span>&gt;&gt;
+&lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__client-rust--option-handling-1">client-rust--option-handling</a></span>&gt;&gt;
+&lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__client-rust--main">client-rust--main</a></span>&gt;&gt;
+&lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__client-rust--business-logic">client-rust--business-logic</a></span>&gt;&gt;
 </pre></div></div><p>
 Basic imports.
 </p>
@@ -3525,26 +3525,26 @@ down this process.
   <span class="org-keyword">end</span>
 
   <span class="org-comment-delimiter"># </span><span class="org-comment">GenServer callbacks.</span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_handle_call-1">melbyd_srs_handle_call</a></span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_handle_cast">melbyd_srs_handle_cast</a></span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_handle_info-1">melbyd_srs_handle_info</a></span>
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_handle_call-1">melbyd_srs_handle_call</a></span>&gt;&gt;
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_handle_cast">melbyd_srs_handle_cast</a></span>&gt;&gt;
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_handle_info-1">melbyd_srs_handle_info</a></span>&gt;&gt;
 
   <span class="org-comment-delimiter"># </span><span class="org-comment">Tick</span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_tick">melbyd_srs_tick</a></span>
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_tick">melbyd_srs_tick</a></span>&gt;&gt;
 
   <span class="org-comment-delimiter"># </span><span class="org-comment">Mark staleness</span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_staleness">melbyd_srs_staleness</a></span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_staleness_detector_setup-1">melbyd_srs_staleness_detector_setup</a></span>
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_staleness">melbyd_srs_staleness</a></span>&gt;&gt;
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_staleness_detector_setup-1">melbyd_srs_staleness_detector_setup</a></span>&gt;&gt;
   <span class="org-comment-delimiter"># </span><span class="org-comment">Filesystem-based staleness</span>
-  __NREF__melbyd_srs_staleness_filesystem_boilerplate
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_staleness_filesystem_helpers">melbyd_srs_staleness_filesystem_helpers</a></span>
+  &lt;&lt;__NREF__melbyd_srs_staleness_filesystem_boilerplate&gt;&gt;
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_staleness_filesystem_helpers">melbyd_srs_staleness_filesystem_helpers</a></span>&gt;&gt;
 
   <span class="org-comment-delimiter"># </span><span class="org-comment">Client interface</span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_client_interface">melbyd_srs_client_interface</a></span>
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_client_interface">melbyd_srs_client_interface</a></span>&gt;&gt;
 <span class="org-keyword">end</span>
 
 <span class="org-comment-delimiter"># </span><span class="org-comment">Supervisor.</span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_supervisor">melbyd_srs_supervisor</a></span>
+&lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_supervisor">melbyd_srs_supervisor</a></span>&gt;&gt;
 </pre></div>
 </div>
 </div>
@@ -3585,7 +3585,7 @@ down this process.
 </pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#nil-17">melbyd_srs_handle_info</a></span>(1/7) <span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_srs_handle_info-1">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_srs_handle_info-1"><span class="org-comment-delimiter"># </span><span class="org-comment">Process tick. The tick must handle the true and false cases for the "stale"</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">key of the state. First we handle the case where stale is true (we must</span>
 <span class="org-comment-delimiter"># </span><span class="org-comment">re-read data).</span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_tick_do_work">melbyd_srs_tick_do_work</a></span>
+&lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_srs_tick_do_work">melbyd_srs_tick_do_work</a></span>&gt;&gt;
 
 <span class="org-elixir-attribute">@impl</span> <span class="org-elixir-atom">true</span>
 <span class="org-keyword">def</span> <span class="org-function-name">handle_info</span>(
@@ -4403,17 +4403,17 @@ subscribe to these topics and display these messages to the user.
   <span class="org-keyword">end</span>
 
   <span class="org-comment-delimiter"># </span><span class="org-comment">GenServer callbacks.</span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_sps_handle_info-1">melbyd_sps_handle_info</a></span>
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_sps_handle_info-1">melbyd_sps_handle_info</a></span>&gt;&gt;
 
   <span class="org-comment-delimiter"># </span><span class="org-comment">Tick</span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_sps_tick">melbyd_sps_tick</a></span>
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_sps_tick">melbyd_sps_tick</a></span>&gt;&gt;
 
   <span class="org-comment-delimiter"># </span><span class="org-comment">Client interface</span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_sps_client_interface">melbyd_sps_client_interface</a></span>
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_sps_client_interface">melbyd_sps_client_interface</a></span>&gt;&gt;
 <span class="org-keyword">end</span>
 
 
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_sps_supervisor">melbyd_sps_supervisor</a></span>
+&lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_sps_supervisor">melbyd_sps_supervisor</a></span>&gt;&gt;
 </pre></div>
 </div>
 
@@ -5163,7 +5163,7 @@ will be deleted in the future (to be replaced entirely with gRPC calls).
        <span class="org-elixir-atom">start_server:</span> <span class="org-elixir-atom">true</span>},
 
       <span class="org-comment-delimiter"># </span><span class="org-comment">Haskell "melbyr" service. (view)</span>
-      <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_muontrap">melbyr_muontrap</a></span>
+      &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_muontrap">melbyr_muontrap</a></span>&gt;&gt;
     ]
 
     <span class="org-comment-delimiter"># </span><span class="org-comment">See https://hexdocs.pm/elixir/Supervisor.html</span>
@@ -5469,10 +5469,10 @@ melbyc.
   <span class="org-keyword">end</span>
 <span class="org-keyword">end</span>
 
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_lua_config_validation">melbyd_lua_config_validation</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdkhelper">melbyd_luasdkhelper</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk">melbyd_luasdk</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luerl_util">melbyd_luerl_util</a></span>
+&lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_lua_config_validation">melbyd_lua_config_validation</a></span>&gt;&gt;
+&lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdkhelper">melbyd_luasdkhelper</a></span>&gt;&gt;
+&lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk">melbyd_luasdk</a></span>&gt;&gt;
+&lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luerl_util">melbyd_luerl_util</a></span>&gt;&gt;
 </pre></div></div>
 </div>
 
@@ -5997,20 +5997,20 @@ argument is always the state of the Lua VM instance. This is demonstrated in the
     <span class="org-string">"localhost:</span><span class="org-variable-name">#{Application.get_env(:melbyd, :melbyr_port)}</span><span class="org-string">"</span>
   <span class="org-keyword">end</span>
 
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_render">melbyd_luasdk_render</a></span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_get_path_pretty">melbyd_luasdk_get_path_pretty</a></span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_get_colorized_sha">melbyd_luasdk_get_colorized_sha</a></span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_get_time">melbyd_luasdk_get_time</a></span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_to_shell_script">melbyd_luasdk_to_shell_script</a></span>
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_render">melbyd_luasdk_render</a></span>&gt;&gt;
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_get_path_pretty">melbyd_luasdk_get_path_pretty</a></span>&gt;&gt;
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_get_colorized_sha">melbyd_luasdk_get_colorized_sha</a></span>&gt;&gt;
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_get_time">melbyd_luasdk_get_time</a></span>&gt;&gt;
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_to_shell_script">melbyd_luasdk_to_shell_script</a></span>&gt;&gt;
 
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_srs">melbyd_luasdk_srs</a></span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_srs_fake">melbyd_luasdk_srs_fake</a></span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_srs_helpers-1">melbyd_luasdk_srs_helpers</a></span>
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_srs">melbyd_luasdk_srs</a></span>&gt;&gt;
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_srs_fake">melbyd_luasdk_srs_fake</a></span>&gt;&gt;
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_srs_helpers-1">melbyd_luasdk_srs_helpers</a></span>&gt;&gt;
 
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_pubsub">melbyd_luasdk_pubsub</a></span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_sps">melbyd_luasdk_sps</a></span>
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_pubsub">melbyd_luasdk_pubsub</a></span>&gt;&gt;
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_sps">melbyd_luasdk_sps</a></span>&gt;&gt;
 
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_misc">melbyd_luasdk_misc</a></span>
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luasdk_misc">melbyd_luasdk_misc</a></span>&gt;&gt;
 <span class="org-keyword">end</span>
 </pre></div></div>
 </div>
@@ -7048,10 +7048,10 @@ The Lua config should know what topics to subscribe to.
 <h5 id="h-Luerl-util"><span class="section-number-5">6.5.7.4.</span> Luerl util</h5>
 <div class="outline-text-5" id="text-h-Luerl-util">
 <div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#code-Melbyd-LuaInterop--code">melbyd_luerl_util</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyd_luerl_util">&#x1f517;</a></span></div><pre class="src src-elixir" id="__NREF__melbyd_luerl_util"><span class="org-keyword">defmodule</span> <span class="org-type">Melbyd.LuerlUtil</span> <span class="org-keyword">do</span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luerl_util_table_lookup">melbyd_luerl_util_table_lookup</a></span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luerl_util_array_to_native_list">melbyd_luerl_util_array_to_native_list</a></span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luerl_util_table_to_native_map">melbyd_luerl_util_table_to_native_map</a></span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luerl_util_table_to_native_map_atomic_keys">melbyd_luerl_util_table_to_native_map_atomic_keys</a></span>
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luerl_util_table_lookup">melbyd_luerl_util_table_lookup</a></span>&gt;&gt;
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luerl_util_array_to_native_list">melbyd_luerl_util_array_to_native_list</a></span>&gt;&gt;
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luerl_util_table_to_native_map">melbyd_luerl_util_table_to_native_map</a></span>&gt;&gt;
+  &lt;&lt;<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyd_luerl_util_table_to_native_map_atomic_keys">melbyd_luerl_util_table_to_native_map_atomic_keys</a></span>&gt;&gt;
 <span class="org-keyword">end</span>
 </pre></div></div>
 </div>
@@ -8058,13 +8058,13 @@ This walk-through is written for the future maintainers of this codebase.
 <div id="outline-container-h-Overall-structure-1" class="outline-5">
 <h5 id="h-Overall-structure-1"><span class="section-number-5">6.5.10.1.</span> Overall structure</h5>
 <div class="outline-text-5" id="text-h-Overall-structure-1">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">Layout of <code>melby-renderer.hs</code></label><span class="lilac-caption-link-symbol"><a href="#Layout-of--code-melby-renderer-hs--code">&#x1f517;</a></span></div><pre class="src src-haskell" id="Layout-of--code-melby-renderer-hs--code"><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_pragmas">melbyr_pragmas</a></span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><label class="org-src-name">Layout of <code>melby-renderer.hs</code></label><span class="lilac-caption-link-symbol"><a href="#Layout-of--code-melby-renderer-hs--code">&#x1f517;</a></span></div><pre class="src src-haskell" id="Layout-of--code-melby-renderer-hs--code"><span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_pragmas">melbyr_pragmas</a></span><span class="org-haskell-operator">&gt;&gt;</span>
 
 <span class="org-haskell-keyword">module</span> <span class="org-haskell-constructor">Main</span> <span class="org-haskell-keyword">where</span>
 
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_imports">melbyr_imports</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_option_handling">melbyr_option_handling</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_main">melbyr_main</a></span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_imports">melbyr_imports</a></span><span class="org-haskell-operator">&gt;&gt;</span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_option_handling">melbyr_option_handling</a></span><span class="org-haskell-operator">&gt;&gt;</span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_main">melbyr_main</a></span><span class="org-haskell-operator">&gt;&gt;</span>
 </pre></div></div>
 </div>
 </div>
@@ -8401,10 +8401,10 @@ and distributing these colors onto the 40 hex characters.
     <span class="org-haskell-operator">.</span> addPadding padl padr
     <span class="org-haskell-operator">$</span> colorizeGitSha24bit bytes len
 
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_colorize_git_sha_24_bit">melbyr_colorize_git_sha_24_bit</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_add_padding">melbyr_add_padding</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_render_misc">melbyr_render_misc</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_perceived_lightness">melbyr_perceived_lightness</a></span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_colorize_git_sha_24_bit">melbyr_colorize_git_sha_24_bit</a></span><span class="org-haskell-operator">&gt;&gt;</span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_add_padding">melbyr_add_padding</a></span><span class="org-haskell-operator">&gt;&gt;</span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_render_misc">melbyr_render_misc</a></span><span class="org-haskell-operator">&gt;&gt;</span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_perceived_lightness">melbyr_perceived_lightness</a></span><span class="org-haskell-operator">&gt;&gt;</span>
 </pre></div>
 </div>
 </div>
@@ -8801,9 +8801,9 @@ space.
 <div id="outline-container-h-Option-handling-1" class="outline-5">
 <h5 id="h-Option-handling-1"><span class="section-number-5">6.5.12.1.</span> Option handling</h5>
 <div class="outline-text-5" id="text-h-Option-handling-1">
-<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-renderer-hs--code">melbyr_option_handling</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_option_handling">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_option_handling"><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_option_handling_types">melbyr_option_handling_types</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_option_handling_parsers">melbyr_option_handling_parsers</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_option_handling_dispatcher">melbyr_option_handling_dispatcher</a></span>
+<div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#Layout-of--code-melby-renderer-hs--code">melbyr_option_handling</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_option_handling">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_option_handling"><span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_option_handling_types">melbyr_option_handling_types</a></span><span class="org-haskell-operator">&gt;&gt;</span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_option_handling_parsers">melbyr_option_handling_parsers</a></span><span class="org-haskell-operator">&gt;&gt;</span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_option_handling_dispatcher">melbyr_option_handling_dispatcher</a></span><span class="org-haskell-operator">&gt;&gt;</span>
 </pre></div></div><div class="org-src-container"><div class="lilac-pre-with-caption"><div class="lilac-caption"><span class="lilac-caption-parent-link"><a href="#__NREF__melbyr_option_handling">melbyr_option_handling_types</a></span><span class="lilac-caption-link-symbol"><a href="#__NREF__melbyr_option_handling_types">&#x1f517;</a></span></div><pre class="src src-haskell" id="__NREF__melbyr_option_handling_types"><span class="org-haskell-keyword">newtype</span> <span class="org-haskell-type">Opts</span> <span class="org-haskell-operator">=</span> <span class="org-haskell-constructor">Opts</span>
   { subcommand <span class="org-haskell-operator">::</span> <span class="org-haskell-type">Subcommand</span> }
 
@@ -8867,7 +8867,7 @@ space.
     <span class="org-haskell-operator">&lt;*&gt;</span> optionsP
   infoMod <span class="org-haskell-operator">=</span> fullDesc
     <span class="org-haskell-operator">&lt;&gt;</span> header <span class="org-string">"melbyr - melby renderer"</span>
-  <span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_gitVersion">melbyr_gitVersion</a></span>
+  <span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_gitVersion">melbyr_gitVersion</a></span><span class="org-haskell-operator">&gt;&gt;</span>
 </pre></div></div>
 </div>
 </div>
@@ -8906,10 +8906,10 @@ FIXME: break this up into smaller chunks
 
 <span class="org-haskell-definition">grpc</span> <span class="org-string">"MelbyRendererSchema"</span> id <span class="org-string">"lib/MelbyRenderer/melby_renderer.proto"</span>
 
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_schema_colorized_git_sha">melbyr_schema_colorized_git_sha</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_schema_widgets">melbyr_schema_widgets</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_schema_render_options">melbyr_schema_render_options</a></span>
-<span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_schema_parse_path_aliases">melbyr_schema_parse_path_aliases</a></span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_schema_colorized_git_sha">melbyr_schema_colorized_git_sha</a></span><span class="org-haskell-operator">&gt;&gt;</span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_schema_widgets">melbyr_schema_widgets</a></span><span class="org-haskell-operator">&gt;&gt;</span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_schema_render_options">melbyr_schema_render_options</a></span><span class="org-haskell-operator">&gt;&gt;</span>
+<span class="org-haskell-operator">&lt;&lt;</span><span class="lilac-child-link-from-parent"><a href="#__NREF__melbyr_schema_parse_path_aliases">melbyr_schema_parse_path_aliases</a></span><span class="org-haskell-operator">&gt;&gt;</span>
 </pre></div>
 </div>
 

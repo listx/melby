@@ -165,7 +165,7 @@ fresh-repl:
 	make -C $(PROJ_ROOT) -j$(PROCS) tangle
 	make -C $(PROJ_ROOT)/daemon repl
 
-__NREF__Makefile-tangle
+<<__NREF__Makefile-tangle>>
 
 weave: build-html build-images
 
@@ -1132,14 +1132,14 @@ following structure:
 #+name: melbyc-melby-client.hs
 #+caption: Layout of =melby-client.hs=
 #+begin_src haskell :tangle client/melby-client.hs
-__NREF__melbyc_pragmas
+<<__NREF__melbyc_pragmas>>
 
 module Main where
 
-__NREF__melbyc_imports
-__NREF__melbyc_business_logic
-__NREF__melbyc_option_handling
-__NREF__melbyc_main
+<<__NREF__melbyc_imports>>
+<<__NREF__melbyc_business_logic>>
+<<__NREF__melbyc_option_handling>>
+<<__NREF__melbyc_main>>
 #+end_src
 
 The more interesting bits are in the =<<business-logic>>= section, which
@@ -1158,7 +1158,7 @@ function.
 
 #+name: __NREF__melbyc_business_logic
 #+begin_src haskell
-__NREF__melbyc_getView
+<<__NREF__melbyc_getView>>
 #+end_src
 
 Now let's construct the =getView= function.
@@ -1167,9 +1167,9 @@ Now let's construct the =getView= function.
 #+begin_src haskell
 getView :: GRpcConnection View 'MsgProtoBuf -> FilePath -> T.Text -> Int -> IO ()
 getView conn configPath' config' shell_pid' = do
-  __NREF__melbyc_getView_construct_payload
-  __NREF__melbyc_getView_call_melbyd
-  __NREF__melbyc_getView_handle_payload
+  <<__NREF__melbyc_getView_construct_payload>>
+  <<__NREF__melbyc_getView_call_melbyd>>
+  <<__NREF__melbyc_getView_handle_payload>>
 #+end_src
 
 Below we construct a gRPC message payload (request) for melbyd.
@@ -1251,9 +1251,9 @@ source "$(melbyc view PATH_TO_LUA_CONFIG)"
 
 #+name: __NREF__melbyc_option_handling
 #+begin_src haskell
-__NREF__melbyc_option_handling_types
-__NREF__melbyc_option_handling_parsers
-__NREF__melbyc_option_handling_dispatcher
+<<__NREF__melbyc_option_handling_types>>
+<<__NREF__melbyc_option_handling_parsers>>
+<<__NREF__melbyc_option_handling_dispatcher>>
 #+end_src
 
 The types here are what we read in from the command line.
@@ -1355,7 +1355,7 @@ main = do
     <*> optionsP
   infoMod = fullDesc
     <> header "melbyc - CLI for interacting with the melby daemon (melbyd)"
-  __NREF__melbyc_gitVersion
+  <<__NREF__melbyc_gitVersion>>
 #+end_src
 
 *** gRPC schema
@@ -1885,10 +1885,10 @@ pub mod melby_client;
 #+name: rust-client-main.rs
 #+caption: main.rs for client-rust
 #+begin_src rust :tangle client-rust/src/main.rs
-__NREF__client-rust--imports
-__NREF__client-rust--option-handling
-__NREF__client-rust--main
-__NREF__client-rust--business-logic
+<<__NREF__client-rust--imports>>
+<<__NREF__client-rust--option-handling>>
+<<__NREF__client-rust--main>>
+<<__NREF__client-rust--business-logic>>
 #+end_src
 
 Basic imports.
@@ -2565,26 +2565,26 @@ defmodule Melbyd.StandardResource do
   end
 
   # GenServer callbacks.
-  __NREF__melbyd_srs_handle_call
-  __NREF__melbyd_srs_handle_cast
-  __NREF__melbyd_srs_handle_info
+  <<__NREF__melbyd_srs_handle_call>>
+  <<__NREF__melbyd_srs_handle_cast>>
+  <<__NREF__melbyd_srs_handle_info>>
 
   # Tick
-  __NREF__melbyd_srs_tick
+  <<__NREF__melbyd_srs_tick>>
 
   # Mark staleness
-  __NREF__melbyd_srs_staleness
-  __NREF__melbyd_srs_staleness_detector_setup
+  <<__NREF__melbyd_srs_staleness>>
+  <<__NREF__melbyd_srs_staleness_detector_setup>>
   # Filesystem-based staleness
-  __NREF__melbyd_srs_staleness_filesystem_boilerplate
-  __NREF__melbyd_srs_staleness_filesystem_helpers
+  <<__NREF__melbyd_srs_staleness_filesystem_boilerplate>>
+  <<__NREF__melbyd_srs_staleness_filesystem_helpers>>
 
   # Client interface
-  __NREF__melbyd_srs_client_interface
+  <<__NREF__melbyd_srs_client_interface>>
 end
 
 # Supervisor.
-__NREF__melbyd_srs_supervisor
+<<__NREF__melbyd_srs_supervisor>>
 #+end_src
 
 **** Tick
@@ -2628,7 +2628,7 @@ end
 # Process tick. The tick must handle the true and false cases for the "stale"
 # key of the state. First we handle the case where stale is true (we must
 # re-read data).
-__NREF__melbyd_srs_tick_do_work
+<<__NREF__melbyd_srs_tick_do_work>>
 
 @impl true
 def handle_info(
@@ -3415,17 +3415,17 @@ defmodule Melbyd.ShellLogger do
   end
 
   # GenServer callbacks.
-  __NREF__melbyd_sps_handle_info
+  <<__NREF__melbyd_sps_handle_info>>
 
   # Tick
-  __NREF__melbyd_sps_tick
+  <<__NREF__melbyd_sps_tick>>
 
   # Client interface
-  __NREF__melbyd_sps_client_interface
+  <<__NREF__melbyd_sps_client_interface>>
 end
 
 
-__NREF__melbyd_sps_supervisor
+<<__NREF__melbyd_sps_supervisor>>
 #+end_src
 
 **** Tick
@@ -4163,7 +4163,7 @@ defmodule Melbyd.Application do
        start_server: true},
 
       # Haskell "melbyr" service. (view)
-      __NREF__melbyr_muontrap
+      <<__NREF__melbyr_muontrap>>
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -4422,10 +4422,10 @@ defmodule Melbyd.LuaInterop do
   end
 end
 
-__NREF__melbyd_lua_config_validation
-__NREF__melbyd_luasdkhelper
-__NREF__melbyd_luasdk
-__NREF__melbyd_luerl_util
+<<__NREF__melbyd_lua_config_validation>>
+<<__NREF__melbyd_luasdkhelper>>
+<<__NREF__melbyd_luasdk>>
+<<__NREF__melbyd_luerl_util>>
 #+end_src
 
 ***** Validation
@@ -4932,20 +4932,20 @@ defmodule Melbyd.LuaSdk do
     "localhost:#{Application.get_env(:melbyd, :melbyr_port)}"
   end
 
-  __NREF__melbyd_luasdk_render
-  __NREF__melbyd_luasdk_get_path_pretty
-  __NREF__melbyd_luasdk_get_colorized_sha
-  __NREF__melbyd_luasdk_get_time
-  __NREF__melbyd_luasdk_to_shell_script
+  <<__NREF__melbyd_luasdk_render>>
+  <<__NREF__melbyd_luasdk_get_path_pretty>>
+  <<__NREF__melbyd_luasdk_get_colorized_sha>>
+  <<__NREF__melbyd_luasdk_get_time>>
+  <<__NREF__melbyd_luasdk_to_shell_script>>
 
-  __NREF__melbyd_luasdk_srs
-  __NREF__melbyd_luasdk_srs_fake
-  __NREF__melbyd_luasdk_srs_helpers
+  <<__NREF__melbyd_luasdk_srs>>
+  <<__NREF__melbyd_luasdk_srs_fake>>
+  <<__NREF__melbyd_luasdk_srs_helpers>>
 
-  __NREF__melbyd_luasdk_pubsub
-  __NREF__melbyd_luasdk_sps
+  <<__NREF__melbyd_luasdk_pubsub>>
+  <<__NREF__melbyd_luasdk_sps>>
 
-  __NREF__melbyd_luasdk_misc
+  <<__NREF__melbyd_luasdk_misc>>
 end
 #+end_src
 
@@ -5877,10 +5877,10 @@ end
 #+name: __NREF__melbyd_luerl_util
 #+begin_src elixir
 defmodule Melbyd.LuerlUtil do
-  __NREF__melbyd_luerl_util_table_lookup
-  __NREF__melbyd_luerl_util_array_to_native_list
-  __NREF__melbyd_luerl_util_table_to_native_map
-  __NREF__melbyd_luerl_util_table_to_native_map_atomic_keys
+  <<__NREF__melbyd_luerl_util_table_lookup>>
+  <<__NREF__melbyd_luerl_util_array_to_native_list>>
+  <<__NREF__melbyd_luerl_util_table_to_native_map>>
+  <<__NREF__melbyd_luerl_util_table_to_native_map_atomic_keys>>
 end
 #+end_src
 
@@ -6843,13 +6843,13 @@ This walk-through is written for the future maintainers of this codebase.
 #+name: =melby-renderer.hs=
 #+caption: Layout of =melby-renderer.hs=
 #+begin_src haskell :tangle daemon/lib/melbyd/renderer/melby-renderer.hs
-__NREF__melbyr_pragmas
+<<__NREF__melbyr_pragmas>>
 
 module Main where
 
-__NREF__melbyr_imports
-__NREF__melbyr_option_handling
-__NREF__melbyr_main
+<<__NREF__melbyr_imports>>
+<<__NREF__melbyr_option_handling>>
+<<__NREF__melbyr_main>>
 #+end_src
 
 *** Business logic
@@ -7108,10 +7108,10 @@ getColorizedGitSha req = do
     . addPadding padl padr
     $ colorizeGitSha24bit bytes len
 
-__NREF__melbyr_colorize_git_sha_24_bit
-__NREF__melbyr_add_padding
-__NREF__melbyr_render_misc
-__NREF__melbyr_perceived_lightness
+<<__NREF__melbyr_colorize_git_sha_24_bit>>
+<<__NREF__melbyr_add_padding>>
+<<__NREF__melbyr_render_misc>>
+<<__NREF__melbyr_perceived_lightness>>
 #+end_src
 
 ***** 24-bit colors
@@ -7490,9 +7490,9 @@ main = hspec $ do
 
 #+name: __NREF__melbyr_option_handling
 #+begin_src haskell
-__NREF__melbyr_option_handling_types
-__NREF__melbyr_option_handling_parsers
-__NREF__melbyr_option_handling_dispatcher
+<<__NREF__melbyr_option_handling_types>>
+<<__NREF__melbyr_option_handling_parsers>>
+<<__NREF__melbyr_option_handling_dispatcher>>
 #+end_src
 
 
@@ -7570,7 +7570,7 @@ main = do
     <*> optionsP
   infoMod = fullDesc
     <> header "melbyr - melby renderer"
-  __NREF__melbyr_gitVersion
+  <<__NREF__melbyr_gitVersion>>
 #+end_src
 
 **** gRPC schema
@@ -7606,10 +7606,10 @@ import Mu.Schema
 
 grpc "MelbyRendererSchema" id "lib/MelbyRenderer/melby_renderer.proto"
 
-__NREF__melbyr_schema_colorized_git_sha
-__NREF__melbyr_schema_widgets
-__NREF__melbyr_schema_render_options
-__NREF__melbyr_schema_parse_path_aliases
+<<__NREF__melbyr_schema_colorized_git_sha>>
+<<__NREF__melbyr_schema_widgets>>
+<<__NREF__melbyr_schema_render_options>>
+<<__NREF__melbyr_schema_parse_path_aliases>>
 #+end_src
 
 ***** Colorized Git SHA

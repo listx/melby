@@ -89,7 +89,7 @@ image inside it. We can convert this PDF into SVG using [[https://github.com/mgi
 * Architecture
 
 #+begin_src latex :tangle image/architecture-overall.tex
-__NREF__begin_tikz
+<<__NREF__begin_tikz>>
 
 % Lua VMs. This is the "root" node as it does not reference anything
 % else in terms of positioning.
@@ -111,7 +111,7 @@ __NREF__begin_tikz
 \draw[arrowL] (melbyc)--(Configs);
 \draw[arrowX] (melbyc)--(melbydOutline);
 
-__NREF__end_tikz
+<<__NREF__end_tikz>>
 #+end_src
 
 * Makefile
