@@ -13,11 +13,11 @@ all:
 	mix deps.get
 	# Run the command below to install protoc-gen-elixir.
 	# mix escript.install hex protobuf
-	# FIXME: replace with a make eval to remove the repetition
-	protoc --elixir_out=plugins=grpc:lib/generated --proto_path=.. ../melby.proto
-	protoc --elixir_out=plugins=grpc:lib/generated --proto_path=.. ../melby_client.proto
-	protoc --elixir_out=plugins=grpc:lib/generated --proto_path=.. ../melby_daemon.proto
-	protoc --elixir_out=plugins=grpc:lib/generated --proto_path=.. ../melby_renderer.proto
+	protoc --elixir_out=plugins=grpc:lib/generated --proto_path=.. \
+	  ../melby.proto \
+	  ../melby_client.proto \
+	  ../melby_daemon.proto \
+	  ../melby_renderer.proto
 check-deps:
 	mix hex.outdated
 update-mix:
