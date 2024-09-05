@@ -62,15 +62,15 @@ tangle-sources: developer-manual-org \
 		image-org
 
 image-org: image.org
-	$(call run_emacs,(org-babel-tangle),image.org)
+	$(call run_emacs,(lilac-tangle),image.org)
 # The developer manual generates the toplevel Makefile (this file) and
 # image/Makefile (overwriting them if necessary) to bootstrap the whole
 # literate-programming pipeline. Note that these LP-related Makefiles are
 # different than the ones used to compile the tangled source code.
 developer-manual-org:
-	$(call run_emacs,(org-babel-tangle),developer-manual.org)
+	$(call run_emacs,(lilac-tangle),developer-manual.org)
 user-manual-org: developer-manual-org
-	$(call run_emacs,(org-babel-tangle),user-manual.org)
+	$(call run_emacs,(lilac-tangle),user-manual.org)
 
 .PHONY: tangle-sources
 .PHONY: developer-manual-org
