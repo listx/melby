@@ -17,6 +17,7 @@
 #+PROPERTY: header-args :noweb no-export
 #+OPTIONS: ^:{}
 #+OPTIONS: H:5
+#+auto_tangle: t
 
 NOTE: This manual is not yet ready for consumption. There are many missing
 pieces (how to install, how to set up your configuration files, etc). Once the

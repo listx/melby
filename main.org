@@ -13,8 +13,8 @@
 # limitations under the License.
 
 #+title: Melby
-
 #+SETUPFILE: lilac.theme
+#+auto_tangle: t
 
 # Set default header argument for all source code blocks. The "no-export" means
 # that we do not expand noweb references when exporting (weaving) --- the fact

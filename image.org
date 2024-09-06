@@ -16,6 +16,7 @@
 #+PROPERTY: header-args :noweb no-export
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="syntax-highlighting.css"/>
 #+HTML_HEAD: <link rel="stylesheet" type="text/css" href="style.css" />
+#+auto_tangle: t
 
 * Templates
 

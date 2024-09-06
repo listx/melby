@@ -17,6 +17,7 @@
 #+PROPERTY: header-args :noweb no-export
 #+OPTIONS: ^:{}
 #+OPTIONS: H:5
+#+auto_tangle: t
 
 
 * Overview of this manual
