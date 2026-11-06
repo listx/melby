@@ -596,7 +596,7 @@ language ecosystems that much easier.
 The [[https://direnv.net/][direnv]] tool looks for =.envrc= files in folders; then you can configure your
 shell so that it picks up project-specific settings whenever your shell moves
 in/out of such a folder. We invoke =use nix= so that it picks up the environment
-defined inside [[file:shell.nix]] (see [[*Nix shell]] below).
+defined inside [[file:shell.nix]] (see [[id:b2e59b7b-584d-42a6-9be6-62ce1ccf5240][Nix shell]] below).
 
 #+header: :tangle .envrc
 #+begin_src sh
@@ -608,6 +608,9 @@ faster. We recommend using =nix-direnv=. On [[https://github.com/LnL7/nix-darwin
 installs =direnv= for us on the system.
 
 *** Nix shell
+:PROPERTIES:
+:ID:       b2e59b7b-584d-42a6-9be6-62ce1ccf5240
+:END:
 
 This is taken from [[https://github.com/tweag/haskell-stack-nix-example/blob/b9383e35416a2b0e21fbc97ed079538f9f395b6a/shell.nix#L1][here]], and it's what =direnv= will use when we enter the
 top-level directory in the shell.
@@ -4975,7 +4978,7 @@ There are basically 2 categories of functions we expose to Lua:
 The Elixir functions must all take 2 arguments: the first argument is a list
 which captures the function arguments sent from the Lua side, and the second
 argument is always the state of the Lua VM instance. This is demonstrated in the
-=hello_names= function (see section [[*Tests]]).
+=hello_names= function (see section [[id:aa6533f7-33db-4326-93fb-87dc696dcb0c][Tests]]).
 
 #+name: melbyd_luasdk
 #+begin_src elixir
@@ -6088,6 +6091,9 @@ Lua --- it can represent either an empty Map or List. See
 https://github.com/rvirding/luerl/wiki/0.7-Data-representation.
 
 **** Tests
+:PROPERTIES:
+:ID:       aa6533f7-33db-4326-93fb-87dc696dcb0c
+:END:
 
 We have a Lua smoke test to check that Lua/Elixir interop is working. This tests
 the sample Lua configuration to ensure that it is a fully working example.
