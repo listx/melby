@@ -167,7 +167,7 @@ fresh-repl:
 	make -C $(PROJ_ROOT) -j$(PROCS) tangle
 	make -C $(PROJ_ROOT)/daemon repl
 
-<<__NREF__Makefile-tangle>>
+<<Makefile-tangle>>
 
 weave: build-html build-images
 
@@ -303,7 +303,7 @@ code block is given a unique name.
 
 We simply tangle all major =*.org= files in the top-level Makefile.
 
-#+name: __NREF__Makefile-tangle
+#+name: Makefile-tangle
 #+begin_src makefile
 tangle-build-tools: build-tools tangle-sources tangle-generated
 	# Duplicate some files. This way we avoid symlinking, because symlinks can
@@ -1159,14 +1159,14 @@ following structure:
 #+caption: Layout of =melby-client.hs=
 #+header: :tangle client/melby-client.hs
 #+begin_src haskell
-<<__NREF__melbyc_pragmas>>
+<<melbyc_pragmas>>
 
 module Main where
 
-<<__NREF__melbyc_imports>>
-<<__NREF__melbyc_business_logic>>
-<<__NREF__melbyc_option_handling>>
-<<__NREF__melbyc_main>>
+<<melbyc_imports>>
+<<melbyc_business_logic>>
+<<melbyc_option_handling>>
+<<melbyc_main>>
 #+end_src
 
 The more interesting bits are in the =<<business-logic>>= section, which
@@ -1183,25 +1183,25 @@ that's basically what we do here --- we pass in a gRPC connection and a filepath
 to the Lua script we want to send to melbyd. We do this in the =getView=
 function.
 
-#+name: __NREF__melbyc_business_logic
+#+name: melbyc_business_logic
 #+begin_src haskell
-<<__NREF__melbyc_getView>>
+<<melbyc_getView>>
 #+end_src
 
 Now let's construct the =getView= function.
 
-#+name: __NREF__melbyc_getView
+#+name: melbyc_getView
 #+begin_src haskell
 getView :: GRpcConnection View 'MsgProtoBuf -> FilePath -> T.Text -> Int -> IO ()
 getView conn configPath' config' shell_pid' = do
-  <<__NREF__melbyc_getView_construct_payload>>
-  <<__NREF__melbyc_getView_call_melbyd>>
-  <<__NREF__melbyc_getView_handle_payload>>
+  <<melbyc_getView_construct_payload>>
+  <<melbyc_getView_call_melbyd>>
+  <<melbyc_getView_handle_payload>>
 #+end_src
 
 Below we construct a gRPC message payload (request) for melbyd.
 
-#+name: __NREF__melbyc_getView_construct_payload
+#+name: melbyc_getView_construct_payload
 #+begin_src haskell
 env_vars_str <- getEnvironment
 let env_vars' = M.fromList $ map (\(k, v) -> (T.pack k, T.pack v)) env_vars_str
@@ -1223,7 +1223,7 @@ the non-capitalized version) and so must instead do =fromLabel @"GetView"=
 because capitalized words have a special meaning in Haskell. See
 https://github.com/higherkindness/mu-haskell/issues/337#issuecomment-1243874126.
 
-#+name: __NREF__melbyc_getView_call_melbyd
+#+name: melbyc_getView_call_melbyd
 #+begin_src haskell
 response <- conn ^. fromLabel @"GetView" $ req
 #+end_src
@@ -1238,7 +1238,7 @@ functions, such as =^.=.
 
 Lastly we need to render the view to the user from the response.
 
-#+name: __NREF__melbyc_getView_handle_payload
+#+name: melbyc_getView_handle_payload
 #+begin_src haskell
 let term = case response of
       GRpcOk a -> Right a
@@ -1276,16 +1276,16 @@ source "$(melbyc view PATH_TO_LUA_CONFIG)"
 
 *** Option handling
 
-#+name: __NREF__melbyc_option_handling
+#+name: melbyc_option_handling
 #+begin_src haskell
-<<__NREF__melbyc_option_handling_types>>
-<<__NREF__melbyc_option_handling_parsers>>
-<<__NREF__melbyc_option_handling_dispatcher>>
+<<melbyc_option_handling_types>>
+<<melbyc_option_handling_parsers>>
+<<melbyc_option_handling_dispatcher>>
 #+end_src
 
 The types here are what we read in from the command line.
 
-#+name: __NREF__melbyc_option_handling_types
+#+name: melbyc_option_handling_types
 #+begin_src haskell
 data Opts = Opts
   { subcommand :: Subcommand
@@ -1308,7 +1308,7 @@ The parsers here determine how the types we defined above are accepted on the
 command line. For the user, this is the help message they see so that they know
 how to provide the right arguments to ensure that we get the correct types.
 
-#+name: __NREF__melbyc_option_handling_parsers
+#+name: melbyc_option_handling_parsers
 #+begin_src haskell
 optionsP :: Parser Opts
 optionsP = Opts
@@ -1346,7 +1346,7 @@ viewOptsP
 Lastly, =optsHandler= is where we send the types that we've constructed (after a
 successful parse of command line arguments) to the business logic.
 
-#+name: __NREF__melbyc_option_handling_dispatcher
+#+name: melbyc_option_handling_dispatcher
 #+begin_src haskell
 optsHandler :: Opts -> IO ()
 optsHandler (Opts subcommand' oMelbydPort') = do
@@ -1369,7 +1369,7 @@ optsHandler (Opts subcommand' oMelbydPort') = do
 
 *** Main
 
-#+name: __NREF__melbyc_main
+#+name: melbyc_main
 #+begin_src haskell
 main :: IO ()
 main = do
@@ -1382,7 +1382,7 @@ main = do
     <*> optionsP
   infoMod = fullDesc
     <> header "melbyc - CLI for interacting with the melby daemon (melbyd)"
-  <<__NREF__melbyc_gitVersion>>
+  <<melbyc_gitVersion>>
 #+end_src
 
 *** gRPC schema
@@ -1465,7 +1465,7 @@ data MViewStatus
 The language pragmas are not that interesting, as their purpose is to basically
 turn on the various GHC extensions that allow us to use the libraries we use.
 
-#+name: __NREF__melbyc_pragmas
+#+name: melbyc_pragmas
 #+begin_src haskell
 {-# language DataKinds #-}
 {-# language OverloadedLabels #-}
@@ -1477,7 +1477,7 @@ turn on the various GHC extensions that allow us to use the libraries we use.
 
 **** Imports
 
-#+name: __NREF__melbyc_imports
+#+name: melbyc_imports
 #+begin_src haskell
 import Data.Map.Strict qualified as M
 import Data.Text qualified as T
@@ -1504,7 +1504,7 @@ We want to store the git hash of the project into the melbyc binary itself (this
 is just good practice). The part we do the storing in the binary is done below,
 as part of the =<<main>>= block of code:
 
-#+name: __NREF__melbyc_gitVersion
+#+name: melbyc_gitVersion
 #+begin_src haskell
 versionOption = infoOption
   (concat [showVersion version, "-g", $(gitVersion)])
@@ -1926,15 +1926,15 @@ pub mod melby_client;
 #+caption: main.rs for client-rust
 #+header: :tangle client-rust/src/main.rs
 #+begin_src rust
-<<__NREF__client-rust--imports>>
-<<__NREF__client-rust--option-handling>>
-<<__NREF__client-rust--main>>
-<<__NREF__client-rust--business-logic>>
+<<client-rust--imports>>
+<<client-rust--option-handling>>
+<<client-rust--main>>
+<<client-rust--business-logic>>
 #+end_src
 
 Basic imports.
 
-#+header: :noweb-ref __NREF__client-rust--imports
+#+header: :noweb-ref client-rust--imports
 #+begin_src rust
 use std::collections::HashMap;
 use std::error::Error;
@@ -1944,7 +1944,7 @@ use clap::{Parser, Subcommand};
 
 Import generated gRPC code. These are built by =build.rs=.
 
-#+header: :noweb-ref __NREF__client-rust--imports
+#+header: :noweb-ref client-rust--imports
 #+begin_src rust
 pub mod grpc_generated;
 use grpc_generated::melby_client::view_client::ViewClient;
@@ -1953,7 +1953,7 @@ use grpc_generated::melby_client::ViewRequest;
 
 Global options.
 
-#+header: :noweb-ref __NREF__client-rust--option-handling
+#+header: :noweb-ref client-rust--option-handling
 #+begin_src rust
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -1983,7 +1983,7 @@ struct Cli {
 
 Subcommands. There's only 1 right now, but we'll have more in the future.
 
-#+header: :noweb-ref __NREF__client-rust--option-handling
+#+header: :noweb-ref client-rust--option-handling
 #+begin_src rust
 /// Subcommands and their options.
 #[derive(Subcommand)]
@@ -1997,7 +1997,7 @@ enum Commands {
 
 Entrypoint.
 
-#+header: :noweb-ref __NREF__client-rust--main
+#+header: :noweb-ref client-rust--main
 #+begin_src rust
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -2018,7 +2018,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 View the output of running the Lua configuration inside melbyd.
 
-#+header: :noweb-ref __NREF__client-rust--business-logic
+#+header: :noweb-ref client-rust--business-logic
 #+begin_src rust
 async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
     let url = format!("http://127.0.0.1:{0}", cli.melbyd_port);
@@ -2610,31 +2610,31 @@ defmodule Melbyd.StandardResource do
   end
 
   # GenServer callbacks.
-  <<__NREF__melbyd_srs_handle_call>>
-  <<__NREF__melbyd_srs_handle_cast>>
-  <<__NREF__melbyd_srs_handle_info>>
+  <<melbyd_srs_handle_call>>
+  <<melbyd_srs_handle_cast>>
+  <<melbyd_srs_handle_info>>
 
   # Tick
-  <<__NREF__melbyd_srs_tick>>
+  <<melbyd_srs_tick>>
 
   # Mark staleness
-  <<__NREF__melbyd_srs_staleness>>
-  <<__NREF__melbyd_srs_staleness_detector_setup>>
+  <<melbyd_srs_staleness>>
+  <<melbyd_srs_staleness_detector_setup>>
   # Filesystem-based staleness
-  <<__NREF__melbyd_srs_staleness_filesystem_boilerplate>>
-  <<__NREF__melbyd_srs_staleness_filesystem_helpers>>
+  <<melbyd_srs_staleness_filesystem_boilerplate>>
+  <<melbyd_srs_staleness_filesystem_helpers>>
 
   # Client interface
-  <<__NREF__melbyd_srs_client_interface>>
+  <<melbyd_srs_client_interface>>
 end
 
 # Supervisor.
-<<__NREF__melbyd_srs_supervisor>>
+<<melbyd_srs_supervisor>>
 #+end_src
 
 **** Tick
 
-#+header: :noweb-ref __NREF__melbyd_srs_tick
+#+header: :noweb-ref melbyd_srs_tick
 #+begin_src elixir
 # Send a "tick" message to our GenServer in 1 second. See
 # https://stackoverflow.com/a/32097971/437583.
@@ -2668,12 +2668,12 @@ defp tick(ttl, notify_on_exit_pid) do
 end
 #+end_src
 
-#+header: :noweb-ref __NREF__melbyd_srs_handle_info
+#+header: :noweb-ref melbyd_srs_handle_info
 #+begin_src elixir
 # Process tick. The tick must handle the true and false cases for the "stale"
 # key of the state. First we handle the case where stale is true (we must
 # re-read data).
-<<__NREF__melbyd_srs_tick_do_work>>
+<<melbyd_srs_tick_do_work>>
 
 @impl true
 def handle_info(
@@ -2689,7 +2689,7 @@ def handle_info(
 end
 #+end_src
 
-#+name: __NREF__melbyd_srs_tick_do_work
+#+name: melbyd_srs_tick_do_work
 #+begin_src elixir
 defp maybe_refresh_state_and_notify(
        %{
@@ -2744,7 +2744,7 @@ defp maybe_refresh_state_and_notify(
 end
 #+end_src
 
-#+header: :noweb-ref __NREF__melbyd_srs_handle_call
+#+header: :noweb-ref melbyd_srs_handle_call
 #+begin_src elixir
 @impl true
 def handle_call(
@@ -2768,7 +2768,7 @@ end
 If we mark an SRS GenServer as stale, this forces the re-reading of state such
 that it is loaded as the newest element in the =state_hist= queue.
 
-#+name: __NREF__melbyd_srs_staleness
+#+name: melbyd_srs_staleness
 #+begin_src elixir
 defp mark_stale(id) do
   GenServer.cast(via_tuple(id), :mark_stale)
@@ -2786,7 +2786,7 @@ In our GenServer callback =handle_cast(:mark_stale, ...)= below, we also set
 state between now and the next tick() will know that we've recognized the need
 to refresh the state on the next tick().
 
-#+name: __NREF__melbyd_srs_handle_cast
+#+name: melbyd_srs_handle_cast
 #+begin_src elixir
 @impl true
 def handle_cast(:mark_stale, %{stale: _, state_hist: [current | rest]} = state) do
@@ -2803,7 +2803,7 @@ For fake resources, we want to make this function block with a =call= so that we
 can be more precise with how its state is updated with a followup coordinated
 =:tick= message (also a =call=).
 
-#+header: :noweb-ref __NREF__melbyd_srs_handle_call
+#+header: :noweb-ref melbyd_srs_handle_call
 #+begin_src elixir
 @impl true
 def handle_call(:mark_stale, _from, %{stale: _, state_hist: [current | rest]} = state) do
@@ -2841,7 +2841,7 @@ can technically be nested, we need to go all the way up to the filesystem root.
 Conceivably, other SRS GenServers that rely on filesystem staleness probably
 want the same =mark_all_stale_from/1= behavior.
 
-#+header: :noweb-ref __NREF__melbyd_srs_handle_info
+#+header: :noweb-ref melbyd_srs_handle_info
 #+begin_src elixir
 @impl true
 def handle_info(
@@ -2882,7 +2882,7 @@ our GenServer to -1 so that it will exit itself on the next tick. Setting this
 to -1 is important because it signals to the other =handle_call= callback which
 accepts the =:read= atom that it should not reset the TTL back up to =ttl_max=.
 
-#+header: :noweb-ref __NREF__melbyd_srs_handle_info
+#+header: :noweb-ref melbyd_srs_handle_info
 #+begin_src elixir
 @impl true
 def handle_info(
@@ -2906,7 +2906,7 @@ filesystem event is redundant as far as staleness is concerned. On the next
 tick, when we see that we're in a stale state, we will regenerate the state and
 mark ourselves as being fresh (=stale: false=) again.
 
-#+header: :noweb-ref __NREF__melbyd_srs_handle_info
+#+header: :noweb-ref melbyd_srs_handle_info
 #+begin_src elixir
 @impl true
 def handle_info(
@@ -2930,7 +2930,7 @@ it.
 When the user specifies a directory to watch, we watch it and all of it
 subdirectories for changes.
 
-#+header: :noweb-ref __NREF__melbyd_srs_staleness_detector_setup
+#+header: :noweb-ref melbyd_srs_staleness_detector_setup
 #+begin_src elixir
 defp setup_staleness_flagger(
        %{"type" => "filesystem",
@@ -2958,7 +2958,7 @@ Here are some helper functions. The main workhorse here is
 =mark_all_stale_from/1=, which marks all SRS GenServers from the given path to
 the root directory (=/=) as stale.
 
-#+header: :noweb-ref __NREF__melbyd_srs_staleness_filesystem_helpers
+#+header: :noweb-ref melbyd_srs_staleness_filesystem_helpers
 #+begin_src elixir
 # Mark the given path as stale, as well as all other SRS GenServers whose id's
 # are of the form "{resource_type, path}" where "path" is a parent path.
@@ -2998,7 +2998,7 @@ See https://elixirforum.com/t/multiple-intervals-for-genserver/6026 for a
 discussion about timers and durations. There they mention
 https://hex.pm/packages/quantum which is basically cron but for Elixir.
 
-#+header: :noweb-ref __NREF__melbyd_srs_handle_info
+#+header: :noweb-ref melbyd_srs_handle_info
 #+begin_src elixir
 @impl true
 def handle_info(
@@ -3018,7 +3018,7 @@ end
 Similar to filesystem-based staleness, we ignore the =:duration_event= if our
 state has already been marked stale (because it is redundant).
 
-#+header: :noweb-ref __NREF__melbyd_srs_handle_info
+#+header: :noweb-ref melbyd_srs_handle_info
 #+begin_src elixir
 @impl true
 def handle_info(
@@ -3037,7 +3037,7 @@ send them to our SRS GenServer. Thankfully, Erlang ships with a =:timer= module
 which has everything we need. The duration must be set using ISO 8601 notation,
 and is only precise to 1 whole second (sub-second durations are ignored).
 
-#+header: :noweb-ref __NREF__melbyd_srs_staleness_detector_setup
+#+header: :noweb-ref melbyd_srs_staleness_detector_setup
 #+begin_src elixir
 defp setup_staleness_flagger(
        %{"type" => "duration", "duration" => duration} = _staleness_flagger,
@@ -3070,7 +3070,7 @@ end
 
 **** Graceful shutdown
 
-#+header: :noweb-ref __NREF__melbyd_srs_handle_info
+#+header: :noweb-ref melbyd_srs_handle_info
 #+begin_src elixir
 @impl true
 def handle_info(
@@ -3117,7 +3117,7 @@ whatever is already in the GenServer's state (if any). The job of actually
 generating the state from scratch, based on the Lua configuration, is left to
 the =run_readers/2= private method.
 
-#+name: __NREF__melbyd_srs_client_interface
+#+name: melbyd_srs_client_interface
 #+begin_src elixir
 def read(resource, resource_opts) do
   # At this point we have all the information we need in order to instantiate a
@@ -3284,7 +3284,7 @@ one that reaches out to =Melbyd.StandardResourceSupervisor= to start the
 =Melbyd.StandardResource= GenServer under a Supervisor. That is,
 =Melbyd.StandardResource= knows how to supervise itself.
 
-#+name: __NREF__melbyd_srs_supervisor
+#+name: melbyd_srs_supervisor
 #+begin_src elixir
 defmodule Melbyd.StandardResourceSupervisor do
   @moduledoc """
@@ -3461,24 +3461,24 @@ defmodule Melbyd.ShellLogger do
   end
 
   # GenServer callbacks.
-  <<__NREF__melbyd_sps_handle_info>>
+  <<melbyd_sps_handle_info>>
 
   # Tick
-  <<__NREF__melbyd_sps_tick>>
+  <<melbyd_sps_tick>>
 
   # Client interface
-  <<__NREF__melbyd_sps_client_interface>>
+  <<melbyd_sps_client_interface>>
 end
 
 
-<<__NREF__melbyd_sps_supervisor>>
+<<melbyd_sps_supervisor>>
 #+end_src
 
 **** Tick
 
 This is modeled after =Melbyd.StandardResource.tick/2=.
 
-#+header: :noweb-ref __NREF__melbyd_sps_tick
+#+header: :noweb-ref melbyd_sps_tick
 #+begin_src elixir
 # FIXME: This code is identical to the one in Melbyd.StandardResource.tick/2. Can
 # we make it DRY somehow?
@@ -3506,7 +3506,7 @@ defp tick(ttl, notify_on_exit_pid) do
 end
 #+end_src
 
-#+header: :noweb-ref __NREF__melbyd_sps_handle_info
+#+header: :noweb-ref melbyd_sps_handle_info
 #+begin_src elixir
 @impl true
 def handle_info(
@@ -3528,7 +3528,7 @@ We filter out messages that don't apply to us. For example, if the message is
 about a Git repo at =/a/b/c= where =c= is the repo root, but we (the shell
 process) is currently located at =/a/b=, then we need to discard this message.
 
-#+header: :noweb-ref __NREF__melbyd_sps_handle_info
+#+header: :noweb-ref melbyd_sps_handle_info
 #+begin_src elixir
 @impl true
 def handle_info(
@@ -3571,7 +3571,7 @@ This is identical to the graceful shutdown logic for SRS.
 FIXME: Can we make it DRY? Maybe use a macro, or some new utility functions? Or
 a behaviour or protocol...?
 
-#+header: :noweb-ref __NREF__melbyd_sps_handle_info
+#+header: :noweb-ref melbyd_sps_handle_info
 #+begin_src elixir
 @impl true
 def handle_info(
@@ -3608,7 +3608,7 @@ yet, just creates one.
 
 The internals here mirror the design in =Melbyd.StandardResource.read/2=.
 
-#+name: __NREF__melbyd_sps_client_interface
+#+name: melbyd_sps_client_interface
 #+begin_src elixir
 def get_messages(shell_pid, topic_handlers, env_vars) do
   case :gproc.lookup_pids({:n, :l, {Melbyd.ShellLogger, shell_pid}}) do
@@ -3632,7 +3632,7 @@ end
 
 **** Supervisor
 
-#+name: __NREF__melbyd_sps_supervisor
+#+name: melbyd_sps_supervisor
 #+begin_src elixir
 defmodule Melbyd.ShellLoggerSupervisor do
   use DynamicSupervisor
@@ -4215,7 +4215,7 @@ defmodule Melbyd.Application do
        start_server: true},
 
       # Haskell "melbyr" service. (view)
-      <<__NREF__melbyr_muontrap>>
+      <<melbyr_muontrap>>
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -4258,7 +4258,7 @@ behavior of the Haskell binary during integration tests (to silence all Logger
 output for passing tests, as per
 https://hashrocket.com/blog/posts/silence-logger-messages-in-exunit).
 
-#+name: __NREF__melbyr_muontrap
+#+name: melbyr_muontrap
 #+begin_src elixir
 {MuonTrap.Daemon,
  [Application.get_env(:melbyd, :melbyr_path),
@@ -4477,10 +4477,10 @@ defmodule Melbyd.LuaInterop do
   end
 end
 
-<<__NREF__melbyd_lua_config_validation>>
-<<__NREF__melbyd_luasdkhelper>>
-<<__NREF__melbyd_luasdk>>
-<<__NREF__melbyd_luerl_util>>
+<<melbyd_lua_config_validation>>
+<<melbyd_luasdkhelper>>
+<<melbyd_luasdk>>
+<<melbyd_luerl_util>>
 #+end_src
 
 ***** Validation
@@ -4508,7 +4508,7 @@ interpreting the Lua configuration for production. This is important because as
 a matter of principle, the test and production environments should never have
 any overlap.
 
-#+name: __NREF__melbyd_lua_config_validation
+#+name: melbyd_lua_config_validation
 #+begin_src elixir
 import Cachex.Spec
 
@@ -4963,7 +4963,7 @@ which captures the function arguments sent from the Lua side, and the second
 argument is always the state of the Lua VM instance. This is demonstrated in the
 =hello_names= function (see section [[*Tests]]).
 
-#+name: __NREF__melbyd_luasdk
+#+name: melbyd_luasdk
 #+begin_src elixir
 defmodule Melbyd.LuaSdk do
   @moduledoc """
@@ -4987,26 +4987,26 @@ defmodule Melbyd.LuaSdk do
     "localhost:#{Application.get_env(:melbyd, :melbyr_port)}"
   end
 
-  <<__NREF__melbyd_luasdk_render>>
-  <<__NREF__melbyd_luasdk_get_path_pretty>>
-  <<__NREF__melbyd_luasdk_get_colorized_sha>>
-  <<__NREF__melbyd_luasdk_get_time>>
-  <<__NREF__melbyd_luasdk_to_shell_script>>
+  <<melbyd_luasdk_render>>
+  <<melbyd_luasdk_get_path_pretty>>
+  <<melbyd_luasdk_get_colorized_sha>>
+  <<melbyd_luasdk_get_time>>
+  <<melbyd_luasdk_to_shell_script>>
 
-  <<__NREF__melbyd_luasdk_srs>>
-  <<__NREF__melbyd_luasdk_srs_fake>>
-  <<__NREF__melbyd_luasdk_srs_helpers>>
+  <<melbyd_luasdk_srs>>
+  <<melbyd_luasdk_srs_fake>>
+  <<melbyd_luasdk_srs_helpers>>
 
-  <<__NREF__melbyd_luasdk_pubsub>>
-  <<__NREF__melbyd_luasdk_sps>>
+  <<melbyd_luasdk_pubsub>>
+  <<melbyd_luasdk_sps>>
 
-  <<__NREF__melbyd_luasdk_misc>>
+  <<melbyd_luasdk_misc>>
 end
 #+end_src
 
 ***** Render widgets (convert string "objects" into strings with ANSI escape codes)
 
-#+name: __NREF__melbyd_luasdk_render
+#+name: melbyd_luasdk_render
 #+begin_src elixir
 def_lua_func render([widgets_list_ref, delimiter_ref], st0) do
   delimiter_tuples = Luerl.decode(st0, delimiter_ref)
@@ -5105,7 +5105,7 @@ end
 
 ***** Pretty paths
 
-#+name: __NREF__melbyd_luasdk_get_path_pretty
+#+name: melbyd_luasdk_get_path_pretty
 #+begin_src elixir
 def_lua_func get_path_pretty([path, options_ref], st0) do
   options = Luerl.decode(st0, options_ref)
@@ -5195,7 +5195,7 @@ end
 
 ***** Colorized Git SHA
 
-#+name: __NREF__melbyd_luasdk_get_colorized_sha
+#+name: melbyd_luasdk_get_colorized_sha
 #+begin_src elixir
 def_lua_func get_colorized_sha([sha, sha_length, pad_left, pad_right], st0) do
   render_options = get_render_options(st0)
@@ -5230,7 +5230,7 @@ and UNIX seconds. We take in these optional parameters so that the test code can
 inject them (otherwise the tests will break as the values tested will no longer
 be constant).
 
-#+name: __NREF__melbyd_luasdk_get_time
+#+name: melbyd_luasdk_get_time
 #+begin_src elixir
 def_lua_func get_time([format, unix_seconds, time_zone], st0) do
   # Use UTC by default.
@@ -5287,7 +5287,7 @@ FIXME: This should be another NIF because the logic here is purely functional
 The use of =mapfile= is from https://stackoverflow.com/a/47862096/437583. We use
 it instead of running =cat= because it avoids spawning a separate OS process.
 
-#+name: __NREF__melbyd_luasdk_to_shell_script
+#+name: melbyd_luasdk_to_shell_script
 #+begin_src elixir
 def_lua_func to_shell_script([exports_ref], st0) do
   exports_list = Luerl.decode(st0, exports_ref) |> Melbyd.LuerlUtil.array_to_native_list()
@@ -5345,7 +5345,7 @@ functions in the =Melbyd.LuaSdk= module (exposed through the =melbyd= Lua table)
 
 ****** Functions for instantiating a SRS GenServer
 
-#+name: __NREF__melbyd_luasdk_srs
+#+name: melbyd_luasdk_srs
 #+begin_src elixir
 def_lua_func read_standard_resource([resource_ref, resource_opts_ref], st0) do
   resource = resource_ref_to_native_map(resource_ref, st0)
@@ -5396,7 +5396,7 @@ same config, they also will get hashed to the same key, and must wait for the
 first request's already-in-progress validation to succeed. We can use Cachex and
 its so-called "fallbacks" to get this concurrent non-blocking cache behavior.
 
-#+name: __NREF__melbyd_luasdk_srs_fake
+#+name: melbyd_luasdk_srs_fake
 #+begin_src elixir
 def_lua_func read_standard_resource_fake([resource_ref, resource_opts_ref], st0) do
   resource = resource_ref_to_native_map(resource_ref, st0)
@@ -5427,7 +5427,7 @@ in their Lua configuration.
 Convert an arbitrary string into an array of strings, splitting on newlines and
 trimming each line. Discards empty lines.
 
-#+header: :noweb-ref __NREF__melbyd_luasdk_srs_helpers
+#+header: :noweb-ref melbyd_luasdk_srs_helpers
 #+begin_src elixir
 def_lua_func get_lines_trimmed_nonempty([s], st0) do
   lines =
@@ -5441,7 +5441,7 @@ end
 
 ******* =get_trimmed=
 
-#+header: :noweb-ref __NREF__melbyd_luasdk_srs_helpers
+#+header: :noweb-ref melbyd_luasdk_srs_helpers
 #+begin_src elixir
 def_lua_func get_trimmed([s], st0) do
   {:ok, String.trim(s), st0}
@@ -5450,7 +5450,7 @@ end
 
 ******* =split=
 
-#+header: :noweb-ref __NREF__melbyd_luasdk_srs_helpers
+#+header: :noweb-ref melbyd_luasdk_srs_helpers
 #+begin_src elixir
 def_lua_func split([s, delim], st0) do
   {:ok, String.split(s, delim, trim: true), st0}
@@ -5462,7 +5462,7 @@ end
 Given a regex pattern with a group, extract the given Nth group. If no such
 group is found (or the pattern doesn't even match), return the default string.
 
-#+header: :noweb-ref __NREF__melbyd_luasdk_srs_helpers
+#+header: :noweb-ref melbyd_luasdk_srs_helpers
 #+begin_src elixir
 def_lua_func get_group_or_default([s, pat, nth, default], st0) do
   regex =
@@ -5504,7 +5504,7 @@ end
 
 ******* =get_lines_matching_count=
 
-#+header: :noweb-ref __NREF__melbyd_luasdk_srs_helpers
+#+header: :noweb-ref melbyd_luasdk_srs_helpers
 #+begin_src elixir
 def_lua_func get_lines_matching_count([s, pat], st0) do
   count = String.split(s, @newlines) |> Enum.count(fn x -> String.starts_with?(x, pat) end)
@@ -5518,7 +5518,7 @@ Given lines of the format ="key,value"=, return a hashmap of keys with their
 values. Expects only 1 value for 1 key. If there is more than 1 instance of the
 delimiter on the line, this is an error.
 
-#+header: :noweb-ref __NREF__melbyd_luasdk_srs_helpers
+#+header: :noweb-ref melbyd_luasdk_srs_helpers
 #+begin_src elixir
 def_lua_func get_kv_lines_as_map([s], st0) do
   {:ok, lines, _st} = __internal__get_lines_trimmed_nonempty([s], st0)
@@ -5539,7 +5539,7 @@ Given a line like ="value1<WHITESPACE>value2"=, and a list of keys, return a map
 with the keys and their respective values. The number of keys and values must
 match.
 
-#+header: :noweb-ref __NREF__melbyd_luasdk_srs_helpers
+#+header: :noweb-ref melbyd_luasdk_srs_helpers
 #+begin_src elixir
 def_lua_func get_columnar_fields_zipped([s, keys_ref], st0) do
   keys = Luerl.decode(st0, keys_ref) |> Melbyd.LuerlUtil.array_to_native_list()
@@ -5557,7 +5557,7 @@ Convert some fields in a Lua table into a value other than a string. Here, =t=
 is the table of key/values we want to cast, and =keytypes= is a table of
 key/types.
 
-#+header: :noweb-ref __NREF__melbyd_luasdk_srs_helpers
+#+header: :noweb-ref melbyd_luasdk_srs_helpers
 #+begin_src elixir
 def_lua_func cast_values([t_ref, keytypes_ref], st0) do
   t = Luerl.decode(st0, t_ref) |> Melbyd.LuerlUtil.table_to_native_map()
@@ -5628,7 +5628,7 @@ end
 Given a UNIX timestamp, return a relative age. E.g., "5s" for a time stamp 5
 seconds in the past, or "5M" for 5 months ago.
 
-#+header: :noweb-ref __NREF__melbyd_luasdk_srs_helpers
+#+header: :noweb-ref melbyd_luasdk_srs_helpers
 #+begin_src elixir
 def_lua_func get_relative_age([unix_seconds_float], st0) do
   Logger.debug("unix_seconds: #{unix_seconds_float}")
@@ -5656,7 +5656,7 @@ number. We treat 1 month to be 4 weeks long.
 | 1 year and older                                                      | NY     | Months, weeks, days, hours, minutes and seconds |
 #+TBLFM:
 
-#+header: :noweb-ref __NREF__melbyd_luasdk_srs_helpers
+#+header: :noweb-ref melbyd_luasdk_srs_helpers
 #+begin_src elixir
 def_lua_func get_relative_age_short([unix_seconds_float], st0) do
   Logger.debug("unix_seconds: #{unix_seconds_float}")
@@ -5707,7 +5707,7 @@ end
 Given a first and last name, shorten it to the first name's initial and the last
 name, truncating the last name as necessary.
 
-#+header: :noweb-ref __NREF__melbyd_luasdk_srs_helpers
+#+header: :noweb-ref melbyd_luasdk_srs_helpers
 #+begin_src elixir
 def_lua_func get_truncated_personal_moniker([first_last_name, max], st0) do
   Logger.debug("first_last_name: #{first_last_name}")
@@ -5733,7 +5733,7 @@ end
 
 ***** Messaging
 
-#+header: :noweb-ref __NREF__melbyd_luasdk_pubsub
+#+header: :noweb-ref melbyd_luasdk_pubsub
 #+begin_src elixir
 def_lua_func broadcast([topic, message_ref], st0) do
   message = Luerl.decode(st0, message_ref) |> Melbyd.LuerlUtil.table_to_native_map_atomic_keys()
@@ -5754,7 +5754,7 @@ end
 Here, =topics= is a list of topic names (strings) which we want to subscribe to.
 The Lua config should know what topics to subscribe to.
 
-#+name: __NREF__melbyd_luasdk_sps
+#+name: melbyd_luasdk_sps
 #+begin_src elixir
 def_lua_func get_shell_messages([shell_pid, resources_ref, env_vars_ref], st0) do
   resource_luerl_tables =
@@ -5780,7 +5780,7 @@ end
 
 ***** Other
 
-#+name: __NREF__melbyd_luasdk_misc
+#+name: melbyd_luasdk_misc
 #+begin_src elixir
 def_lua_func log([msg], st0) do
   case msg do
@@ -5800,7 +5800,7 @@ end
 
 **** Boilerplate
 
-#+name: __NREF__melbyd_luasdkhelper
+#+name: melbyd_luasdkhelper
 #+begin_src elixir
 defmodule Melbyd.LuaSdkLoadable do
   require Logger
@@ -5929,13 +5929,13 @@ end
 
 **** Luerl util
 
-#+name: __NREF__melbyd_luerl_util
+#+name: melbyd_luerl_util
 #+begin_src elixir
 defmodule Melbyd.LuerlUtil do
-  <<__NREF__melbyd_luerl_util_table_lookup>>
-  <<__NREF__melbyd_luerl_util_array_to_native_list>>
-  <<__NREF__melbyd_luerl_util_table_to_native_map>>
-  <<__NREF__melbyd_luerl_util_table_to_native_map_atomic_keys>>
+  <<melbyd_luerl_util_table_lookup>>
+  <<melbyd_luerl_util_array_to_native_list>>
+  <<melbyd_luerl_util_table_to_native_map>>
+  <<melbyd_luerl_util_table_to_native_map_atomic_keys>>
 end
 #+end_src
 
@@ -5964,7 +5964,7 @@ The key (no pun intended) is to do a linear search of all tuples to find the
 right tuple, and to repeat this search on the resulting value as many times as
 necessary.
 
-#+name: __NREF__melbyd_luerl_util_table_lookup
+#+name: melbyd_luerl_util_table_lookup
 #+begin_src elixir
 def table_lookup(_t, []) do
   raise ArgumentError, message: "lookup_keys cannot be empty"
@@ -6008,7 +6008,7 @@ Here we convert such a list of tuples into a plain list with all of the indices
 removed. We expect the indices to be well-formed, meaning that the indices are
 contiguous, ascending, and start from =1=.
 
-#+name: __NREF__melbyd_luerl_util_array_to_native_list
+#+name: melbyd_luerl_util_array_to_native_list
 #+begin_src elixir
 def array_to_native_list(a) do
   Enum.map(a, &verify_array_tuple/1)
@@ -6036,7 +6036,7 @@ end
 
 ***** Table to native map
 
-#+name: __NREF__melbyd_luerl_util_table_to_native_map
+#+name: melbyd_luerl_util_table_to_native_map
 #+begin_src elixir
 def table_to_native_map(t) do
   Enum.map(t, &verify_table_tuple/1)
@@ -6048,7 +6048,7 @@ Below is a specialized version which also converts all keys to atoms. This
 should only be used for cases where the keys are known to be some subset, as
 atoms are never garbage-collected.
 
-#+name: __NREF__melbyd_luerl_util_table_to_native_map_atomic_keys
+#+name: melbyd_luerl_util_table_to_native_map_atomic_keys
 #+begin_src elixir
 def table_to_native_map_atomic_keys(t) do
   Enum.map(t, &verify_table_tuple/1)
@@ -6902,13 +6902,13 @@ This walk-through is written for the future maintainers of this codebase.
 #+caption: Layout of =melby-renderer.hs=
 #+header: :tangle daemon/lib/melbyd/renderer/melby-renderer.hs
 #+begin_src haskell
-<<__NREF__melbyr_pragmas>>
+<<melbyr_pragmas>>
 
 module Main where
 
-<<__NREF__melbyr_imports>>
-<<__NREF__melbyr_option_handling>>
-<<__NREF__melbyr_main>>
+<<melbyr_imports>>
+<<melbyr_option_handling>>
+<<melbyr_main>>
 #+end_src
 
 *** Business logic
@@ -7169,10 +7169,10 @@ getColorizedGitSha req = do
     . addPadding padl padr
     $ colorizeGitSha24bit bytes len
 
-<<__NREF__melbyr_colorize_git_sha_24_bit>>
-<<__NREF__melbyr_add_padding>>
-<<__NREF__melbyr_render_misc>>
-<<__NREF__melbyr_perceived_lightness>>
+<<melbyr_colorize_git_sha_24_bit>>
+<<melbyr_add_padding>>
+<<melbyr_render_misc>>
+<<melbyr_perceived_lightness>>
 #+end_src
 
 ***** 24-bit colors
@@ -7214,7 +7214,7 @@ don't follow that guide because the work has already been done for us in the
 [[https://hackage.haskell.org/package/colour-2.3.6][colour]] library for Haskell, which includes conversion into the CIELAB color
 space.
 
-#+name: __NREF__melbyr_perceived_lightness
+#+name: melbyr_perceived_lightness
 #+begin_src haskell
 getPerceivedLightness :: (Floating b, RealFrac b) => Colour b -> Double
 getPerceivedLightness c = lightness d65 $ sRGB24 r g b
@@ -7232,7 +7232,7 @@ getContrastingColor c = if (getPerceivedLightness c) < 50.0
 
 ****** Implementation
 
-#+name: __NREF__melbyr_colorize_git_sha_24_bit
+#+name: melbyr_colorize_git_sha_24_bit
 #+begin_src haskell
 colorizeGitSha24bit :: T.Text -> Word32 -> [(SGR, T.Text)]
 colorizeGitSha24bit shaStr len
@@ -7270,7 +7270,7 @@ colorizeGitSha24bit shaStr len
     _ -> buildOutput (T.take 4 hexChars : acc) (T.drop 4 hexChars)
 #+end_src
 
-#+name: __NREF__melbyr_add_padding
+#+name: melbyr_add_padding
 #+begin_src haskell
 addPadding :: Word32 -> Word32 -> [(SGR, T.Text)] -> [(SGR, T.Text)]
 addPadding padl padr colorized = case colorized of
@@ -7287,7 +7287,7 @@ addPadding padl padr colorized = case colorized of
   suffix = T.replicate (fromIntegral padr) " "
 #+end_src
 
-#+name: __NREF__melbyr_render_misc
+#+name: melbyr_render_misc
 #+begin_src haskell
 renderColorized :: [(SGR, T.Text)] -> T.Text
 renderColorized = T.concat . map f
@@ -7551,15 +7551,15 @@ main = hspec $ do
 
 **** Option handling
 
-#+name: __NREF__melbyr_option_handling
+#+name: melbyr_option_handling
 #+begin_src haskell
-<<__NREF__melbyr_option_handling_types>>
-<<__NREF__melbyr_option_handling_parsers>>
-<<__NREF__melbyr_option_handling_dispatcher>>
+<<melbyr_option_handling_types>>
+<<melbyr_option_handling_parsers>>
+<<melbyr_option_handling_dispatcher>>
 #+end_src
 
 
-#+name: __NREF__melbyr_option_handling_types
+#+name: melbyr_option_handling_types
 #+begin_src haskell
 newtype Opts = Opts
   { subcommand :: Subcommand }
@@ -7574,7 +7574,7 @@ data ServeOpts = ServeOpts
 #+end_src
 
 
-#+name: __NREF__melbyr_option_handling_parsers
+#+name: melbyr_option_handling_parsers
 #+begin_src haskell
 optionsP :: Parser Opts
 optionsP = Opts <$> subcommandP
@@ -7594,7 +7594,7 @@ serveOptsP
 #+end_src
 
 
-#+name: __NREF__melbyr_option_handling_dispatcher
+#+name: melbyr_option_handling_dispatcher
 #+begin_src haskell
 optsHandler :: Opts -> IO ()
 optsHandler (Opts subcommand') = do
@@ -7620,7 +7620,7 @@ renderer = singleService
 
 **** Main
 
-#+name: __NREF__melbyr_main
+#+name: melbyr_main
 #+begin_src haskell
 main :: IO ()
 main = do
@@ -7633,7 +7633,7 @@ main = do
     <*> optionsP
   infoMod = fullDesc
     <> header "melbyr - melby renderer"
-  <<__NREF__melbyr_gitVersion>>
+  <<melbyr_gitVersion>>
 #+end_src
 
 **** gRPC schema
@@ -7670,15 +7670,15 @@ import Mu.Schema
 
 grpc "MelbyRendererSchema" id "lib/MelbyRenderer/melby_renderer.proto"
 
-<<__NREF__melbyr_schema_colorized_git_sha>>
-<<__NREF__melbyr_schema_widgets>>
-<<__NREF__melbyr_schema_render_options>>
-<<__NREF__melbyr_schema_parse_path_aliases>>
+<<melbyr_schema_colorized_git_sha>>
+<<melbyr_schema_widgets>>
+<<melbyr_schema_render_options>>
+<<melbyr_schema_parse_path_aliases>>
 #+end_src
 
 ***** Colorized Git SHA
 
-#+name: __NREF__melbyr_schema_colorized_git_sha
+#+name: melbyr_schema_colorized_git_sha
 #+begin_src haskell
 data MColorizedGitShaRequest = MColorizedGitShaRequest
   -- In mu-haskell, nested types must be contained in a Maybe. See
@@ -7701,7 +7701,7 @@ data MColorizedGitShaResponse = MColorizedGitShaResponse
 
 ***** Render options
 
-#+name: __NREF__melbyr_schema_render_options
+#+name: melbyr_schema_render_options
 #+begin_src haskell
 data MRenderOptions = MRenderOptions
   { format :: MRenderFormat
@@ -7728,7 +7728,7 @@ data MRenderColorDepth
 
 ***** Widgets
 
-#+name: __NREF__melbyr_schema_widgets
+#+name: melbyr_schema_widgets
 #+begin_src haskell
 data MRenderWidgetsRequest = MRenderWidgetsRequest
   { widgets :: [MWidget]
@@ -7797,7 +7797,7 @@ data MTextStyle
 
 ***** Parse path aliases
 
-#+name: __NREF__melbyr_schema_parse_path_aliases
+#+name: melbyr_schema_parse_path_aliases
 #+begin_src haskell
 data MParsePathAliasesRequest = MParsePathAliasesRequest
   { path_aliases_raw :: T.Text
@@ -7842,7 +7842,7 @@ logDebug t = prefixLogs "melbyr" $ logDebugN t
 **** Other
 ***** Pragmas
 
-#+name: __NREF__melbyr_pragmas
+#+name: melbyr_pragmas
 #+begin_src haskell
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -7858,7 +7858,7 @@ logDebug t = prefixLogs "melbyr" $ logDebugN t
 
 ***** Imports
 
-#+name: __NREF__melbyr_imports
+#+name: melbyr_imports
 #+begin_src haskell
 import Control.Monad.Logger hiding (logDebug)
 import Data.Version (showVersion)
@@ -7877,7 +7877,7 @@ import MelbyRenderer.Widgets (renderWidgets)
 
 ***** Git versioning
 
-#+name: __NREF__melbyr_gitVersion
+#+name: melbyr_gitVersion
 #+begin_src haskell
 versionOption = infoOption
   (concat [showVersion version, "-g", $(gitVersion)])
@@ -7886,7 +7886,7 @@ versionOption = infoOption
 
 FIXME: should we move this to a common "melby" haskell package?
 
-#+name: __NREF__melbyr_lib_gitVersion
+#+name: melbyr_lib_gitVersion
 #+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/GitVersion.hs
 #+begin_src haskell
 module MelbyRenderer.GitVersion
