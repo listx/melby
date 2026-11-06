@@ -2622,7 +2622,8 @@ defmodule Melbyd.StandardResource do
 
   # Mark staleness
   <<melbyd_srs_staleness>>
-  <<melbyd_srs_staleness_detector_setup>>
+  <<melbyd_srs_staleness_detector_setup-1>>
+  <<melbyd_srs_staleness_detector_setup-2>>
   # Filesystem-based staleness
   <<melbyd_srs_staleness_filesystem_boilerplate>>
   <<melbyd_srs_staleness_filesystem_helpers>>
@@ -2933,7 +2934,7 @@ it.
 When the user specifies a directory to watch, we watch it and all of it
 subdirectories for changes.
 
-#+header: :noweb-ref melbyd_srs_staleness_detector_setup
+#+name: melbyd_srs_staleness_detector_setup-1
 #+begin_src elixir
 defp setup_staleness_flagger(
        %{"type" => "filesystem",
@@ -3040,7 +3041,7 @@ send them to our SRS GenServer. Thankfully, Erlang ships with a =:timer= module
 which has everything we need. The duration must be set using ISO 8601 notation,
 and is only precise to 1 whole second (sub-second durations are ignored).
 
-#+header: :noweb-ref melbyd_srs_staleness_detector_setup
+#+name: melbyd_srs_staleness_detector_setup-2
 #+begin_src elixir
 defp setup_staleness_flagger(
        %{"type" => "duration", "duration" => duration} = _staleness_flagger,
