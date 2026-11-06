@@ -2612,7 +2612,8 @@ defmodule Melbyd.StandardResource do
   end
 
   # GenServer callbacks.
-  <<melbyd_srs_handle_call>>
+  <<melbyd_srs_handle_call-1>>
+  <<melbyd_srs_handle_call-2>>
   <<melbyd_srs_handle_cast>>
   <<melbyd_srs_handle_info>>
 
@@ -2746,7 +2747,7 @@ defp maybe_refresh_state_and_notify(
 end
 #+end_src
 
-#+header: :noweb-ref melbyd_srs_handle_call
+#+name: melbyd_srs_handle_call-1
 #+begin_src elixir
 @impl true
 def handle_call(
@@ -2805,7 +2806,7 @@ For fake resources, we want to make this function block with a =call= so that we
 can be more precise with how its state is updated with a followup coordinated
 =:tick= message (also a =call=).
 
-#+header: :noweb-ref melbyd_srs_handle_call
+#+name: melbyd_srs_handle_call-2
 #+begin_src elixir
 @impl true
 def handle_call(:mark_stale, _from, %{stale: _, state_hist: [current | rest]} = state) do
