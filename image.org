@@ -89,7 +89,8 @@ image inside it. We can convert this PDF into SVG using [[https://github.com/mgi
 
 * Architecture
 
-#+begin_src latex :tangle image/architecture-overall.tex
+#+header: :tangle image/architecture-overall.tex
+#+begin_src latex
 <<__NREF__begin_tikz>>
 
 % Lua VMs. This is the "root" node as it does not reference anything
@@ -121,7 +122,8 @@ This is a Makefile for generating diagrams (SVG format).
 
 #+name: image/Makefile
 #+caption: =image/Makefile=
-#+begin_src makefile :tangle image/Makefile :eval no
+#+header: :tangle image/Makefile
+#+begin_src makefile :eval no
 all: architecture-overall.svg
 %.pdf: %.tex
 	lualatex --halt-on-error $<
