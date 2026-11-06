@@ -80,7 +80,7 @@ known_not_tangled=(
 # List all files we explicitly tangle from Org files.
 tangled_files()
 {
-    git -C "${SCRIPT_ROOT}" grep -P '^#\+begin_\w+ .+? :tangle' -- '*.org' \
+    git -C "${SCRIPT_ROOT}" grep -P '^#\+(begin_\w+ .+? |header: (.+? )?):tangle ' -- '*.org' \
         | sed 's/^.\+:tangle \(\S\+\).*$/\1/' \
         | sort
 }
