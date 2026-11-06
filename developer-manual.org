@@ -2615,7 +2615,13 @@ defmodule Melbyd.StandardResource do
   <<melbyd_srs_handle_call-1>>
   <<melbyd_srs_handle_call-2>>
   <<melbyd_srs_handle_cast>>
-  <<melbyd_srs_handle_info>>
+  <<melbyd_srs_handle_info-1>>
+  <<melbyd_srs_handle_info-2>>
+  <<melbyd_srs_handle_info-3>>
+  <<melbyd_srs_handle_info-4>>
+  <<melbyd_srs_handle_info-5>>
+  <<melbyd_srs_handle_info-6>>
+  <<melbyd_srs_handle_info-7>>
 
   # Tick
   <<melbyd_srs_tick>>
@@ -2672,7 +2678,7 @@ defp tick(ttl, notify_on_exit_pid) do
 end
 #+end_src
 
-#+header: :noweb-ref melbyd_srs_handle_info
+#+name: melbyd_srs_handle_info-1
 #+begin_src elixir
 # Process tick. The tick must handle the true and false cases for the "stale"
 # key of the state. First we handle the case where stale is true (we must
@@ -2845,7 +2851,7 @@ can technically be nested, we need to go all the way up to the filesystem root.
 Conceivably, other SRS GenServers that rely on filesystem staleness probably
 want the same =mark_all_stale_from/1= behavior.
 
-#+header: :noweb-ref melbyd_srs_handle_info
+#+name: melbyd_srs_handle_info-2
 #+begin_src elixir
 @impl true
 def handle_info(
@@ -2886,7 +2892,7 @@ our GenServer to -1 so that it will exit itself on the next tick. Setting this
 to -1 is important because it signals to the other =handle_call= callback which
 accepts the =:read= atom that it should not reset the TTL back up to =ttl_max=.
 
-#+header: :noweb-ref melbyd_srs_handle_info
+#+name: melbyd_srs_handle_info-3
 #+begin_src elixir
 @impl true
 def handle_info(
@@ -2910,7 +2916,7 @@ filesystem event is redundant as far as staleness is concerned. On the next
 tick, when we see that we're in a stale state, we will regenerate the state and
 mark ourselves as being fresh (=stale: false=) again.
 
-#+header: :noweb-ref melbyd_srs_handle_info
+#+name: melbyd_srs_handle_info-4
 #+begin_src elixir
 @impl true
 def handle_info(
@@ -3002,7 +3008,7 @@ See https://elixirforum.com/t/multiple-intervals-for-genserver/6026 for a
 discussion about timers and durations. There they mention
 https://hex.pm/packages/quantum which is basically cron but for Elixir.
 
-#+header: :noweb-ref melbyd_srs_handle_info
+#+name: melbyd_srs_handle_info-5
 #+begin_src elixir
 @impl true
 def handle_info(
@@ -3022,7 +3028,7 @@ end
 Similar to filesystem-based staleness, we ignore the =:duration_event= if our
 state has already been marked stale (because it is redundant).
 
-#+header: :noweb-ref melbyd_srs_handle_info
+#+name: melbyd_srs_handle_info-6
 #+begin_src elixir
 @impl true
 def handle_info(
@@ -3074,7 +3080,7 @@ end
 
 **** Graceful shutdown
 
-#+header: :noweb-ref melbyd_srs_handle_info
+#+name: melbyd_srs_handle_info-7
 #+begin_src elixir
 @impl true
 def handle_info(
