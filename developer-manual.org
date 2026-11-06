@@ -147,7 +147,7 @@ on the command line (instead of needing to invoke emacs directly).
 #+name: Makefile
 #+caption: =Makefile=
 #+header: :tangle Makefile
-#+begin_src makefile :eval no
+#+begin_src makefile
 PROJ_ROOT := $(shell git rev-parse --show-toplevel)
 LILAC_ROOT := $(PROJ_ROOT)/deps/elisp/lilac
 PROCS := $(shell nproc)
@@ -278,7 +278,7 @@ data.
 
 #+caption: =.gitattributes=
 #+header: :tangle .gitattributes
-#+begin_src gitattributes :eval no
+#+begin_src gitattributes
 ,* -diff
 ,**/*.json diff
 ,**/*.org diff
@@ -597,7 +597,7 @@ in/out of such a folder. We invoke =use nix= so that it picks up the environment
 defined inside [[file:shell.nix]] (see [[*Nix shell]] below).
 
 #+header: :tangle .envrc
-#+begin_src sh :eval no
+#+begin_src sh
 use nix
 #+end_src
 
@@ -620,7 +620,7 @@ running unit tests) for all of the various languages we use.
 
 #+caption: shell.nix (toplevel dev environment)
 #+header: :tangle shell.nix
-#+begin_src nix :eval no
+#+begin_src nix
 let
   # Nixpkgs snapshot.
   sources = import ./package/nix/sources.nix;
@@ -794,7 +794,7 @@ pkgs.mkShell ({
 
 #+caption: package/nix/stack.nix
 #+header: :tangle package/nix/stack.nix
-#+begin_src nix :eval no
+#+begin_src nix
 let
   sources = import ./sources.nix;
   pkgs = import sources.nixpkgs { };
@@ -834,7 +834,7 @@ shipping.
 
 #+caption: package/build.nix
 #+header: :tangle package/build.nix
-#+begin_src nix :eval no
+#+begin_src nix
 let
   sources = import ./nix/sources.nix;
   pkgs = import sources.nixpkgs {};
@@ -867,7 +867,7 @@ start it.
 
 #+caption: package/release.nix
 #+header: :tangle package/release.nix
-#+begin_src nix :eval no
+#+begin_src nix
 let
   sources = import ./nix/sources.nix;
   pkgs = import sources.nixpkgs {};
@@ -8273,7 +8273,7 @@ test: fix-rustler
 
 #+caption: daemon/.gitattributes
 #+header: :tangle daemon/.gitattributes
-#+begin_src gitattributes :eval no
+#+begin_src gitattributes
 mix.nix diff
 lib/melbyd/nifs/Cargo.lock diff
 lib/melbyd/nifs/Cargo.toml diff

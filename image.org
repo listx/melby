@@ -123,7 +123,7 @@ This is a Makefile for generating diagrams (SVG format).
 #+name: image/Makefile
 #+caption: =image/Makefile=
 #+header: :tangle image/Makefile
-#+begin_src makefile :eval no
+#+begin_src makefile
 all: architecture-overall.svg
 %.pdf: %.tex
 	lualatex --halt-on-error $<
