@@ -21,3 +21,8 @@ image/*.aux
 image/*.log
 image/*.pdf
 image/*uncropped*
+
+# Lilac objects and archive (intermediate build artifacts), and the woven site.
+*.lobj
+*.larc
+site/
