@@ -689,6 +689,16 @@ let
       standalone
       xkeyval;
   });
+
+  # Lilac (the Haskell version) for tangling and weaving. This comes with its
+  # own pinned nixpkgs, so it does not depend on our nixpkgs snapshot above.
+  lilacSrc = builtins.fetchGit {
+    url = "https://github.com/listx/lilac";
+    ref = "refs/tags/v0.3.0.0";
+    name = "lilac";
+    submodules = true;
+  };
+  lilacPkg = import "${lilacSrc}/nix/release.nix" { rev = lilacSrc.rev; };
 in
 
 # This is our development shell.
@@ -717,6 +727,7 @@ pkgs.mkShell ({
 
     # Tangling and weaving for Literate Programming.
     pkgs.emacs29-nox
+    lilacPkg
     tex
 
     # For updating Nix dependencies.
