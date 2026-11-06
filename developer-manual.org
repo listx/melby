@@ -5007,7 +5007,17 @@ defmodule Melbyd.LuaSdk do
 
   <<melbyd_luasdk_srs>>
   <<melbyd_luasdk_srs_fake>>
-  <<melbyd_luasdk_srs_helpers>>
+  <<melbyd_luasdk_srs_helpers-1>>
+  <<melbyd_luasdk_srs_helpers-2>>
+  <<melbyd_luasdk_srs_helpers-3>>
+  <<melbyd_luasdk_srs_helpers-4>>
+  <<melbyd_luasdk_srs_helpers-5>>
+  <<melbyd_luasdk_srs_helpers-6>>
+  <<melbyd_luasdk_srs_helpers-7>>
+  <<melbyd_luasdk_srs_helpers-8>>
+  <<melbyd_luasdk_srs_helpers-9>>
+  <<melbyd_luasdk_srs_helpers-10>>
+  <<melbyd_luasdk_srs_helpers-11>>
 
   <<melbyd_luasdk_pubsub>>
   <<melbyd_luasdk_sps>>
@@ -5439,7 +5449,7 @@ in their Lua configuration.
 Convert an arbitrary string into an array of strings, splitting on newlines and
 trimming each line. Discards empty lines.
 
-#+header: :noweb-ref melbyd_luasdk_srs_helpers
+#+name: melbyd_luasdk_srs_helpers-1
 #+begin_src elixir
 def_lua_func get_lines_trimmed_nonempty([s], st0) do
   lines =
@@ -5453,7 +5463,7 @@ end
 
 ******* =get_trimmed=
 
-#+header: :noweb-ref melbyd_luasdk_srs_helpers
+#+name: melbyd_luasdk_srs_helpers-2
 #+begin_src elixir
 def_lua_func get_trimmed([s], st0) do
   {:ok, String.trim(s), st0}
@@ -5462,7 +5472,7 @@ end
 
 ******* =split=
 
-#+header: :noweb-ref melbyd_luasdk_srs_helpers
+#+name: melbyd_luasdk_srs_helpers-3
 #+begin_src elixir
 def_lua_func split([s, delim], st0) do
   {:ok, String.split(s, delim, trim: true), st0}
@@ -5474,7 +5484,7 @@ end
 Given a regex pattern with a group, extract the given Nth group. If no such
 group is found (or the pattern doesn't even match), return the default string.
 
-#+header: :noweb-ref melbyd_luasdk_srs_helpers
+#+name: melbyd_luasdk_srs_helpers-4
 #+begin_src elixir
 def_lua_func get_group_or_default([s, pat, nth, default], st0) do
   regex =
@@ -5516,7 +5526,7 @@ end
 
 ******* =get_lines_matching_count=
 
-#+header: :noweb-ref melbyd_luasdk_srs_helpers
+#+name: melbyd_luasdk_srs_helpers-5
 #+begin_src elixir
 def_lua_func get_lines_matching_count([s, pat], st0) do
   count = String.split(s, @newlines) |> Enum.count(fn x -> String.starts_with?(x, pat) end)
@@ -5530,7 +5540,7 @@ Given lines of the format ="key,value"=, return a hashmap of keys with their
 values. Expects only 1 value for 1 key. If there is more than 1 instance of the
 delimiter on the line, this is an error.
 
-#+header: :noweb-ref melbyd_luasdk_srs_helpers
+#+name: melbyd_luasdk_srs_helpers-6
 #+begin_src elixir
 def_lua_func get_kv_lines_as_map([s], st0) do
   {:ok, lines, _st} = __internal__get_lines_trimmed_nonempty([s], st0)
@@ -5551,7 +5561,7 @@ Given a line like ="value1<WHITESPACE>value2"=, and a list of keys, return a map
 with the keys and their respective values. The number of keys and values must
 match.
 
-#+header: :noweb-ref melbyd_luasdk_srs_helpers
+#+name: melbyd_luasdk_srs_helpers-7
 #+begin_src elixir
 def_lua_func get_columnar_fields_zipped([s, keys_ref], st0) do
   keys = Luerl.decode(st0, keys_ref) |> Melbyd.LuerlUtil.array_to_native_list()
@@ -5569,7 +5579,7 @@ Convert some fields in a Lua table into a value other than a string. Here, =t=
 is the table of key/values we want to cast, and =keytypes= is a table of
 key/types.
 
-#+header: :noweb-ref melbyd_luasdk_srs_helpers
+#+name: melbyd_luasdk_srs_helpers-8
 #+begin_src elixir
 def_lua_func cast_values([t_ref, keytypes_ref], st0) do
   t = Luerl.decode(st0, t_ref) |> Melbyd.LuerlUtil.table_to_native_map()
@@ -5640,7 +5650,7 @@ end
 Given a UNIX timestamp, return a relative age. E.g., "5s" for a time stamp 5
 seconds in the past, or "5M" for 5 months ago.
 
-#+header: :noweb-ref melbyd_luasdk_srs_helpers
+#+name: melbyd_luasdk_srs_helpers-9
 #+begin_src elixir
 def_lua_func get_relative_age([unix_seconds_float], st0) do
   Logger.debug("unix_seconds: #{unix_seconds_float}")
@@ -5668,7 +5678,7 @@ number. We treat 1 month to be 4 weeks long.
 | 1 year and older                                                      | NY     | Months, weeks, days, hours, minutes and seconds |
 #+TBLFM:
 
-#+header: :noweb-ref melbyd_luasdk_srs_helpers
+#+name: melbyd_luasdk_srs_helpers-10
 #+begin_src elixir
 def_lua_func get_relative_age_short([unix_seconds_float], st0) do
   Logger.debug("unix_seconds: #{unix_seconds_float}")
@@ -5719,7 +5729,7 @@ end
 Given a first and last name, shorten it to the first name's initial and the last
 name, truncating the last name as necessary.
 
-#+header: :noweb-ref melbyd_luasdk_srs_helpers
+#+name: melbyd_luasdk_srs_helpers-11
 #+begin_src elixir
 def_lua_func get_truncated_personal_moniker([first_last_name, max], st0) do
   Logger.debug("first_last_name: #{first_last_name}")
