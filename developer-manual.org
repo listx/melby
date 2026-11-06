@@ -2728,7 +2728,6 @@ defmodule Melbyd.StandardResource do
   <<melbyd_srs_staleness_detector_setup-1>>
   <<melbyd_srs_staleness_detector_setup-2>>
   # Filesystem-based staleness
-  <<melbyd_srs_staleness_filesystem_boilerplate>>
   <<melbyd_srs_staleness_filesystem_helpers>>
 
   # Client interface
