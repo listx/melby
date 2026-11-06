@@ -84,7 +84,8 @@ require "Git"
 #+end_example
 
 
-#+begin_src lua :tangle daemon/test/sample/melby.lua
+#+header: :tangle daemon/test/sample/melby.lua
+#+begin_src lua
 -- FIXME: Make LUA_PATH also include $HOME/.melby/?.lua.
 -- FIXME: Make melbyc use the above path as a default if it's there, and only
 -- overwrite it with the FILEPATH argument (move this FILEPATH argument to an
@@ -359,7 +360,8 @@ return {g = Git, kc = KubeCurrent, k = Kube}
 FIXME: break this up into multiple chunks for smaller bits of explanation
 (prefer to maximize prose comments here instead of comments in the Lua code).
 
-#+begin_src lua :tangle daemon/test/sample/Git.lua
+#+header: :tangle daemon/test/sample/Git.lua
+#+begin_src lua
 -- Git Lua module for melby.
 local Git = {}
 Git["type"] = "Git"
@@ -932,7 +934,9 @@ return Git
 Below is a script for determining the absolute size of staged contents (where
 both additions and deletions are treated as positive numbers).
 
-#+begin_src sh :shebang #!/usr/bin/env bash :tangle daemon/test/sample/git_staged_bytes.sh
+#+header: :shebang #!/usr/bin/env bash
+#+header: :tangle daemon/test/sample/git_staged_bytes.sh
+#+begin_src sh
 set -euo pipefail
 
 # Example output from "git diff-index HEAD --cached" (the "..." is not literally
@@ -1006,7 +1010,8 @@ main "$@"
 
 **** Fake
 
-#+begin_src lua :tangle daemon/test/sample/GitFake.lua
+#+header: :tangle daemon/test/sample/GitFake.lua
+#+begin_src lua
 local GitFake = {}
 
 -- The return format is a list of tables where each element is a {input="..."",
@@ -1466,7 +1471,8 @@ response detector, such that:
 
 *** Implementation for =KubeCurrent.lua= (get current context/namespace)
 
-#+begin_src lua :tangle daemon/test/sample/KubeCurrent.lua
+#+header: :tangle daemon/test/sample/KubeCurrent.lua
+#+begin_src lua
 local KubeCurrent = {}
 KubeCurrent["type"] = "KubeCurrent"
 KubeCurrent["history_size"] = 10
@@ -1652,7 +1658,8 @@ return KubeCurrent
 
 **** Fake
 
-#+begin_src lua :tangle daemon/test/sample/KubeCurrentFake.lua
+#+header: :tangle daemon/test/sample/KubeCurrentFake.lua
+#+begin_src lua
 local KubeCurrentFake = {}
 
 -- We really only use the time_idx because it's simpler here.
@@ -1721,7 +1728,9 @@ without actually having to deal with real Kubernetes clusters.
 The asterisks in the script have to be escaped with a comma like =,*= because of
 Org mode.
 
-#+begin_src sh :shebang #!/usr/bin/env bash :tangle daemon/test/kubectl
+#+header: :shebang #!/usr/bin/env bash
+#+header: :tangle daemon/test/kubectl
+#+begin_src sh
 set -euo pipefail
 
 if [[ -n "${MELBY_WANT_KUBECTL_ERROR:-}" ]]; then
@@ -1830,7 +1839,8 @@ main "$@"
 
 *** Implementation for =Kube.lua= (get per-cluster information)
 
-#+begin_src lua :tangle daemon/test/sample/Kube.lua
+#+header: :tangle daemon/test/sample/Kube.lua
+#+begin_src lua
 local Kube = {}
 Kube["type"] = "Kube"
 Kube["history_size"] = 10
@@ -2067,7 +2077,8 @@ return Kube
 
 This is the template for the "get_pods" reader. Format is just "<STATUS>".
 
-#+begin_src text :tangle daemon/test/sample/get_pods.gotemplate
+#+header: :tangle daemon/test/sample/get_pods.gotemplate
+#+begin_src text
 {{- range .items -}}
 {{.status.phase}}{{"\n"}}
 {{- end -}}
@@ -2075,7 +2086,8 @@ This is the template for the "get_pods" reader. Format is just "<STATUS>".
 
 **** Fake
 
-#+begin_src lua :tangle daemon/test/sample/KubeFake.lua
+#+header: :tangle daemon/test/sample/KubeFake.lua
+#+begin_src lua
 local KubeFake = {}
 
 -- time_idx is a point in time. It captures the idea of running this function
@@ -2222,7 +2234,9 @@ something similar to set your own shell prompt --- as =melbyc= here just outputs
 a shell script, you just need to source it and use the variables, just like in
 the =main()= function.
 
-#+begin_src sh :shebang #!/usr/bin/env bash :tangle daemon/test/preview.sh
+#+header: :shebang #!/usr/bin/env bash
+#+header: :tangle daemon/test/preview.sh
+#+begin_src sh
 set -euo pipefail
 
 SCRIPT_ROOT="$(dirname "$(realpath "$0")")"
@@ -2263,7 +2277,8 @@ main()
 main "$@"
 #+end_src
 
-#+begin_src sh :tangle daemon/test/sample/path-aliases
+#+header: :tangle daemon/test/sample/path-aliases
+#+begin_src sh
 # Kubernetes main repo.
 hash -d   kk=${HOME}/go/src/k8s.io/kubernetes
 #+end_src
