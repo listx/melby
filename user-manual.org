@@ -23,7 +23,7 @@
 
 NOTE: This manual is not yet ready for consumption. There are many missing
 pieces (how to install, how to set up your configuration files, etc). Once the
-main architecture settles down in the [[file:developer-manual.html][Developer Manual]] this User Manual will be
+main architecture settles down in the [[id:db4f2717-87ac-47b7-9299-11004e8dfa63][Developer Manual]] this User Manual will be
 revised accordingly.
 
 * Concepts

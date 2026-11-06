@@ -64,8 +64,8 @@ by running things asynchronously and caching results.
 
 There are two manuals in this project:
 
-1. [[file:developer-manual.html][Developer Manual]]
-2. [[file:user-manual.html][User Manual]]
+1. [[id:db4f2717-87ac-47b7-9299-11004e8dfa63][Developer Manual]]
+2. [[id:4ab7d52a-caf1-4793-8ec3-628ff95ad167][User Manual]]
 
-The [[file:developer-manual.html][*Developer Manual*]] is written to help other programmers understand how
-everything works, while the [[file:user-manual.html][*User Manual*]] is written for end-users.
+The [[id:db4f2717-87ac-47b7-9299-11004e8dfa63][*Developer Manual*]] is written to help other programmers understand how
+everything works, while the [[id:4ab7d52a-caf1-4793-8ec3-628ff95ad167][*User Manual*]] is written for end-users.

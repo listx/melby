@@ -268,7 +268,7 @@ highlighting that we need.
 
 *** Diagrams
 
-The code used to generate the diagrams used in this doc is [[file:image.html][here]]. We don't
+The code used to generate the diagrams used in this doc is [[id:658989c2-1695-4240-b28a-3b0781cb1cac][here]]. We don't
 discuss that code in this doc because it would make this doc even more verbose.
 
 *** Ignore woven HTML from =git diff=
