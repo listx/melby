@@ -82,8 +82,10 @@ several languages for weaving:
 
 ** Architectural overview of Melby components
 
-#+ATTR_HTML: :width 700px
-[[./image/architecture-overall.svg]]
+#+name: fig:architecture-overall
+#+type: figure
+#+width: 700px
+[[file:image/architecture-overall.svg]]
 
 Melby uses a client/server architecture. There are two main parts:
 
