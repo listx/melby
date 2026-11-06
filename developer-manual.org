@@ -100,14 +100,14 @@ to clients.
   1) =melbyd=: The daemon (server), which itself is composed of two smaller
      pieces:
 
-     a) The core application written in Elixir and Rust.
+       - The core application written in Elixir and Rust.
 
-     b) The renderer (=melbyr=) written in Haskell. This is a separate child
-        process controlled by the core app.
+       - The renderer (=melbyr=) written in Haskell. This is a separate child
+         process controlled by the core app.
 
   2) =melbyc=: The client, written in Haskell.
 
-     a) =melbyc-rust= is an equivalent client written in Rust.
+       - =melbyc-rust= is an equivalent client written in Rust.
 
 The pieces above work like this:
 
@@ -566,7 +566,7 @@ main "$@"
 
   - *Melby component*: a modular piece of software used to deliver the Melby
     user experience.
- 
+
 * Build System for Packaging Melby
 
 ** Introduction
