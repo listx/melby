@@ -1928,7 +1928,8 @@ pub mod melby_client;
 #+begin_src rust
 <<client-rust--imports-1>>
 <<client-rust--imports-2>>
-<<client-rust--option-handling>>
+<<client-rust--option-handling-1>>
+<<client-rust--option-handling-2>>
 <<client-rust--main>>
 <<client-rust--business-logic>>
 #+end_src
@@ -1954,7 +1955,7 @@ use grpc_generated::melby_client::ViewRequest;
 
 Global options.
 
-#+header: :noweb-ref client-rust--option-handling
+#+name: client-rust--option-handling-1
 #+begin_src rust
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -1984,7 +1985,7 @@ struct Cli {
 
 Subcommands. There's only 1 right now, but we'll have more in the future.
 
-#+header: :noweb-ref client-rust--option-handling
+#+name: client-rust--option-handling-2
 #+begin_src rust
 /// Subcommands and their options.
 #[derive(Subcommand)]
