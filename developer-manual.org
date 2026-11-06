@@ -3465,7 +3465,9 @@ defmodule Melbyd.ShellLogger do
   end
 
   # GenServer callbacks.
-  <<melbyd_sps_handle_info>>
+  <<melbyd_sps_handle_info-1>>
+  <<melbyd_sps_handle_info-2>>
+  <<melbyd_sps_handle_info-3>>
 
   # Tick
   <<melbyd_sps_tick>>
@@ -3510,7 +3512,7 @@ defp tick(ttl, notify_on_exit_pid) do
 end
 #+end_src
 
-#+header: :noweb-ref melbyd_sps_handle_info
+#+name: melbyd_sps_handle_info-1
 #+begin_src elixir
 @impl true
 def handle_info(
@@ -3532,7 +3534,7 @@ We filter out messages that don't apply to us. For example, if the message is
 about a Git repo at =/a/b/c= where =c= is the repo root, but we (the shell
 process) is currently located at =/a/b=, then we need to discard this message.
 
-#+header: :noweb-ref melbyd_sps_handle_info
+#+name: melbyd_sps_handle_info-2
 #+begin_src elixir
 @impl true
 def handle_info(
@@ -3575,7 +3577,7 @@ This is identical to the graceful shutdown logic for SRS.
 FIXME: Can we make it DRY? Maybe use a macro, or some new utility functions? Or
 a behaviour or protocol...?
 
-#+header: :noweb-ref melbyd_sps_handle_info
+#+name: melbyd_sps_handle_info-3
 #+begin_src elixir
 @impl true
 def handle_info(
