@@ -1709,7 +1709,7 @@ library
     , time
 #+end_src
 
-#+name: =cabal.project=
+#+name: client/cabal.project
 #+header: :tangle client/cabal.project
 #+begin_src haskell-cabal
 executable-stripping: True
@@ -2108,7 +2108,7 @@ most of the interesting things happen.
 
 ** Proto
 
-#+name: =melby.proto=
+#+name: melby.proto
 #+header: :tangle melby.proto
 #+begin_src protobuf
 syntax = "proto3";
@@ -6933,7 +6933,7 @@ This walk-through is written for the future maintainers of this codebase.
 
 **** Overall structure
 
-#+name: =melby-renderer.hs=
+#+name: daemon/lib/melbyd/renderer/melby-renderer.hs
 #+caption: Layout of =melby-renderer.hs=
 #+header: :tangle daemon/lib/melbyd/renderer/melby-renderer.hs
 #+begin_src haskell
@@ -7008,7 +7008,7 @@ Actually we can do the above with just recursion. See =injectDelimiters=.
 
 ***** Implementation
 
-#+name: =Widgets.hs=
+#+name: daemon/lib/melbyd/renderer/lib/MelbyRenderer/Widgets.hs
 #+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/Widgets.hs
 #+begin_src haskell
 {-# LANGUAGE DataKinds #-}
@@ -7156,7 +7156,7 @@ and distributing these colors onto the 40 hex characters.
 
 ***** Overview
 
-#+name: =Widgets.hs=
+#+name: daemon/lib/melbyd/renderer/lib/MelbyRenderer/Colorizer.hs
 #+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/Colorizer.hs
 #+begin_src haskell
 {-# LANGUAGE DataKinds #-}
@@ -7343,7 +7343,7 @@ asBytes = (fromRight B.empty . B16.decode) . T.encodeUtf8
 
 **** Parse path aliases
 
-#+name: =PathAliases.hs=
+#+name: daemon/lib/melbyd/renderer/lib/MelbyRenderer/PathAliases.hs
 #+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/PathAliases.hs
 #+begin_src haskell
 {-# LANGUAGE FlexibleContexts #-}
@@ -7504,7 +7504,7 @@ symbol :: T.Text -> Megaparser T.Text
 symbol = L.symbol sc
 #+end_src
 
-#+name: =Main.hs= for melbyr tests
+#+name: daemon/lib/melbyd/renderer/test/Main.hs
 #+header: :tangle daemon/lib/melbyd/renderer/test/Main.hs
 #+begin_src haskell
 {-# LANGUAGE QuasiQuotes #-}
@@ -7860,7 +7860,7 @@ data MParseStatus
 
 **** Logging
 
-#+name: =MelbyRenderer/Log.hs=
+#+name: daemon/lib/melbyd/renderer/lib/MelbyRenderer/Log.hs
 #+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/Log.hs
 #+begin_src haskell
 module MelbyRenderer.Log where
@@ -8107,7 +8107,7 @@ test-suite test
     , neat-interpolation
 #+end_src
 
-#+name: =cabal.project=
+#+name: daemon/lib/melbyd/renderer/cabal.project
 #+header: :tangle daemon/lib/melbyd/renderer/cabal.project
 #+begin_src haskell-cabal
 executable-stripping: True
