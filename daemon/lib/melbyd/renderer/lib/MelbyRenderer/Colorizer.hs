@@ -77,6 +77,7 @@ colorizeGitSha24bit shaStr len
   buildOutput acc hexChars = case T.length (T.take 4 hexChars) of
     0 -> acc
     _ -> buildOutput (T.take 4 hexChars : acc) (T.drop 4 hexChars)
+
 addPadding :: Word32 -> Word32 -> [(SGR, T.Text)] -> [(SGR, T.Text)]
 addPadding padl padr colorized = case colorized of
   [] -> []
@@ -90,6 +91,7 @@ addPadding padl padr colorized = case colorized of
   where
   prefix = T.replicate (fromIntegral padl) " "
   suffix = T.replicate (fromIntegral padr) " "
+
 renderColorized :: [(SGR, T.Text)] -> T.Text
 renderColorized = T.concat . map f
   where
@@ -104,6 +106,7 @@ renderColorized = T.concat . map f
 
 asBytes :: T.Text -> B.ByteString
 asBytes = (fromRight B.empty . B16.decode) . T.encodeUtf8
+
 getPerceivedLightness :: (Floating b, RealFrac b) => Colour b -> Double
 getPerceivedLightness c = lightness d65 $ sRGB24 r g b
   where

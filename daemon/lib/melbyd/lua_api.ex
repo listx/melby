@@ -461,6 +461,7 @@ defmodule Melbyd.LuaConfigValidation do
     }
   end
 end
+
 defmodule Melbyd.LuaSdkLoadable do
   require Logger
 
@@ -584,6 +585,7 @@ defmodule Melbyd.LuaSdkLoader do
     end
   end
 end
+
 defmodule Melbyd.LuaSdk do
   @moduledoc """
   An Elixir module that can be accessed from Lua (via luerl).
@@ -699,6 +701,7 @@ defmodule Melbyd.LuaSdk do
       _ -> :TEXT_STYLE_BOLD
     end
   end
+
   def_lua_func get_path_pretty([path, options_ref], st0) do
     options = Luerl.decode(st0, options_ref)
     options_map = Map.new(options)
@@ -783,6 +786,7 @@ defmodule Melbyd.LuaSdk do
       err -> raise "failed to successfully call melbyr: #{inspect(err)}"
     end
   end
+
   def_lua_func get_colorized_sha([sha, sha_length, pad_left, pad_right], st0) do
     render_options = get_render_options(st0)
 
@@ -803,6 +807,7 @@ defmodule Melbyd.LuaSdk do
       {:ok, reply.sha_colorized, st0}
     end
   end
+
   def_lua_func get_time([format, unix_seconds, time_zone], st0) do
     # Use UTC by default.
     tz =
@@ -848,6 +853,7 @@ defmodule Melbyd.LuaSdk do
         false
     end
   end
+
   def_lua_func to_shell_script([exports_ref], st0) do
     exports_list = Luerl.decode(st0, exports_ref) |> Melbyd.LuerlUtil.array_to_native_list()
     exports = exports_list |> Enum.map(&Melbyd.LuerlUtil.table_to_native_map/1)
@@ -919,6 +925,7 @@ defmodule Melbyd.LuaSdk do
     resource = Map.put(resource, "parser", parser)
     Map.put(resource, "fake", fake)
   end
+
   def_lua_func read_standard_resource_fake([resource_ref, resource_opts_ref], st0) do
     resource = resource_ref_to_native_map(resource_ref, st0)
     resource_opts = Luerl.decode(st0, resource_opts_ref) |> Melbyd.LuerlUtil.table_to_native_map()
@@ -933,6 +940,7 @@ defmodule Melbyd.LuaSdk do
     res = Melbyd.StandardResource.read(resource, resource_opts)
     {:ok, res, st0}
   end
+
   def_lua_func get_lines_trimmed_nonempty([s], st0) do
     lines =
       s
@@ -941,12 +949,15 @@ defmodule Melbyd.LuaSdk do
 
     {:ok, lines, st0}
   end
+
   def_lua_func get_trimmed([s], st0) do
     {:ok, String.trim(s), st0}
   end
+
   def_lua_func split([s, delim], st0) do
     {:ok, String.split(s, delim, trim: true), st0}
   end
+
   def_lua_func get_group_or_default([s, pat, nth, default], st0) do
     regex =
       try do
@@ -983,10 +994,12 @@ defmodule Melbyd.LuaSdk do
     {:ok, res, _st} = __internal__get_group_or_default([s, pat, 1, "0"], st0)
     {:ok, String.to_integer(res), st0}
   end
+
   def_lua_func get_lines_matching_count([s, pat], st0) do
     count = String.split(s, @newlines) |> Enum.count(fn x -> String.starts_with?(x, pat) end)
     {:ok, count, st0}
   end
+
   def_lua_func get_kv_lines_as_map([s], st0) do
     {:ok, lines, _st} = __internal__get_lines_trimmed_nonempty([s], st0)
 
@@ -998,6 +1011,7 @@ defmodule Melbyd.LuaSdk do
 
     {:ok, Map.new(kvs), st0}
   end
+
   def_lua_func get_columnar_fields_zipped([s, keys_ref], st0) do
     keys = Luerl.decode(st0, keys_ref) |> Melbyd.LuerlUtil.array_to_native_list()
     trimmed_line = String.trim(s)
@@ -1006,6 +1020,7 @@ defmodule Melbyd.LuaSdk do
 
     {:ok, Map.new(kvs), st0}
   end
+
   def_lua_func cast_values([t_ref, keytypes_ref], st0) do
     t = Luerl.decode(st0, t_ref) |> Melbyd.LuerlUtil.table_to_native_map()
     keytypes = Luerl.decode(st0, keytypes_ref) |> Melbyd.LuerlUtil.table_to_native_map()
@@ -1068,6 +1083,7 @@ defmodule Melbyd.LuaSdk do
         true
     end
   end
+
   def_lua_func get_relative_age([unix_seconds_float], st0) do
     Logger.debug("unix_seconds: #{unix_seconds_float}")
     unix_seconds = Kernel.trunc(unix_seconds_float)
@@ -1076,6 +1092,7 @@ defmodule Melbyd.LuaSdk do
 
     {:ok, s, st0}
   end
+
   def_lua_func get_relative_age_short([unix_seconds_float], st0) do
     Logger.debug("unix_seconds: #{unix_seconds_float}")
     t1 = Kernel.trunc(unix_seconds_float)
@@ -1118,6 +1135,7 @@ defmodule Melbyd.LuaSdk do
 
     {:ok, s, st0}
   end
+
   def_lua_func get_truncated_personal_moniker([first_last_name, max], st0) do
     Logger.debug("first_last_name: #{first_last_name}")
 
@@ -1151,6 +1169,7 @@ defmodule Melbyd.LuaSdk do
     # There is nothing to return back to Lua.
     {:ok, nil, st0}
   end
+
   def_lua_func get_shell_messages([shell_pid, resources_ref, env_vars_ref], st0) do
     resource_luerl_tables =
       Luerl.decode(st0, resources_ref) |> Melbyd.LuerlUtil.array_to_native_list()
@@ -1187,6 +1206,7 @@ defmodule Melbyd.LuaSdk do
     {:ok, nil, st0}
   end
 end
+
 defmodule Melbyd.LuerlUtil do
   def table_lookup(_t, []) do
     raise ArgumentError, message: "lookup_keys cannot be empty"
@@ -1218,6 +1238,7 @@ defmodule Melbyd.LuerlUtil do
   def verify_table_tuple(x) do
     raise ArgumentError, message: "element '#{inspect(x)}' is not a well-formed tuple"
   end
+
   def array_to_native_list(a) do
     Enum.map(a, &verify_array_tuple/1)
 
@@ -1240,10 +1261,12 @@ defmodule Melbyd.LuerlUtil do
   def verify_array_tuple(x) do
     raise ArgumentError, message: "element '#{inspect(x)}' is not a well-formed tuple"
   end
+
   def table_to_native_map(t) do
     Enum.map(t, &verify_table_tuple/1)
     Map.new(t)
   end
+
   def table_to_native_map_atomic_keys(t) do
     Enum.map(t, &verify_table_tuple/1)
     Enum.map(t, fn {k, v} -> {String.to_atom(k), v} end) |> Map.new()

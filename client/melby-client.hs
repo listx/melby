@@ -24,6 +24,7 @@ import System.IO (stderr)
 import Paths_melby_client (version)
 import MelbyClient.GitVersion
 import MelbyClient.Schema
+
 getView :: GRpcConnection View 'MsgProtoBuf -> FilePath -> T.Text -> Int -> IO ()
 getView conn configPath' config' shell_pid' = do
   env_vars_str <- getEnvironment
@@ -34,7 +35,9 @@ getView conn configPath' config' shell_pid' = do
         , env_vars = env_vars'
         , shell_pid = T.pack $ show shell_pid'
         }
+
   response <- conn ^. fromLabel @"GetView" $ req
+
   let term = case response of
         GRpcOk a -> Right a
         x -> Left $ T.pack ("unrecognized daemon response: " <> (show x))
@@ -53,6 +56,7 @@ getView conn configPath' config' shell_pid' = do
           exitFailure
         VIEW_STATUS_OK -> do
           T.putStrLn $ getField @"view" viewResponse
+
 data Opts = Opts
   { subcommand :: Subcommand
   , oMelbydPort :: PortNumber
@@ -68,6 +72,7 @@ data ViewOpts = ViewOpts
   , oConfig :: T.Text
   , oShellPid :: Int
   }
+
 optionsP :: Parser Opts
 optionsP = Opts
   <$> subcommandP
@@ -99,6 +104,7 @@ viewOptsP
                     <> help "PID of invoking shell (in most shells this is '$$')"
                     <> showDefault <> value 0 <> metavar "PID"))
 
+
 optsHandler :: Opts -> IO ()
 optsHandler (Opts subcommand' oMelbydPort') = do
   -- FIXME: configure the domain and port to be configurable through TOML or
@@ -116,6 +122,7 @@ optsHandler (Opts subcommand' oMelbydPort') = do
       getView viewClient (oConfigPath o) (oConfig o) (oShellPid o)
     Ping -> putStrLn "not implemented"
     Shutdown -> putStrLn "not implemented"
+
 main :: IO ()
 main = do
   opts <- customExecParser (prefs showHelpOnEmpty) optsP

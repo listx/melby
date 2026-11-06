@@ -42,6 +42,7 @@ data MColorizedGitShaResponse = MColorizedGitShaResponse
   } deriving (Eq, Ord, Show, Generic
              , ToSchema MelbyRendererSchema "ColorizedGitShaResponse"
              , FromSchema MelbyRendererSchema "ColorizedGitShaResponse")
+
 data MRenderWidgetsRequest = MRenderWidgetsRequest
   { widgets :: [MWidget]
   , delimiter :: Maybe MWidget
@@ -105,6 +106,7 @@ data MTextStyle
   deriving (Eq, Ord, Show, Generic
            , ToSchema MelbyRendererSchema "TextStyle"
            , FromSchema MelbyRendererSchema "TextStyle")
+
 data MRenderOptions = MRenderOptions
   { format :: MRenderFormat
   , color_depth :: MRenderColorDepth
@@ -126,6 +128,7 @@ data MRenderColorDepth
   deriving (Eq, Ord, Show, Generic
            , ToSchema MelbyRendererSchema "RenderColorDepth"
            , FromSchema MelbyRendererSchema "RenderColorDepth")
+
 data MParsePathAliasesRequest = MParsePathAliasesRequest
   { path_aliases_raw :: T.Text
   } deriving (Eq, Show, Ord, Generic

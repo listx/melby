@@ -122,6 +122,7 @@ defmodule Melbyd.ShellLogger do
     tick(ttl, notify_on_exit_pid)
     {:noreply, %{state | ttl: ttl - 1}}
   end
+
   @impl true
   def handle_info(
         %{topic: topic, from: _from, payload: _payload} = message,
@@ -154,6 +155,7 @@ defmodule Melbyd.ShellLogger do
       {:noreply, state}
     end
   end
+
   @impl true
   def handle_info(
         {:EXIT, from_pid, reason},

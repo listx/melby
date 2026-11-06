@@ -412,6 +412,7 @@ defmodule Melbyd.StandardResource do
     # point.
     {:reply, :ok, new_state}
   end
+
   @impl true
   def handle_call(:mark_stale, _from, %{stale: _, state_hist: [current | rest]} = state) do
     {:reply,
@@ -422,6 +423,7 @@ defmodule Melbyd.StandardResource do
          state_hist: [%{current | status: :STANDARD_RESOURCE_STATUS_LOADING} | rest]
      }}
   end
+
   @impl true
   def handle_cast(:mark_stale, %{stale: _, state_hist: [current | rest]} = state) do
     {:noreply,
@@ -431,6 +433,7 @@ defmodule Melbyd.StandardResource do
          state_hist: [%{current | status: :STANDARD_RESOURCE_STATUS_LOADING} | rest]
      }}
   end
+
   # Process tick. The tick must handle the true and false cases for the "stale"
   # key of the state. First we handle the case where stale is true (we must
   # re-read data).
@@ -498,6 +501,7 @@ defmodule Melbyd.StandardResource do
 
     {:noreply, new_state}
   end
+
   @impl true
   def handle_info(
         {:file_event, _watcher_pid, {path, events}},
@@ -525,6 +529,7 @@ defmodule Melbyd.StandardResource do
 
     {:noreply, state}
   end
+
   @impl true
   def handle_info(
         {:file_event, watcher_pid, :stop},
@@ -538,6 +543,7 @@ defmodule Melbyd.StandardResource do
     # (ab)using ttl. See pages 174-175 of Elixir In Action.
     {:noreply, %{state | ttl: -1}}
   end
+
   @impl true
   def handle_info(
         {:file_event, _watcher_pid, {_path, _events}},
@@ -548,6 +554,7 @@ defmodule Melbyd.StandardResource do
     Logger.debug("Ignoring filesystem event because state is already stale")
     {:noreply, state}
   end
+
   @impl true
   def handle_info(
         :duration_event,
@@ -561,6 +568,7 @@ defmodule Melbyd.StandardResource do
 
     {:noreply, state}
   end
+
   @impl true
   def handle_info(
         :duration_event,
@@ -571,6 +579,7 @@ defmodule Melbyd.StandardResource do
     Logger.debug("Ignoring duration event because state is already stale")
     {:noreply, state}
   end
+
   @impl true
   def handle_info(
         {:EXIT, from_pid, reason},
@@ -641,6 +650,7 @@ defmodule Melbyd.StandardResource do
   defp mark_stale(id) do
     GenServer.cast(via_tuple(id), :mark_stale)
   end
+
   defp setup_staleness_flagger(
          %{"type" => "filesystem",
            "watch_paths" => watch_paths_lua_array,
@@ -659,6 +669,7 @@ defmodule Melbyd.StandardResource do
     # cheaper).
     Map.put(initial_state, :fs_event_handler, fs_event_handler)
   end
+
   defp setup_staleness_flagger(
          %{"type" => "duration", "duration" => duration} = _staleness_flagger,
          initial_state
@@ -687,7 +698,6 @@ defmodule Melbyd.StandardResource do
     end
   end
   # Filesystem-based staleness
-
   # Mark the given path as stale, as well as all other SRS GenServers whose id's
   # are of the form "{resource_type, path}" where "path" is a parent path.
   defp mark_all_paths_stale_from({resource_type, path}) do

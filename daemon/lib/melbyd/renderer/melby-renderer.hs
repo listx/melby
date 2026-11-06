@@ -24,6 +24,7 @@ import MelbyRenderer.GitVersion
 import MelbyRenderer.Schema
 import MelbyRenderer.PathAliases (parsePathAliases)
 import MelbyRenderer.Widgets (renderWidgets)
+
 newtype Opts = Opts
   { subcommand :: Subcommand }
 
@@ -34,6 +35,7 @@ data Subcommand
 data ServeOpts = ServeOpts
   { oPort :: Int
   }
+
 optionsP :: Parser Opts
 optionsP = Opts <$> subcommandP
 
@@ -48,6 +50,7 @@ serveOptsP :: Parser ServeOpts
 serveOptsP
   = ServeOpts
   <$> (argument auto (metavar "PORT"))
+
 
 optsHandler :: Opts -> IO ()
 optsHandler (Opts subcommand') = do
@@ -69,6 +72,7 @@ renderer = singleService
   , method @"RenderWidgets" renderWidgets
   , method @"ParsePathAliases" parsePathAliases
   )
+
 main :: IO ()
 main = do
   opts <- customExecParser (prefs showHelpOnEmpty) optsP
