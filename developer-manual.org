@@ -180,7 +180,7 @@ weave-quick:
 .PHONY: weave-quick
 
 weave-profile:
-	$(call run_emacs,(lilac-publish-profile),main.org)
+	$(call run_emacs,(lilac-publish-profile),index.org)
 .PHONY: weave-profile
 
 weave-profile-inspect:
@@ -191,11 +191,11 @@ weave-profile-inspect:
 build-images: image-org
 	$(MAKE) -C image
 
-build-html: main.html image.html developer-manual.html user-manual.html
+build-html: index.html image.html developer-manual.html user-manual.html
 
-main.html: developer-manual.html image.html main.org
-	#$(call run_emacs,(lilac-gen-css-and-exit),main.org)
-	$(call run_emacs,(lilac-publish),main.org)
+index.html: developer-manual.html image.html index.org
+	#$(call run_emacs,(lilac-gen-css-and-exit),index.org)
+	$(call run_emacs,(lilac-publish),index.org)
 
 developer-manual.html: developer-manual.org
 	$(call run_emacs,(lilac-publish),developer-manual.org)

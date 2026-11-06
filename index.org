@@ -37,6 +37,13 @@ This is a sample multi-line comment.
 Also see https://orgmode.org/manual/Comment-Lines.html.
 #+end_comment
 
+#+name: index
+#+begin_src txt
+developer-manual.org
+user-manual.org
+image.org
+#+end_src
+
 * Introduction
 
 NOTE: THIS PROJECT IS NOT EVEN BETA. EXPECT REGULAR BREAKAGES.
