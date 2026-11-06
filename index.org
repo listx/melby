@@ -1,34 +1,22 @@
 :PROPERTIES:
 :ID:       cfec4665-687b-4566-859b-f23891a90c6e
 :END:
-# Copyright 2023 Linus Arver
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+#+begin_comment
+Copyright 2023 Linus Arver
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+#+end_comment
 #+title: Melby
-#+SETUPFILE: lilac.theme
-#+auto_tangle: t
-
-# Set default header argument for all source code blocks. The "no-export" means
-# that we do not expand noweb references when exporting (weaving) --- the fact
-# that this is not the default option is odd.
-#+PROPERTY: header-args :noweb no-export
-
-# Prevent _ and ^ from being interpreted as subscript and superscript operators.
-#+OPTIONS: ^:{}
-
-# Number the top 5 levels of headings; since h1 is the tile, this means headings
-# up to 4 numbers --- e.g., "1.2.3.4".
-#+OPTIONS: H:5
 
 # Note that this is a comment and is not woven (exported) to HTML, nor visible
 # from any tangled (generate) source code file. Below is a block comment:
