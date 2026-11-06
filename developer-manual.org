@@ -146,7 +146,8 @@ on the command line (instead of needing to invoke emacs directly).
 
 #+name: Makefile
 #+caption: =Makefile=
-#+begin_src makefile :tangle Makefile :eval no
+#+header: :tangle Makefile
+#+begin_src makefile :eval no
 PROJ_ROOT := $(shell git rev-parse --show-toplevel)
 LILAC_ROOT := $(PROJ_ROOT)/deps/elisp/lilac
 PROCS := $(shell nproc)
@@ -216,7 +217,8 @@ manually. That way, when we run =(lilac-publish)= we'll get all of the syntax
 highlighting that we need.
 
 #+name: melby.el
-#+begin_src emacs-lisp :tangle melby.el
+#+header: :tangle melby.el
+#+begin_src emacs-lisp
 ;; Built-in packages (distributed with Emacs).
 (require 'tex-mode)
 (require 'elisp-mode)
@@ -275,7 +277,8 @@ default we ask Git to exclude it from =git diff= by treating them as binary
 data.
 
 #+caption: =.gitattributes=
-#+begin_src gitattributes :tangle .gitattributes :eval no
+#+header: :tangle .gitattributes
+#+begin_src gitattributes :eval no
 ,* -diff
 ,**/*.json diff
 ,**/*.org diff
@@ -376,7 +379,8 @@ Because of these issues, the utility has been removed.
 
 *** .gitignore
 
-#+begin_src gitignore :tangle .gitignore
+#+header: :tangle .gitignore
+#+begin_src gitignore
 # Cache directory used by the .envrc file.
 .direnv
 
@@ -435,7 +439,9 @@ tangled from Org files.
 The script also takes into account a list of known non-tangled tracked files
 which acts as an allowlist.
 
-#+begin_src sh :shebang #!/usr/bin/env bash :tangle audit.sh
+#+header: :shebang #!/usr/bin/env bash
+#+header: :tangle audit.sh
+#+begin_src sh
 set -euo pipefail
 
 SCRIPT_ROOT="$(dirname "$(realpath "$0")")"
@@ -590,7 +596,8 @@ shell so that it picks up project-specific settings whenever your shell moves
 in/out of such a folder. We invoke =use nix= so that it picks up the environment
 defined inside [[file:shell.nix]] (see [[*Nix shell]] below).
 
-#+begin_src sh :tangle .envrc :eval no
+#+header: :tangle .envrc
+#+begin_src sh :eval no
 use nix
 #+end_src
 
@@ -612,7 +619,8 @@ build all of our code. It's great for development and testing things out (e.g.,
 running unit tests) for all of the various languages we use.
 
 #+caption: shell.nix (toplevel dev environment)
-#+begin_src nix :tangle shell.nix :eval no
+#+header: :tangle shell.nix
+#+begin_src nix :eval no
 let
   # Nixpkgs snapshot.
   sources = import ./package/nix/sources.nix;
@@ -785,7 +793,8 @@ pkgs.mkShell ({
 **** Make Stack understand Nix
 
 #+caption: package/nix/stack.nix
-#+begin_src nix :tangle package/nix/stack.nix :eval no
+#+header: :tangle package/nix/stack.nix
+#+begin_src nix :eval no
 let
   sources = import ./sources.nix;
   pkgs = import sources.nixpkgs { };
@@ -824,7 +833,8 @@ the development environment's dependencies exactly match what we'll end up
 shipping.
 
 #+caption: package/build.nix
-#+begin_src nix :tangle package/build.nix :eval no
+#+header: :tangle package/build.nix
+#+begin_src nix :eval no
 let
   sources = import ./nix/sources.nix;
   pkgs = import sources.nixpkgs {};
@@ -856,7 +866,8 @@ with =melby.service=, and run =systemctl --user start melby.service= to actually
 start it.
 
 #+caption: package/release.nix
-#+begin_src nix :tangle package/release.nix :eval no
+#+header: :tangle package/release.nix
+#+begin_src nix :eval no
 let
   sources = import ./nix/sources.nix;
   pkgs = import sources.nixpkgs {};
@@ -903,7 +914,8 @@ $ chmod 600 cookie
 FIXME: reduce repetition by using a build rule (akin to run_emacs)
 
 #+caption: package/Makefile
-#+begin_src makefile :tangle package/Makefile
+#+header: :tangle package/Makefile
+#+begin_src makefile
 
 define run_build
 	nix-build build.nix --option sandbox relaxed --show-trace \
@@ -948,7 +960,8 @@ update-nix:
 *** .gitignore
 
 #+caption: package/.gitignore
-#+begin_src gitignore :tangle package/.gitignore
+#+header: :tangle package/.gitignore
+#+begin_src gitignore
 # These links can get created if we build individual targets.
 melby-client
 melby-client-rust
@@ -1072,7 +1085,8 @@ stub. We also use it to generate the Elixir server stubs (used by the daemon).
 FIXME: add link to where it's used in Elixir.
 
 #+name: melbyproto_melby_client
-#+begin_src protobuf :tangle melby_client.proto
+#+header: :tangle melby_client.proto
+#+begin_src protobuf
 syntax = "proto3";
 
 package melby_client;
@@ -1143,7 +1157,8 @@ following structure:
 
 #+name: melbyc-melby-client.hs
 #+caption: Layout of =melby-client.hs=
-#+begin_src haskell :tangle client/melby-client.hs
+#+header: :tangle client/melby-client.hs
+#+begin_src haskell
 <<__NREF__melbyc_pragmas>>
 
 module Main where
@@ -1386,7 +1401,8 @@ namely the =melbyd-lens= Haskell service that runs as part of melbyd.
 FIXME: break this up into smaller chunks
 
 #+name: melbyc_lib_schema
-#+begin_src haskell :tangle client/lib/MelbyClient/Schema.hs
+#+header: :tangle client/lib/MelbyClient/Schema.hs
+#+begin_src haskell
 {-# language CPP                   #-}
 {-# language DataKinds             #-}
 {-# language DeriveAnyClass        #-}
@@ -1498,7 +1514,8 @@ versionOption = infoOption
 The underlying plumbing that handles this is done in FIXME path:
 
 #+name: melbyc_lib_gitVersion
-#+begin_src haskell :tangle client/lib/MelbyClient/GitVersion.hs
+#+header: :tangle client/lib/MelbyClient/GitVersion.hs
+#+begin_src haskell
 module MelbyClient.GitVersion
   ( gitVersion
   ) where
@@ -1554,7 +1571,8 @@ getTimeInfo = show <$> getZonedTime
 
 *** Makefile
 
-#+begin_src makefile :tangle client/Makefile
+#+header: :tangle client/Makefile
+#+begin_src makefile
 # NOTE: Below is an installation rule for a Nix + Cabal workflow. It may be
 # useful to do this in case stack doesn't work for some reason. Originally we
 # wanted to use this workflow instead but ran up against a Nix + MacOS breakage
@@ -1595,7 +1613,8 @@ because Git will still figure out how to run =git describe=. We just use
 *** Cabal
 
 #+name: melby-client.cabal
-#+begin_src haskell-cabal :tangle client/melby-client.cabal
+#+header: :tangle client/melby-client.cabal
+#+begin_src haskell-cabal
 name: melby-client
 version: 1.0.0.0
 author: Linus Arver
@@ -1680,7 +1699,8 @@ library
 #+end_src
 
 #+name: =cabal.project=
-#+begin_src haskell-cabal :tangle client/cabal.project
+#+header: :tangle client/cabal.project
+#+begin_src haskell-cabal
 executable-stripping: True
 packages:
   ./melby-client.cabal
@@ -1692,7 +1712,8 @@ We use Stack for building our Haskell binaries. The biggest reason we do this is
 simply because Stack's LTS snapshots stay frozen, whereas Nix keeps evolving to
 support the latest and greatest packages.
 
-#+begin_src nix :tangle client/melby-client.nix
+#+header: :tangle client/melby-client.nix
+#+begin_src nix
 let
   sources = import ../package/nix/sources.nix;
   pkgs = import sources.nixpkgs { };
@@ -1757,7 +1778,8 @@ pkgs.haskell.lib.buildStackProject {
 *** Stack
 
 #+caption: client/stack.yaml
-#+begin_src yaml :tangle client/stack.yaml
+#+header: :tangle client/stack.yaml
+#+begin_src yaml
 resolver: lts-18.28
 allow-newer: true
 
@@ -1791,7 +1813,8 @@ extra-deps:
 *** .gitignore
 
 #+caption: client/.gitignore
-#+begin_src gitignore :tangle client/.gitignore
+#+header: :tangle client/.gitignore
+#+begin_src gitignore
 melbyc
 .stack-work
 #+end_src
@@ -1812,7 +1835,8 @@ See more keys and their definitions at https://doc.rust-lang.org/cargo/reference
 
 #+name: rust-client-Cargo.toml
 #+caption: Cargo.toml for client-rust
-#+begin_src toml :tangle client-rust/Cargo.toml
+#+header: :tangle client-rust/Cargo.toml
+#+begin_src toml
 [package]
 name = "melbyc-rust"
 description = "melby client, written in Rust"
@@ -1840,13 +1864,15 @@ strip = true
 
 And here's the =.gitignore= for this client.
 
-#+begin_src gitignore :tangle client-rust/.gitignore
+#+header: :tangle client-rust/.gitignore
+#+begin_src gitignore
 target
 #+end_src
 
 Here's the =Makefile= for building and testing.
 
-#+begin_src makefile :tangle client-rust/Makefile
+#+header: :tangle client-rust/Makefile
+#+begin_src makefile
 build_dev:
 	cargo build
 .PHONY: build_dev
@@ -1865,7 +1891,8 @@ name that Cargo recognizes automatically.
 
 #+name: build.rs
 #+caption: build.rs for client-rust
-#+begin_src rust :tangle client-rust/build.rs
+#+header: :tangle client-rust/build.rs
+#+begin_src rust
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -1888,7 +1915,8 @@ package. We do that below.
 
 #+name: mod.rs
 #+caption: mod.rs for generated code
-#+begin_src rust :tangle client-rust/src/grpc_generated/mod.rs
+#+header: :tangle client-rust/src/grpc_generated/mod.rs
+#+begin_src rust
 pub mod melby_client;
 #+end_src
 
@@ -1896,7 +1924,8 @@ pub mod melby_client;
 
 #+name: rust-client-main.rs
 #+caption: main.rs for client-rust
-#+begin_src rust :tangle client-rust/src/main.rs
+#+header: :tangle client-rust/src/main.rs
+#+begin_src rust
 <<__NREF__client-rust--imports>>
 <<__NREF__client-rust--option-handling>>
 <<__NREF__client-rust--main>>
@@ -2023,7 +2052,8 @@ async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
 
 *** Packaging
 
-#+begin_src nix :tangle client-rust/melby-client-rust.nix
+#+header: :tangle client-rust/melby-client-rust.nix
+#+begin_src nix
 { sources ? import ../package/nix/sources.nix }:
 let
   # Overlays
@@ -2066,7 +2096,8 @@ most of the interesting things happen.
 ** Proto
 
 #+name: =melby.proto=
-#+begin_src protobuf :tangle melby.proto
+#+header: :tangle melby.proto
+#+begin_src protobuf
 syntax = "proto3";
 
 package melby;
@@ -2153,7 +2184,8 @@ down this process.
 **** Proto
 
 #+name: melbyproto_melby_daemon
-#+begin_src protobuf :tangle melby_daemon.proto
+#+header: :tangle melby_daemon.proto
+#+begin_src protobuf
 syntax = "proto3";
 
 package melby_daemon;
@@ -2177,7 +2209,8 @@ enum StandardResourceStatus {
 
 **** Implementation
 
-#+begin_src elixir :tangle daemon/lib/melbyd/standard_resource.ex
+#+header: :tangle daemon/lib/melbyd/standard_resource.ex
+#+begin_src elixir
 defmodule Melbyd.StandardResource do
   # If a Standard Resource Service process dies, don't restart it, because it
   # will be restarted on the next use (when a client requests info for it).
@@ -3314,7 +3347,8 @@ whenever anything interesting happens (where the determination of "interesting"
 is up to the user's Lua configuration). And then it's up to SLGs to
 subscribe to these topics and display these messages to the user.
 
-#+begin_src elixir :tangle daemon/lib/melbyd/shell_logger.ex
+#+header: :tangle daemon/lib/melbyd/shell_logger.ex
+#+begin_src elixir
 defmodule Melbyd.ShellLogger do
   use GenServer, restart: :temporary
   require Logger
@@ -3642,7 +3676,8 @@ end
 
 **** Path
 
-#+begin_src elixir :tangle daemon/lib/melbyd/path.ex
+#+header: :tangle daemon/lib/melbyd/path.ex
+#+begin_src elixir
 defmodule Melbyd.Path do
   @moduledoc """
   Caching wrapper around path shortening function.
@@ -3682,7 +3717,8 @@ defmodule Melbyd.Path do
 end
 #+end_src
 
-#+begin_src rust :tangle daemon/lib/melbyd/nifs/src/path_shorten.rs
+#+header: :tangle daemon/lib/melbyd/nifs/src/path_shorten.rs
+#+begin_src rust
 use envsubst;
 use std::collections::HashMap;
 
@@ -4012,7 +4048,8 @@ path if we've seen the same inputs before.
 We only keep a cache size of 256 because in practice we only move around a
 handful of directories during a typical computing session.
 
-#+begin_src elixir :tangle daemon/lib/melbyd/cache.ex
+#+header: :tangle daemon/lib/melbyd/cache.ex
+#+begin_src elixir
 defmodule Melbyd.Cache.PathShorten do
   @moduledoc """
   path-shorten Cache
@@ -4042,7 +4079,8 @@ We use [[https://github.com/mazznoer/csscolorparser-rs][=csscolorparser=]] to pa
 point of using a NIF here isn't so much about speed, but more about the
 convenience of being able to use this library.
 
-#+begin_src rust :tangle daemon/lib/melbyd/nifs/src/color.rs
+#+header: :tangle daemon/lib/melbyd/nifs/src/color.rs
+#+begin_src rust
 use csscolorparser::Color;
 
 #[derive(Default, Debug, PartialEq, Eq)]
@@ -4097,7 +4135,8 @@ mod test {
 }
 #+end_src
 
-#+begin_src elixir :tangle daemon/lib/melbyd/color.ex
+#+header: :tangle daemon/lib/melbyd/color.ex
+#+begin_src elixir
 defmodule Melbyd.Color do
   @moduledoc """
   Color parsing.
@@ -4134,7 +4173,8 @@ will be deleted in the future (to be replaced entirely with gRPC calls).
 
 #+name: application.ex
 #+caption: =Melbyd.Application=
-#+begin_src elixir :tangle daemon/lib/melbyd/application.ex
+#+header: :tangle daemon/lib/melbyd/application.ex
+#+begin_src elixir
 defmodule Melbyd.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
@@ -4240,7 +4280,8 @@ add link), there is a single View service.
 
 The View service is shown below.
 
-#+begin_src elixir :tangle daemon/lib/melbyd/grpc.ex
+#+header: :tangle daemon/lib/melbyd/grpc.ex
+#+begin_src elixir
 defmodule Melbyd.GRPC do
   use GRPC.Endpoint
 
@@ -4275,7 +4316,8 @@ Notice that we define the top-level =Melbyd.Endpont= module, which contains the
 Below is =melby-client='s =ViewRequest= that we handle. As part of handling this,
 we will need to call out to the melbyr Haskell server over gRPC.
 
-#+begin_src elixir :tangle daemon/lib/melbyd/view.ex
+#+header: :tangle daemon/lib/melbyd/view.ex
+#+begin_src elixir
 defmodule Melbyd.View do
   @moduledoc """
   Module to generate an arbitrary view (string).
@@ -4401,7 +4443,8 @@ melbyc.
 
 #+name: lua_api.ex
 #+caption: =Melbyd.LuaInterop=
-#+begin_src elixir :tangle daemon/lib/melbyd/lua_api.ex
+#+header: :tangle daemon/lib/melbyd/lua_api.ex
+#+begin_src elixir
 defmodule Melbyd.LuaInterop do
   @moduledoc false
 
@@ -6025,7 +6068,8 @@ https://github.com/rvirding/luerl/wiki/0.7-Data-representation.
 We have a Lua smoke test to check that Lua/Elixir interop is working. This tests
 the sample Lua configuration to ensure that it is a fully working example.
 
-#+begin_src elixir :tangle daemon/config/test.exs
+#+header: :tangle daemon/config/test.exs
+#+begin_src elixir
 import Config
 
 # Log everything during tests. We want to see all logs in case a test fails.
@@ -6033,7 +6077,8 @@ config :logger,
   level: :debug
 #+end_src
 
-#+begin_src elixir :tangle daemon/test/melbyd_test.exs
+#+header: :tangle daemon/test/melbyd_test.exs
+#+begin_src elixir
 defmodule MelbydTest do
   use ExUnit.Case
   require Logger
@@ -6690,7 +6735,8 @@ We would like =melbyr= to observe the following behaviors.
 ***** Proto
 
 #+name: melbyproto_melby_renderer
-#+begin_src protobuf :tangle melby_renderer.proto
+#+header: :tangle melby_renderer.proto
+#+begin_src protobuf
 syntax = "proto3";
 
 package melby_renderer;
@@ -6854,7 +6900,8 @@ This walk-through is written for the future maintainers of this codebase.
 
 #+name: =melby-renderer.hs=
 #+caption: Layout of =melby-renderer.hs=
-#+begin_src haskell :tangle daemon/lib/melbyd/renderer/melby-renderer.hs
+#+header: :tangle daemon/lib/melbyd/renderer/melby-renderer.hs
+#+begin_src haskell
 <<__NREF__melbyr_pragmas>>
 
 module Main where
@@ -6927,7 +6974,8 @@ Actually we can do the above with just recursion. See =injectDelimiters=.
 ***** Implementation
 
 #+name: =Widgets.hs=
-#+begin_src haskell :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/Widgets.hs
+#+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/Widgets.hs
+#+begin_src haskell
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeApplications #-}
@@ -7074,7 +7122,8 @@ and distributing these colors onto the 40 hex characters.
 ***** Overview
 
 #+name: =Widgets.hs=
-#+begin_src haskell :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/Colorizer.hs
+#+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/Colorizer.hs
+#+begin_src haskell
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeApplications #-}
@@ -7259,7 +7308,8 @@ asBytes = (fromRight B.empty . B16.decode) . T.encodeUtf8
 **** Parse path aliases
 
 #+name: =PathAliases.hs=
-#+begin_src haskell :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/PathAliases.hs
+#+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/PathAliases.hs
+#+begin_src haskell
 {-# LANGUAGE FlexibleContexts #-}
 
 module MelbyRenderer.PathAliases
@@ -7419,7 +7469,8 @@ symbol = L.symbol sc
 #+end_src
 
 #+name: =Main.hs= for melbyr tests
-#+begin_src haskell :tangle daemon/lib/melbyd/renderer/test/Main.hs
+#+header: :tangle daemon/lib/melbyd/renderer/test/Main.hs
+#+begin_src haskell
 {-# LANGUAGE QuasiQuotes #-}
 
 module Main (main) where
@@ -7590,7 +7641,8 @@ main = do
 FIXME: break this up into smaller chunks
 
 #+name: melbyr_lib_schema
-#+begin_src haskell :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/Schema.hs
+#+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/Schema.hs
+#+begin_src haskell
 {-# language CPP                   #-}
 {-# language DataKinds             #-}
 {-# language DeriveAnyClass        #-}
@@ -7773,7 +7825,8 @@ data MParseStatus
 **** Logging
 
 #+name: =MelbyRenderer/Log.hs=
-#+begin_src haskell :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/Log.hs
+#+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/Log.hs
+#+begin_src haskell
 module MelbyRenderer.Log where
 
 import Control.Monad.Logger
@@ -7834,7 +7887,8 @@ versionOption = infoOption
 FIXME: should we move this to a common "melby" haskell package?
 
 #+name: __NREF__melbyr_lib_gitVersion
-#+begin_src haskell :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/GitVersion.hs
+#+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/GitVersion.hs
+#+begin_src haskell
 module MelbyRenderer.GitVersion
   ( gitVersion
   ) where
@@ -7871,7 +7925,8 @@ getTimeInfo = show <$> getZonedTime
 
 This follows the Makefile for =melbyc= (FIXME: add link).
 
-#+begin_src makefile :tangle daemon/lib/melbyd/renderer/Makefile
+#+header: :tangle daemon/lib/melbyd/renderer/Makefile
+#+begin_src makefile
 ZLIB_SO_DIR=$(shell pkg-config --libs-only-L zlib)
 ZLIB_H_DIR=$(shell pkg-config --cflags-only-I zlib)
 
@@ -7901,7 +7956,8 @@ test:
 **** Cabal
 
 #+name: melby-renderer.cabal
-#+begin_src haskell-cabal :tangle daemon/lib/melbyd/renderer/melby-renderer.cabal
+#+header: :tangle daemon/lib/melbyd/renderer/melby-renderer.cabal
+#+begin_src haskell-cabal
 name: melby-renderer
 version: 1.0.0.0
 author: Linus Arver
@@ -8016,7 +8072,8 @@ test-suite test
 #+end_src
 
 #+name: =cabal.project=
-#+begin_src haskell-cabal :tangle daemon/lib/melbyd/renderer/cabal.project
+#+header: :tangle daemon/lib/melbyd/renderer/cabal.project
+#+begin_src haskell-cabal
 executable-stripping: True
 packages:
   ./melby-renderer.cabal
@@ -8024,7 +8081,8 @@ packages:
 
 **** Nix
 
-#+begin_src nix :tangle daemon/lib/melbyd/renderer/melby-renderer.nix
+#+header: :tangle daemon/lib/melbyd/renderer/melby-renderer.nix
+#+begin_src nix
 let
   sources = import ../../../../package/nix/sources.nix;
   pkgs = import sources.nixpkgs { };
@@ -8072,7 +8130,8 @@ pkgs.haskell.lib.buildStackProject {
 
 **** Stack
 
-#+begin_src yaml :tangle daemon/lib/melbyd/renderer/stack.yaml
+#+header: :tangle daemon/lib/melbyd/renderer/stack.yaml
+#+begin_src yaml
 resolver: lts-18.28
 allow-newer: true
 
@@ -8105,7 +8164,8 @@ extra-deps:
 
 **** .gitignore
 
-#+begin_src gitignore :tangle daemon/lib/melbyd/renderer/.gitignore
+#+header: :tangle daemon/lib/melbyd/renderer/.gitignore
+#+begin_src gitignore
 melbyr
 .stack-work
 #+end_src
@@ -8119,7 +8179,8 @@ We use Nix for both Linux and Mac (via https://github.com/LnL7/nix-darwin).
 
 *** Linux
 
-#+begin_src text :tangle daemon/install/melby.service
+#+header: :tangle daemon/install/melby.service
+#+begin_src text
 [Unit]
 Description=melby service
 After=network.target
@@ -8142,7 +8203,8 @@ Type=simple
 **** Makefile
 
 #+caption: daemon/Makefile
-#+begin_src makefile :tangle daemon/Makefile
+#+header: :tangle daemon/Makefile
+#+begin_src makefile
 # See https://stackoverflow.com/a/73509979/437583 for getting the directory of
 # this Makefile.
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
@@ -8210,7 +8272,8 @@ test: fix-rustler
 **** gitattributes
 
 #+caption: daemon/.gitattributes
-#+begin_src gitattributes :tangle daemon/.gitattributes :eval no
+#+header: :tangle daemon/.gitattributes
+#+begin_src gitattributes :eval no
 mix.nix diff
 lib/melbyd/nifs/Cargo.lock diff
 lib/melbyd/nifs/Cargo.toml diff
@@ -8218,7 +8281,8 @@ lib/melbyd/nifs/Cargo.toml diff
 
 **** Mix tool configuration
 
-#+begin_src elixir :tangle daemon/mix.exs
+#+header: :tangle daemon/mix.exs
+#+begin_src elixir
 defmodule Melbyd.MixProject do
   use Mix.Project
 
@@ -8274,7 +8338,8 @@ end
 
 **** .gitignore
 
-#+begin_src gitignore :tangle daemon/.gitignore
+#+header: :tangle daemon/.gitignore
+#+begin_src gitignore
 # The directory Mix will write compiled artifacts to.
 /_build/
 
@@ -8287,7 +8352,8 @@ end
 
 **** Formatter
 
-#+begin_src elixir :tangle daemon/.formatter.exs
+#+header: :tangle daemon/.formatter.exs
+#+begin_src elixir
 # Used by "mix format"
 [
   inputs: ["{mix,.formatter}.exs", "{config,lib,test}/**/*.{ex,exs}"]
@@ -8300,7 +8366,8 @@ Sadly the protoc-gen-elixir plugin is not yet packaged in Nixpkgs, so we have to
 package it ourselves by writing our own derivation. This allows us to have a
 working =nix-shell= where we can generate Elixir code from =*.proto= files.
 
-#+begin_src nix :tangle package/protoc-gen-elixir.nix
+#+header: :tangle package/protoc-gen-elixir.nix
+#+begin_src nix
 { sources ? import ./nix/sources.nix
 , pkgs ? import sources.nixpkgs {} }:
 let
@@ -8339,7 +8406,8 @@ in
 We package up =melbyd= as a standalone "package".
 
 #+caption: daemon/melby-daemon.nix
-#+begin_src nix :tangle daemon/melby-daemon.nix
+#+header: :tangle daemon/melby-daemon.nix
+#+begin_src nix
 { sources ? import ../package/nix/sources.nix }:
 let
   # Overlays
@@ -8560,7 +8628,8 @@ in
 
 Build our Rust library (=melbyd_nifs=).
 
-#+begin_src nix :tangle daemon/lib/melbyd/nifs/melby-nifs.nix
+#+header: :tangle daemon/lib/melbyd/nifs/melby-nifs.nix
+#+begin_src nix
 { sources ? import ../../../../package/nix/sources.nix }:
 let
   files = [
@@ -8604,7 +8673,8 @@ in
 
 **** Additional application configuration
 
-#+begin_src elixir :tangle daemon/config/config.exs
+#+header: :tangle daemon/config/config.exs
+#+begin_src elixir
 import Config
 
 config :logger, :console,
@@ -8622,11 +8692,13 @@ config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 import_config "#{config_env()}.exs"
 #+end_src
 
-#+begin_src elixir :tangle daemon/config/dev.exs
+#+header: :tangle daemon/config/dev.exs
+#+begin_src elixir
 # Stub.
 #+end_src
 
-#+begin_src elixir :tangle daemon/config/prod.exs
+#+header: :tangle daemon/config/prod.exs
+#+begin_src elixir
 import Config
 
 config :logger,
@@ -8636,7 +8708,8 @@ config :logger,
   ]
 #+end_src
 
-#+begin_src elixir :tangle daemon/config/runtime.exs
+#+header: :tangle daemon/config/runtime.exs
+#+begin_src elixir
 import Config
 
 config :melbyd,
@@ -8683,7 +8756,8 @@ both the Elixir and Rust side.
 
 **** Elixir wrapper
 
-#+begin_src elixir :tangle daemon/lib/melbyd/nifs.ex
+#+header: :tangle daemon/lib/melbyd/nifs.ex
+#+begin_src elixir
 defmodule Melbyd.Nifs do
   use Rustler,
     otp_app: :melbyd,
@@ -8701,7 +8775,8 @@ end
 
 **** Rust wrapper
 
-#+begin_src rust :tangle daemon/lib/melbyd/nifs/src/lib.rs
+#+header: :tangle daemon/lib/melbyd/nifs/src/lib.rs
+#+begin_src rust
 pub mod color;
 pub mod path_shorten;
 
@@ -8719,14 +8794,16 @@ rustler::init!(
 
 ***** Makefile
 
-#+begin_src makefile :tangle daemon/lib/melbyd/nifs/Makefile
+#+header: :tangle daemon/lib/melbyd/nifs/Makefile
+#+begin_src makefile
 test:
 	cargo test
 #+end_src
 
 ***** Cargo
 
-#+begin_src makefile :tangle daemon/lib/melbyd/nifs/Cargo.toml
+#+header: :tangle daemon/lib/melbyd/nifs/Cargo.toml
+#+begin_src makefile
 [package]
 name = "melbyd_nifs"
 version = "0.1.0"
@@ -8755,7 +8832,8 @@ elixir_support = ["dep:rustler"]
 We ignore Cargo.lock for libraries. See
 https://doc.rust-lang.org/cargo/faq.html#why-do-binaries-have-cargolock-in-version-control-but-not-libraries.
 
-#+begin_src gitignore :tangle daemon/lib/melbyd/nifs/.gitignore
+#+header: :tangle daemon/lib/melbyd/nifs/.gitignore
+#+begin_src gitignore
 /target
 Cargo.lock
 #+end_src
@@ -8768,7 +8846,8 @@ See (FIXME: add link) for the build system for melbyr.
 
 These are development defaults for interacting with GHCi.
 
-#+begin_src text :tangle daemon/lib/melbyd/renderer/.ghci
+#+header: :tangle daemon/lib/melbyd/renderer/.ghci
+#+begin_src text
 :set -XOverloadedStrings
 #+end_src
 
@@ -8777,7 +8856,8 @@ These are development defaults for interacting with GHCi.
 This probably should be in a separate file, as it requires a pretty big context
 switch.
 
-#+begin_src elixir :tangle daemon/test/test_helper.exs
+#+header: :tangle daemon/test/test_helper.exs
+#+begin_src elixir
 # Instead of printing logs, capture them. Only print them for tests that fail.
 # See https://hashrocket.com/blog/posts/silence-logger-messages-in-exunit.
 ExUnit.start(capture_log: true)
