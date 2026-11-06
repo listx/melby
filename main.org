@@ -41,10 +41,10 @@ Also see https://orgmode.org/manual/Comment-Lines.html.
 
 NOTE: THIS PROJECT IS NOT EVEN BETA. EXPECT REGULAR BREAKAGES.
 
-#+begin_sidenote
+#+begin_note
 The name /melby/ comes from /Melbourne/, the capital city of the state of
 Victoria, Australia.
-#+end_sidenote
+#+end_note
 
 Melby is a configurable *shell prompt generation system*. Typically, users
 customize their shell prompt by making it run a collection of useful shell

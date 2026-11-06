@@ -87,13 +87,13 @@ several languages for weaving:
 
 Melby uses a client/server architecture. There are two main parts:
 
-#+begin_sidenote
+#+begin_note
 =melbyd= is the daemon, which acts as a server in the client/server
 architecture. We call it a daemon because it is expected to have direct access
 to the local machine which is relevant to the client. This is unlike typical web
 servers where the local machine characteristics of such servers are irrelevant
 to clients.
-#+end_sidenote
+#+end_note
 
   1) =melbyd=: The daemon (server), which itself is composed of two smaller
      pieces:
