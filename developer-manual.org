@@ -5687,7 +5687,6 @@ number. We treat 1 month to be 4 weeks long.
 | 1 weeks - 3 weeks, 6 days, hours 59 minutes and 59 seconds            | Nw     | Days, hours, minutes and seconds                |
 | 1 month - 11 months, 3 weeks, 6 days, hours 59 minutes and 59 seconds | NM     | Weeks, days, hours, minutes and seconds         |
 | 1 year and older                                                      | NY     | Months, weeks, days, hours, minutes and seconds |
-#+TBLFM:
 
 #+name: melbyd_luasdk_srs_helpers-10
 #+begin_src elixir
