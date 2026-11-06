@@ -25,7 +25,7 @@
 Define custom wrappers for LaTeX files that define images. This way we don't
 have to repeat ourselves as much.
 
-#+header: :noweb-ref begin_tikz
+#+name: begin_tikz
 #+begin_src latex
 \documentclass[tikz]{standalone}
 \usepackage[x11names]{xcolor}
@@ -78,7 +78,7 @@ have to repeat ourselves as much.
 
 The ending is not as interesting, but still important.
 
-#+header: :noweb-ref end_tikz
+#+name: end_tikz
 #+begin_src latex
 \end{tikzpicture}
 \end{document}

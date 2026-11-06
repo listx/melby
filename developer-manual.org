@@ -1997,7 +1997,7 @@ enum Commands {
 
 Entrypoint.
 
-#+header: :noweb-ref client-rust--main
+#+name: client-rust--main
 #+begin_src rust
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -2018,7 +2018,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 View the output of running the Lua configuration inside melbyd.
 
-#+header: :noweb-ref client-rust--business-logic
+#+name: client-rust--business-logic
 #+begin_src rust
 async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
     let url = format!("http://127.0.0.1:{0}", cli.melbyd_port);
@@ -2634,7 +2634,7 @@ end
 
 **** Tick
 
-#+header: :noweb-ref melbyd_srs_tick
+#+name: melbyd_srs_tick
 #+begin_src elixir
 # Send a "tick" message to our GenServer in 1 second. See
 # https://stackoverflow.com/a/32097971/437583.
@@ -2958,7 +2958,7 @@ Here are some helper functions. The main workhorse here is
 =mark_all_stale_from/1=, which marks all SRS GenServers from the given path to
 the root directory (=/=) as stale.
 
-#+header: :noweb-ref melbyd_srs_staleness_filesystem_helpers
+#+name: melbyd_srs_staleness_filesystem_helpers
 #+begin_src elixir
 # Mark the given path as stale, as well as all other SRS GenServers whose id's
 # are of the form "{resource_type, path}" where "path" is a parent path.
@@ -3478,7 +3478,7 @@ end
 
 This is modeled after =Melbyd.StandardResource.tick/2=.
 
-#+header: :noweb-ref melbyd_sps_tick
+#+name: melbyd_sps_tick
 #+begin_src elixir
 # FIXME: This code is identical to the one in Melbyd.StandardResource.tick/2. Can
 # we make it DRY somehow?
@@ -5733,7 +5733,7 @@ end
 
 ***** Messaging
 
-#+header: :noweb-ref melbyd_luasdk_pubsub
+#+name: melbyd_luasdk_pubsub
 #+begin_src elixir
 def_lua_func broadcast([topic, message_ref], st0) do
   message = Luerl.decode(st0, message_ref) |> Melbyd.LuerlUtil.table_to_native_map_atomic_keys()
