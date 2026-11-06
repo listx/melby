@@ -1,3 +1,6 @@
+:PROPERTIES:
+:ID:       4ab7d52a-caf1-4793-8ec3-628ff95ad167
+:END:
 # Copyright 2023 Linus Arver
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +14,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 #+title: User Manual
 #+SETUPFILE: lilac.theme
 #+PROPERTY: header-args :noweb no-export

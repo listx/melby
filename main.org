@@ -1,3 +1,6 @@
+:PROPERTIES:
+:ID:       cfec4665-687b-4566-859b-f23891a90c6e
+:END:
 # Copyright 2023 Linus Arver
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,7 +14,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 #+title: Melby
 #+SETUPFILE: lilac.theme
 #+auto_tangle: t
