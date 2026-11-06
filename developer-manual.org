@@ -1926,7 +1926,8 @@ pub mod melby_client;
 #+caption: main.rs for client-rust
 #+header: :tangle client-rust/src/main.rs
 #+begin_src rust
-<<client-rust--imports>>
+<<client-rust--imports-1>>
+<<client-rust--imports-2>>
 <<client-rust--option-handling>>
 <<client-rust--main>>
 <<client-rust--business-logic>>
@@ -1934,7 +1935,7 @@ pub mod melby_client;
 
 Basic imports.
 
-#+header: :noweb-ref client-rust--imports
+#+name: client-rust--imports-1
 #+begin_src rust
 use std::collections::HashMap;
 use std::error::Error;
@@ -1944,7 +1945,7 @@ use clap::{Parser, Subcommand};
 
 Import generated gRPC code. These are built by =build.rs=.
 
-#+header: :noweb-ref client-rust--imports
+#+name: client-rust--imports-2
 #+begin_src rust
 pub mod grpc_generated;
 use grpc_generated::melby_client::view_client::ViewClient;
