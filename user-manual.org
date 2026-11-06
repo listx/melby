@@ -1010,7 +1010,7 @@ main()
 main "$@"
 #+end_src
 
-**** Fake
+*** Fake
 
 #+header: :tangle daemon/test/sample/GitFake.lua
 #+begin_src lua
