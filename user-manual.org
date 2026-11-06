@@ -69,11 +69,11 @@ LUA_PATH="./?.lua;./?/init.lua;$PWD/test/sample/?.lua" make repl
 #+end_example
 
 The question marks are replaced with the Lua module name. For Luerl, it uses
-the LUA_PATH environment variable [[https://github.com/rvirding/luerl/blob/fc668ef337b04ca2aee83c648cf6853dab8babe6/src/luerl_lib_package.erl#L83][here]].
+the =LUA_PATH= environment variable [[https://github.com/rvirding/luerl/blob/fc668ef337b04ca2aee83c648cf6853dab8babe6/src/luerl_lib_package.erl#L83][here]].
 
 In our case, we should do 2 things:
 
-  1) in tests, make sure to set the LUA_PATH correctly (to the sample config
+  1) in tests, make sure to set the =LUA_PATH= correctly (to the sample config
      folder as above), and
 
   2) in production, add the $HOME/.melby folder as a path.
@@ -2077,7 +2077,7 @@ end
 return Kube
 #+end_src
 
-This is the template for the "get_pods" reader. Format is just "<STATUS>".
+This is the template for the =get_pods= reader. Format is just "<STATUS>".
 
 #+header: :tangle daemon/test/sample/get_pods.gotemplate
 #+begin_src text

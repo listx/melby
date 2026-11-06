@@ -902,7 +902,7 @@ Additional steps:
 
 Create a =~/.melby/systemd/env= file with the contents
 
-FIXME: Add in "prod" settings here for MELBYR_PATH, MELBYR_PORT, and so on so as
+FIXME: Add in "prod" settings here for =MELBYR_PATH=, =MELBYR_PORT=, and so on so as
 to not conflict with the dev environment. Even better, add these settings in our
 Elixir code so that the user does not (normally) have to configure them.
 
@@ -920,7 +920,7 @@ $ chmod 600 cookie
 
 *** Makefile
 
-FIXME: reduce repetition by using a build rule (akin to run_emacs)
+FIXME: reduce repetition by using a build rule (akin to =run_emacs=)
 
 #+caption: package/Makefile
 #+header: :tangle package/Makefile
@@ -4520,7 +4520,7 @@ The steps involved are roughly:
   3) Check that the result from step 2 contains some substrings we expect to get
      (also defined in the Lua config).
 
-  4) Repeat steps 2 and 3 for each "Config.view_tests" entry defined in the Lua
+  4) Repeat steps 2 and 3 for each =Config.view_tests= entry defined in the Lua
      config.
 
 When the above steps are being executed, purely for validation, we don't expect
@@ -5253,7 +5253,7 @@ end
 ***** Time
 
 FIXME: Use Timex library here also to avoid making the user use the stupid
-"America/Los_Angeles" timezone and instead the shorter names that the "%Z"
+=America/Los_Angeles= timezone and instead the shorter names that the "%Z"
 strftime uses, because then the user doesn't have to use =timedatectl= as well.
 
 Construct the time string from the time format string, and optional time zone
@@ -5408,9 +5408,9 @@ end
 ******* Fake
 
 This is like =read_standard_resource=, but instead of reading things the regular
-way, we inject a special "fake" key in the resource_opts so that the reader
+way, we inject a special "fake" key in the =resource_opts= so that the reader
 knows that it is fake and understands it should execute the fake readers and
-also the =resource_id_func= instead of the resource_id_command. The good thing
+also the =resource_id_func= instead of the =resource_id_command=. The good thing
 is that all of these bits should already be defined in the resource already by
 the user.
 
