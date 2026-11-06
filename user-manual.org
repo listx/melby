@@ -1460,13 +1460,13 @@ response detector, such that:
   - if a command times out (still is running after waiting N seconds), we cancel
     it and generate a message for SLG telling the user that a command timed out
 
-    - this should catch cases where kubectl or gcloud return nothing due to either
-      network connectivity issues (wifi missing) or missing authentication (didn't
-      run =gcloud auth print-access-token= yet)
+      - this should catch cases where kubectl or gcloud return nothing due to
+        either network connectivity issues (wifi missing) or missing
+        authentication (didn't run =gcloud auth print-access-token= yet)
 
-    - when the user sees the message about the command(s) misbehaving, they can
-      run something that will (e.g.) reset their auth credentials so that the
-      commands can work again
+      - when the user sees the message about the command(s) misbehaving, they
+        can run something that will (e.g.) reset their auth credentials so that
+        the commands can work again
 
   - if a command errors out (and we expect it to succeed), we mark a subset of the
     entire data we read as "stale" ... ?

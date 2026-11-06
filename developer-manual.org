@@ -373,9 +373,10 @@ user-manual-org: developer-manual-org
 We used to use a utility called =ptu= ("post-tangle utility") to prepend
 copyright headers to all tangled files, but this resulted in a few problems:
 
-1. no support for copyright year ranges (e.g., 2020-2024),
-2. no support for checking when each tangled part was actually modified in the
-   Org source file.
+  1) no support for copyright year ranges (e.g., 2020-2024),
+
+  2) no support for checking when each tangled part was actually modified in
+     the Org source file.
 
 Because of these issues, the utility has been removed.
 
@@ -561,8 +562,8 @@ main "$@"
 
 ** Glossary
 
-- *Melby component*: a modular piece of software used to deliver the Melby user
-  experience.
+  - *Melby component*: a modular piece of software used to deliver the Melby
+    user experience.
  
 * Build System for Packaging Melby
 
@@ -576,10 +577,13 @@ environment capable of building Melby from scratch.
 
 There are several pieces of software we need to build (compile from source):
 
-1. melbyc (Haskell)
-2. melbyr (Haskell)
-3. melbyd (Elixir)
-4. melbyd Nifs (Rust)
+  1) melbyc (Haskell)
+
+  2) melbyr (Haskell)
+
+  3) melbyd (Elixir)
+
+  4) melbyd Nifs (Rust)
 
 ** Development environment
 
@@ -7219,11 +7223,12 @@ now choose 10 24-bit colors. We then split up the 40 hex chars into 10 groups of
 
 We do 2 additional things for colorization:
 
-1. optionally pad the left and right by an extra space character, so that the
-   hex characters (with the colored background) are easier to read on the eyes,
-   and
-2. choose to display the hex char text in either black or white depending on the
-   perceived brightness of the background color.
+  1) optionally pad the left and right by an extra space character, so that the
+     hex characters (with the colored background) are easier to read on the
+     eyes, and
+
+  2) choose to display the hex char text in either black or white depending on
+     the perceived brightness of the background color.
 
 ******* Choose black or white foreground text based on perceived lightness
 
