@@ -1,21 +1,24 @@
 PROJ_ROOT := $(shell git rev-parse --show-toplevel)
-LILAC_ROOT := $(PROJ_ROOT)/deps/elisp/lilac
 PROCS := $(shell nproc)
-define run_emacs
-	LILAC_ROOT=$(LILAC_ROOT) PROJ_ROOT=$(PROJ_ROOT) emacs $(2) \
-		--quick --batch --kill \
-		--load $(LILAC_ROOT)/lilac.el \
-		--load $(PROJ_ROOT)/melby.el \
-		--eval="$(1)"
-endef
 
-all: tangle weave
+org_files := index.org developer-manual.org user-manual.org image.org
+obj_files := $(org_files:%.org=%.lobj)
+archive_file := melby.larc
+
+all: tangle weave lint
 
 all-build-tools: tangle-build-tools weave
 
 fresh-repl:
 	make -C $(PROJ_ROOT) -j$(PROCS) tangle
 	make -C $(PROJ_ROOT)/daemon repl
+
+$(obj_files) &: $(org_files)
+	lilac compile $?
+	touch $(obj_files)
+
+$(archive_file): $(obj_files)
+	lilac archive $^ --out-file $@
 
 tangle-build-tools: build-tools tangle-sources tangle-generated
 	# Duplicate some files. This way we avoid symlinking, because symlinks can
@@ -35,82 +38,39 @@ do-tangle: tangle-sources tangle-generated
 	cp -f melby_renderer.proto daemon/lib/melbyd/renderer/lib/MelbyRenderer/melby_renderer.proto
 .PHONY: do-tangle
 
-# Currently we don't have any optimizations for tangling, but we still set
-# MELBY_LP_QUICK=1 anyway to align with what we do for weave-quick.
 tangle:
-	MELBY_LP_QUICK=1 make -C $(PROJ_ROOT) -j$(PROCS) do-tangle
+	make -C $(PROJ_ROOT) -j$(PROCS) do-tangle
 	@$(PROJ_ROOT)/audit.sh
 .PHONY: tangle
-
-tangle-profile:
-	$(call run_emacs,(melby-tangle-profile),developer-manual.org)
-.PHONY: tangle-profile
-
-tangle-profile-inspect:
-	emacs -Q --load $(LILAC_ROOT)/lilac.el \
-		--eval="(profiler-find-profile \"emacs-profile-tangle.txt\"))"
-.PHONY: tangle-profile-inspect
 
 tangle-generated:
 	# Generate generated source code.
 	$(MAKE) -C daemon all
 .PHONY: tangle-generated
 
-# Generate source code.
-tangle-sources: developer-manual-org \
-		user-manual-org \
-		image-org
-
-image-org: image.org
-	$(call run_emacs,(lilac-tangle),image.org)
-# The developer manual generates the toplevel Makefile (this file) and
-# image/Makefile (overwriting them if necessary) to bootstrap the whole
+# Generate source code. This also generates the toplevel Makefile (this file)
+# and image/Makefile (overwriting them if necessary) to bootstrap the whole
 # literate-programming pipeline. Note that these LP-related Makefiles are
 # different than the ones used to compile the tangled source code.
-developer-manual-org:
-	$(call run_emacs,(lilac-tangle),developer-manual.org)
-user-manual-org: developer-manual-org
-	$(call run_emacs,(lilac-tangle),user-manual.org)
-
+tangle-sources: $(archive_file)
+	lilac tangle $< --out-dir .
 .PHONY: tangle-sources
-.PHONY: developer-manual-org
-.PHONY: user-manual-org
-.PHONY: image-org
 
-weave: build-html build-images
+weave: build-html
 
-weave-quick:
-	MELBY_LP_QUICK=1 make -C ${PROJ_ROOT} -j$(PROCS) build-html build-images
-.PHONY: weave-quick
-
-weave-profile:
-	$(call run_emacs,(lilac-publish-profile),index.org)
-.PHONY: weave-profile
-
-weave-profile-inspect:
-	emacs -Q --load $(LILAC_ROOT)/lilac.el \
-		--eval="(profiler-find-profile \"emacs-profile-weave.txt\"))"
-.PHONY: weave-profile-inspect
-
-build-images: image-org
+build-images: tangle-sources
 	$(MAKE) -C image
 
-build-html: index.html image.html developer-manual.html user-manual.html
+build-html: $(archive_file) build-images
+	rm -rf site/image
+	lilac weave $< --out-dir site --write-css --write-js
+	mkdir -p site/image
+	cp image/*.svg site/image
 
-index.html: developer-manual.html image.html index.org
-	#$(call run_emacs,(lilac-gen-css-and-exit),index.org)
-	$(call run_emacs,(lilac-publish),index.org)
+lint: $(archive_file)
+	lilac --project-conf Lilac.toml lint $<
 
-developer-manual.html: developer-manual.org
-	$(call run_emacs,(lilac-publish),developer-manual.org)
-
-user-manual.html: user-manual.org developer-manual.html
-	$(call run_emacs,(lilac-publish),user-manual.org)
-
-image.html: image.org
-	$(call run_emacs,(lilac-publish),image.org)
-
-.PHONY: all all-build-tools weave
+.PHONY: all all-build-tools weave build-images build-html lint
 
 # Enter development environment.
 shell:
