@@ -31,6 +31,22 @@ function Git.resource_id_command (resource_opts)
   return {cd=pwd, invocation={"git", "rev-parse", "--show-toplevel"}}
 end
 
+-- In a Git repo that is colocated with Jujutsu (jj), HEAD can be a conflicted
+-- jj commit. Its tree then has extra copies of the conflicting sides of the
+-- whole repo (in ".jjconflict-*" folders), which Git sees as staged deletions.
+-- There can be a huge number of these, and jj does not use Git's staging area
+-- anyway. So we don't run the readers that look at staged changes (as if they
+-- had no output) when HEAD is a conflicted jj commit.
+local function unless_jj_conflict (invocation)
+  local wrapped = {"sh", "-c",
+                   'git cat-file -e HEAD:JJ-CONFLICT-README 2>/dev/null || exec "$@"',
+                   "sh"}
+  for _, arg in ipairs(invocation) do
+    table.insert(wrapped, arg)
+  end
+  return wrapped
+end
+
 function Git.readers (resource_opts)
   local pwd = resource_opts["PWD"]
   -- Each reader needs an associated parser. The parser function is just the
@@ -40,13 +56,15 @@ function Git.readers (resource_opts)
     {cd=pwd, invocation={"git", "diff", "--shortstat"},
      parser="diff"},
 
-    {cd=pwd, invocation={"git", "diff", "--shortstat", "--cached"},
+    {cd=pwd,
+     invocation=unless_jj_conflict({"git", "diff", "--shortstat", "--cached"}),
      parser="diff_cached"},
 
     {cd=pwd, invocation={"git", "diff", "--numstat"},
      parser="diff_binary"},
 
-    {cd=pwd, invocation={"git", "diff", "--numstat", "--cached"},
+    {cd=pwd,
+     invocation=unless_jj_conflict({"git", "diff", "--numstat", "--cached"}),
      parser="diff_cached_binary"},
 
     {cd=pwd, invocation={(resource_opts["MELBY_DIR"] or "") ..

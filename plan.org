@@ -52,7 +52,7 @@ Need to update pinned Nixpkgs version (update with niv), and also upgrade all of
 the various dependencies/languages/runtimes we use, like Elixir, Luerl, Haskell
 (GHC), Rust for NIFs, etc.
 
-** TODO fix extreme slowdown when there's a merge conflict in Git repos that have JJ set up
+** DONE fix extreme slowdown when there's a merge conflict in Git repos that have JJ set up
 
 JJ represents Git conflicts in a weird way (if you look at a conflicted jj
 commit in tig, it'll show a completely different tree than what is normally the
@@ -73,6 +73,14 @@ to track JJ repos differently (might need to set up jj-specific resources).
 :PROPERTIES:
 :ID:       702bb2cb-999d-4ae2-b195-4b859f7f13a4
 :END:
+
+** TODO add a resource for jj repos
+
+The Git resource now skips the readers for staged changes when HEAD is a
+conflicted jj commit, because the staged changes are just an artifact of how jj
+stores conflicts in Git commits. But we could show more useful information for
+jj repos, such as which revisions have conflicts, by adding a resource that
+runs jj commands (like ~jj log~) instead.
 
 ** TODO stop using Luerl.Old.decode/2
 
