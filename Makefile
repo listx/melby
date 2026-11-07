@@ -23,9 +23,6 @@ do-tangle: tangle-sources tangle-generated
 	# break when we section off parts of the codebase into separate sandboxes
 	# for building things, such as when building Haskell packages.
 	cp -f LICENSE client/LICENSE
-	cp -f melby_client.proto client/lib/MelbyClient/melby_client.proto
-	cp -f melby_client.proto client-rust/proto/melby_client.proto
-	cp -f melby_renderer.proto daemon/lib/melbyd/renderer/lib/MelbyRenderer/melby_renderer.proto
 .PHONY: do-tangle
 
 tangle:
