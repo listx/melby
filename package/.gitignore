@@ -1,7 +1,6 @@
 # These links can get created if we build individual targets.
 melby-client
 melby-nifs
-melby-renderer
 melby-daemon
 
 # These result-NUMBER links get created automatically by Nix.

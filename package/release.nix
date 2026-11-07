@@ -7,7 +7,6 @@ in
     name = "melby";
     paths = with melby; [
       melby-client
-      melby-renderer
       melby-daemon
     ];
     # If users have already installed individual packages already, make the ones

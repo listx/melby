@@ -38,7 +38,6 @@ defmodule Melbyd.MixProject do
       {:gproc, "~> 1.0.0"},
       {:grpc, "~> 0.8.0"},
       {:luerl, "~> 1.0"},
-      {:muontrap, "~> 1.4.0"},
       {:phoenix_pubsub, "~> 2.0"},
       {:protobuf, "~> 0.12.0"},
       {:rustler, "~> 0.33.0"},

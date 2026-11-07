@@ -13,18 +13,7 @@ config :melbyd,
          50051
        else
          50052
-       end),
-  melbyr_port:
-    System.get_env("MELBYR_PORT") ||
-      (if config_env() == :prod do
-         50055
-       else
-         50056
-       end),
-  # Users can set this variable to make melbyd use it directly (useful for
-  # testing out development, non-packaged versions of melbyr). In production we
-  # would simply expect to run the first "melbyr" binary found on the PATH.
-  melbyr_path: System.get_env("MELBYR_PATH") || "melbyr"
+       end)
 
 # Avoid
 #

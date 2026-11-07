@@ -16,9 +16,6 @@ build-melby-daemon:
 build-melby-nifs:
 	$(call run_build,melby-nifs)
 
-build-melby-renderer:
-	$(call run_build,melby-renderer)
-
 shell:
 	nix-shell --pure
 
@@ -28,7 +25,6 @@ update-nix:
 
 .PHONY: build
 .PHONY: build-melby-client
-.PHONY: build-melby-renderer
 .PHONY: build-melby-daemon
 .PHONY: build-melby-nifs
 .PHONY: shell

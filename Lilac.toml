@@ -21,15 +21,6 @@ nonTangledPathspecs = [
     # Build system metadata.
     ":(exclude,top)daemon/lib/melbyd/nifs/Cargo.lock",
 
-    # Legalese.
-    ":(exclude,top)daemon/lib/melbyd/renderer/LICENSE",
-
-    # Needed for Haskell+Stack integration.
-    ":(exclude,top)daemon/lib/melbyd/renderer/stack.nix",
-
-    # Build system metadata.
-    ":(exclude,top)daemon/lib/melbyd/renderer/stack.yaml.lock",
-
     # Build system metadata.
     ":(exclude,top)daemon/mix.lock",
 

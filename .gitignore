@@ -4,9 +4,6 @@
 # Apple file system metadata.
 .DS_Store
 
-# Haskell "stack" tooling metadata.
-.stack-work
-
 # Temporary files related to image generation.
 image/*.aux
 image/*.log

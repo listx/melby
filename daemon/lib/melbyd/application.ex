@@ -35,13 +35,7 @@ defmodule Melbyd.Application do
       {GRPC.Server.Supervisor,
        endpoint: Melbyd.GRPC,
        port: Application.get_env(:melbyd, :melbyd_port),
-       start_server: true},
-
-      # Haskell "melbyr" service. (view)
-      {MuonTrap.Daemon,
-       [Application.get_env(:melbyd, :melbyr_path),
-        ["serve", "#{Application.get_env(:melbyd, :melbyr_port)}"],
-       [stderr_to_stdout: false]]},
+       start_server: true}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -5,4 +5,3 @@ package melby;
 // Client communication.
 import "melby_client.proto";
 import "melby_daemon.proto";
-import "melby_renderer.proto";

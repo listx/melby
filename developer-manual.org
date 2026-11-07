@@ -37,7 +37,7 @@ and the architectural overview of how the different pieces fit together.
 
 ** Tech stack
 
-We use several programming languages: Elixir, Lua, Rust, and Haskell.
+We use several programming languages: Elixir, Lua, and Rust.
 
   - *Elixir*: Elixir is the main language used in this project because of it
     leverages the famed Erlang runtime, known for its world-class reliability.
@@ -52,10 +52,6 @@ We use several programming languages: Elixir, Lua, Rust, and Haskell.
     come in handy. Typically it's used for smaller, pure (lacking side effects)
     functions as NIFs (Native Inline Functions) inside Elixir. It is also used
     for the Melby client binary ~melbyc~.
-
-  - *Haskell*: Haskell is used for the =melbyr= rendering service. Haskell maximizes code maintainability and
-    stability, and so it is the preferred language for building smaller
-    independent components outside of the base (Elixir) system.
 
 We also use [[https://en.wikipedia.org/wiki/Literate_programming][Literate Programming]] (LP). To this end, we use Org files
 (=*.org=) as the source of truth, and [[https://github.com/listx/lilac][Lilac]] to process them. LaTeX + Noweb is
@@ -91,13 +87,7 @@ servers where the local machine characteristics of such servers are irrelevant
 to clients.
 #+end_note
 
-  1) =melbyd=: The daemon (server), which itself is composed of two smaller
-     pieces:
-
-       - The core application written in Elixir and Rust.
-
-       - The renderer (=melbyr=) written in Haskell. This is a separate child
-         process controlled by the core app.
+  1) =melbyd=: The daemon (server), written in Elixir and Rust.
 
   2) =melbyc=: The client, written in Rust.
 
@@ -109,7 +99,7 @@ The pieces above work like this:
   2) =melbyc= sends this script to =melbyd= for processing.
 
   3) =melbyd= gathers the necessary data (e.g., Git status or Kubernetes metadata)
-     and sends it =melbyr= for generating the final view (an arbitrary string).
+     and uses it to generate the final view (an arbitrary string).
 
   4) The view is sent back to =melbyc=, which then prints it to STDOUT.
 
@@ -163,15 +153,6 @@ nonTangledPathspecs = [
 
     # Build system metadata.
     ":(exclude,top)daemon/lib/melbyd/nifs/Cargo.lock",
-
-    # Legalese.
-    ":(exclude,top)daemon/lib/melbyd/renderer/LICENSE",
-
-    # Needed for Haskell+Stack integration.
-    ":(exclude,top)daemon/lib/melbyd/renderer/stack.nix",
-
-    # Build system metadata.
-    ":(exclude,top)daemon/lib/melbyd/renderer/stack.yaml.lock",
 
     # Build system metadata.
     ":(exclude,top)daemon/mix.lock",
@@ -311,9 +292,6 @@ Because of these issues, the utility has been removed.
 # Apple file system metadata.
 .DS_Store
 
-# Haskell "stack" tooling metadata.
-.stack-work
-
 # Temporary files related to image generation.
 image/*.aux
 image/*.log
@@ -336,14 +314,6 @@ environments.
 We use Elixir 1.13.4+.
 
 **** Rust
-
-**** Haskell
-
-We use stack for reproducibility, although we should probably also think of
-moving to Nix.
-
-We're stuck on GHC 8.10.7 because of mu-haskell which currently does not build
-with GHC 9+. We'll move to [[https://github.com/well-typed/grapesy][Grapesy]] when that library becomes ready for use.
 
 **** Lua
 
@@ -369,11 +339,9 @@ There are several pieces of software we need to build (compile from source):
 
   1) melbyc (Rust)
 
-  2) melbyr (Haskell)
+  2) melbyd (Elixir)
 
-  3) melbyd (Elixir)
-
-  4) melbyd Nifs (Rust)
+  3) melbyd Nifs (Rust)
 
 ** Development environment
 
@@ -406,8 +374,8 @@ installs =direnv= for us on the system.
 :ID:       b2e59b7b-584d-42a6-9be6-62ce1ccf5240
 :END:
 
-This is taken from [[https://github.com/tweag/haskell-stack-nix-example/blob/b9383e35416a2b0e21fbc97ed079538f9f395b6a/shell.nix#L1][here]], and it's what =direnv= will use when we enter the
-top-level directory in the shell.
+This is what =direnv= will use when we enter the top-level directory in the
+shell.
 
 If =direnv= is not available, then we have to manually run the equivalent of the
 =use nix= line in [[file:.envrc]], which would be =nix-shell --pure=. You can also do
@@ -440,50 +408,10 @@ let
     ];
   };
 
-  # Wrap Stack to configure Nix integration and target the correct Stack-Nix
-  # file
-  #
-  # - nix: Enable Nix support (use Stack's built-in Nix integration; this makes
-  #   Stack populate the "ghc" variable in our nix/stack.nix file with the GHC
-  #   version found in the stack.yaml file; this way we don't have to specify a
-  #   GHC version in Nix (when we already define it transitively through
-  #   specifying Stack's LTS version in stack.yaml)). This also makes it so that
-  #   ghci is not available in the nix-shell; rather it can only be accessed
-  #   through "stack exec -- ghci".
-  #
-  # - nix-pure: Do not pass environment variables, like `NIX_PATH`
-  #
-  # - nix-shell-file: Specify the Nix file to use (otherwise it uses `shell.nix`
-  #   by default)
-  #
-  # Vanilla (unwrapped) stack is available as `.stack-wrapped`, courtesy of
-  # pkgs.symlinkJoin.
-  stack-wrapped = pkgs.symlinkJoin {
-    name = "stack";
-    paths = [ pkgs.stack ];
-    buildInputs = [ pkgs.makeWrapper ];
-    postBuild = ''
-      wrapProgram $out/bin/stack \
-        --add-flags "\
-          --nix \
-          --nix-pure \
-          --system-ghc \
-          --no-install-ghc \
-          --nix-shell-file=./stack.nix \
-        "
-    '';
-  };
-
   protoc-gen-elixir = pkgs.callPackage ./package/protoc-gen-elixir.nix {};
   darwin-cargo-build-rustflags = pkgs.lib.attrsets.optionalAttrs pkgs.stdenv.isDarwin {
     CARGO_BUILD_RUSTFLAGS = "-C link-arg=-undefined -C link-arg=dynamic_lookup";
   };
-  macOS-security =
-    # Make `/usr/bin/security` available in `PATH`, which is needed for stack
-    # on darwin which calls this binary to find certificates. See
-    # https://github.com/tweag/rules_haskell/commit/31171a520f49f263895112678ac93c7ed958ead1.
-    pkgs.writeScriptBin "security" ''exec /usr/bin/security "$@"'';
-
   # See https://nixos.wiki/wiki/TexLive for customizing texlive packages
   # (picking only those packages we need as in here).
   tex = (pkgs.texlive.combine {
@@ -511,11 +439,6 @@ in
 # This is our development shell.
 pkgs.mkShell ({
   buildInputs = [
-    # Haskell
-    stack-wrapped
-    # Let stack use Nix with the Nix we version here.
-    pkgs.nix
-
     # Rust
     pkgs.rust-bin.stable.latest.default
     pkgs.rust-analyzer
@@ -558,65 +481,22 @@ pkgs.mkShell ({
     # `nix-shell --pure` environment. See
     # https://github.com/NixOS/nixpkgs/issues/66716#issuecomment-883399373.
     pkgs.cacert
-    macOS-security
   ];
 
   shellHook = ''
-    # Prefer to use melbyr and melbyc from the local development tree path.
-    export PATH=$PWD/daemon/test:$PWD/daemon/lib/melbyd/renderer:$PWD/client/target/debug:$PATH
+    # Prefer to use melbyc from the local development tree path.
+    export PATH=$PWD/daemon/test:$PWD/client/target/debug:$PATH
     export KUBECONFIG=$PWD/daemon/test/fake_kube_config
     export MELBY_DIR=$PWD/daemon/test/sample
     export MELBY_PROJECT_ROOT=$PWD
-    export MELBYR_PATH=$PWD/daemon/lib/melbyd/renderer/melbyr
     export LUA_PATH="$PWD/daemon/test/sample/?.lua"
   '';
-
-  # Configure the Nix path to our own `pkgs`, to ensure Stack-with-Nix uses the
-  # correct one rather than the global <nixpkgs> when looking for the right
-  # `ghc` argument to pass in `nix/stack.nix`
-  #
-  # See https://nixos.org/nixos/nix-pills/nix-search-paths.html for more
-  # information.
-  NIX_PATH = "nixpkgs=" + pkgs.path;
 
   # Make Elixir not complain about using "latin1" encoding.
   LANG = "en_US.UTF-8";
   LOCALE_ARCHIVE = pkgs.lib.optional pkgs.stdenv.isLinux
     "${pkgs.glibcLocales}/lib/locale/locale-archive";
 } // darwin-cargo-build-rustflags)
-#+end_src
-
-**** Make Stack understand Nix
-
-#+caption: package/nix/stack.nix
-#+header: :tangle package/nix/stack.nix
-#+begin_src nix
-let
-  sources = import ./sources.nix;
-  pkgs = import sources.nixpkgs { };
-in
-
-# See https://docs.haskellstack.org/en/stable/nix_integration/#using-a-custom-shellnix-file
-#
-# But basically this tells stack to figure out the GHC version by looking at
-# stack.yaml (we have to have this file in $PWD from the current nix-shell
-# session).
-#
-# This is really great because this means we can technically have different
-# tools use different versions of GHC. So maybe one of the smaller, simpler
-# tools can use the latest GHC with useful features and have that as a role
-# model for the other Haskell binaries that are lagging behind on older GHC
-# versions due to dependencies that have not yet upgraded to the newer version.
-{ ghc }:
-
-pkgs.haskell.lib.buildStackProject {
-  inherit ghc;
-  name = "melby";
-  # System dependencies needed at compilation time
-  buildInputs = [
-    pkgs.zlib
-  ];
-}
 #+end_src
 
 ** Packaging
@@ -637,18 +517,12 @@ shipping.
 let
   sources = import ./nix/sources.nix;
   pkgs = import sources.nixpkgs {};
-  # We have to explicitly choose GHC 8.10.7 because 9.0.2 is the default for
-  # nixos-22.11 (which we don't want because the Stack version we use, LTS
-  # 18.28, uses 8.10.7).
-  hpg8107 = pkgs.haskell.packages.ghc8107;
-  hpg96 = pkgs.haskell.packages.ghc96;
   melby-client = pkgs.callPackage ../client/melby-client.nix {};
-  melby-renderer = hpg8107.callPackage ../daemon/lib/melbyd/renderer/melby-renderer.nix {};
   melby-daemon = pkgs.callPackage ../daemon/melby-daemon.nix {};
   melby-nifs = pkgs.callPackage ../daemon/lib/melbyd/nifs/melby-nifs.nix {};
 in
   {
-    inherit melby-client melby-renderer melby-daemon melby-nifs;
+    inherit melby-client melby-daemon melby-nifs;
   }
 #+end_src
 
@@ -669,7 +543,6 @@ in
     name = "melby";
     paths = with melby; [
       melby-client
-      melby-renderer
       melby-daemon
     ];
     # If users have already installed individual packages already, make the ones
@@ -719,9 +592,6 @@ build-melby-daemon:
 build-melby-nifs:
 	$(call run_build,melby-nifs)
 
-build-melby-renderer:
-	$(call run_build,melby-renderer)
-
 shell:
 	nix-shell --pure
 
@@ -731,7 +601,6 @@ update-nix:
 
 .PHONY: build
 .PHONY: build-melby-client
-.PHONY: build-melby-renderer
 .PHONY: build-melby-daemon
 .PHONY: build-melby-nifs
 .PHONY: shell
@@ -746,7 +615,6 @@ update-nix:
 # These links can get created if we build individual targets.
 melby-client
 melby-nifs
-melby-renderer
 melby-daemon
 
 # These result-NUMBER links get created automatically by Nix.
@@ -760,7 +628,7 @@ result*
 First realize that this project uses literate programming. Because of this, you
 must ensure that you can edit the Org files and make sure that those changes (to
 the source code) can get tangled into source code locations for the various
-compilers (=ghc=, =elixir=, etc) can consume.
+compilers (=rustc=, =elixir=, etc) can consume.
 
 The next most important thing is making sure that the =shell.nix= file at the
 project root works (such that running =make shell= works). Run =make shell= to
@@ -769,12 +637,6 @@ enter the development environment.
 You then need to stand up each individual Melby component.
 
 ** Building each component
-
-*** =melbyr= (renderer; required by daemon)
-
-#+begin_example
-cd daemon/lib/melbyd/renderer; make
-#+end_example
 
 *** =melbyd= (daemon)
 
@@ -1213,7 +1075,6 @@ package melby;
 // Client communication.
 import "melby_client.proto";
 import "melby_daemon.proto";
-import "melby_renderer.proto";
 #+end_src
 
 ** Tech stack
@@ -1222,14 +1083,9 @@ The configuration language for shell prompts (the interface to using Melby for
 end users) is Lua. This Lua configuration is used to set up Luerl VMs inside
 Elixir, where one VM corresponds to one shell PID's prompt.
 
-Elixir is the heart of the stack. There is a bit of Rust (as NIFs in Elixir), as
-well as some Haskell for the renderer (melbyr). We use gRPC for all
-communication across services.
-
-The client (melbyc) communicates with the Elixir daemon (melbyd). Currently
-there are two implementations of the client, one in Haskell and another in Rust.
-As the client is rather thin, the choice of language doesn't matter so much
-here.
+Elixir is the heart of the stack. There is a bit of Rust (as NIFs in Elixir). We
+use gRPC for communication between the client (melbyc, written in Rust) and the
+daemon (melbyd).
 
 ** Life of a request to render a shell prompt
 
@@ -1246,7 +1102,7 @@ With that out of the way, let's look at the flow of a request:
   2) Melbyd (daemon) reads the Lua configuration and interprets it. The Lua code
      contains calls to the Melby SDK. That is, the Lua code is allowed to call
      into melbyd (Elixir) to *generate data* (melbyd), as well as *format/render*
-     that data (ultimately through melbyr).
+     that data (see [[id:148aff9d-f020-4e61-acb6-59250484692d][Rendering]]).
 
   3) The formatted data is returned as a =ViewResponse=. Currently the response is
      just inline shell code which can be sourced directly by the shell. The
@@ -3319,10 +3175,7 @@ defmodule Melbyd.Application do
       {GRPC.Server.Supervisor,
        endpoint: Melbyd.GRPC,
        port: Application.get_env(:melbyd, :melbyd_port),
-       start_server: true},
-
-      # Haskell "melbyr" service. (view)
-      <<melbyr_muontrap>>
+       start_server: true}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -3338,38 +3191,6 @@ defmodule Melbyd.Application do
     Logger.info("Starting application in #{Application.fetch_env!(:melbyd, :env)} environment")
   end
 end
-#+end_src
-
-**** melbyr dependency
-
-Interacting with the view requires us to call into melbyr (Haskell server) from
-Elixir. We need to
-
-  1) run the melbyr server, and
-
-  2) call its gRPC methods to interact with it.
-
-The first part is guaranteed by using the [[https://github.com/fhunleth/muontrap][MuonTrap]] library which handles running
-OS processes reliably (restarting them if they crash). The second part is
-handled by the Melbyd Lua SDK, where the call path goes from the user-provided
-Lua, to Elixir, then finally to melbyr (Haskell) via gRPC.
-
-The =stderr_to_stdout: true= redirects the stderr messages (which the Haskell
-binary uses for printing logs) to stdout, and the =log_output: :debug= forwards
-all stdout to the =Logger=. The disadvantage is that this forwarding to =Logger=
-is done piecemeal in 256-byte chunks at a time (probably for performance
-reasons), so any logs longer than 256 characters get chopped up into multiple
-=Logger= messages. But the advantage is that we can control the log output
-behavior of the Haskell binary during integration tests (to silence all Logger
-output for passing tests, as per
-https://hashrocket.com/blog/posts/silence-logger-messages-in-exunit).
-
-#+name: melbyr_muontrap
-#+begin_src elixir
-{MuonTrap.Daemon,
- [Application.get_env(:melbyd, :melbyr_path),
-  ["serve", "#{Application.get_env(:melbyd, :melbyr_port)}"],
- [stderr_to_stdout: false]]},
 #+end_src
 
 *** gRPC services
@@ -3418,13 +3239,12 @@ end
 Notice that we define the top-level =Melbyd.Endpont= module, which contains the
 =View= service.
 
-**** View (melbyr interface)
+**** View
 :PROPERTIES:
 :ID:       bfc9b5c9-64e2-4d3f-a38c-1167eea1828b
 :END:
 
-Below is =melby-client='s =ViewRequest= that we handle. As part of handling this,
-we will need to call out to the melbyr Haskell server over gRPC.
+Below is =melby-client='s =ViewRequest= that we handle.
 
 #+header: :tangle daemon/lib/melbyd/view.ex
 #+begin_src elixir
@@ -4045,10 +3865,6 @@ defmodule Melbyd.LuaSdk do
 
   @newlines ["\n", "\r", "\r\n", "\n\r"]
 
-  def get_melbyr_addr() do
-    "localhost:#{Application.get_env(:melbyd, :melbyr_port)}"
-  end
-
   <<melbyd_luasdk_render>>
   <<melbyd_luasdk_get_path_pretty>>
   <<melbyd_luasdk_get_colorized_sha>>
@@ -4078,6 +3894,9 @@ end
 
 ***** Render widgets (convert string "objects" into strings with ANSI escape codes)
 
+We convert the Lua widgets into the types that the [[id:70bc0217-2dc8-4841-a4b2-a0ae6e9e019c][widget rendering]] NIF
+expects, and let it do the actual rendering.
+
 #+name: melbyd_luasdk_render
 #+begin_src elixir
 def_lua_func render([widgets_list_ref, delimiter_ref], st0) do
@@ -4085,7 +3904,7 @@ def_lua_func render([widgets_list_ref, delimiter_ref], st0) do
   delimiter = widget_from_tuples(delimiter_tuples)
 
   # Retrieve render_options from the Config table in the Lua state.
-  render_options = get_render_options(st0)
+  format = get_render_format(st0)
 
   widgets =
     Luerl.decode(st0, widgets_list_ref)
@@ -4093,83 +3912,61 @@ def_lua_func render([widgets_list_ref, delimiter_ref], st0) do
       widget_from_tuples(widget_tuples)
     end)
 
-  req = %MelbyRenderer.RenderWidgetsRequest{}
-  req = Map.put(req, :widgets, widgets)
-  req = Map.put(req, :delimiter, delimiter)
-  req = Map.put(req, :render_options, render_options)
+  {:ok, Melbyd.Nifs.render_widgets(widgets, delimiter, format), st0}
+end
 
-  # Call out to melbyr over gRPC.
-  addr = get_melbyr_addr()
-  with {:ok, channel} <- GRPC.Stub.connect(addr, adapter_opts: [retry_timeout: 5]),
-       {:ok, reply} <- MelbyRenderer.Renderer.Stub.render_widgets(channel, req, timeout: 200) do
-    GRPC.Stub.disconnect(channel)
-    {:ok, reply.widgets_rendered, st0}
-  else
-    err -> raise "could not parse response from melbyr: #{inspect(err)}"
+def get_render_format(st0) do
+  {render_options_tuples, _st1} = Luerl.get_table(st0, ["Config", "render_options"])
+
+  case Map.new(render_options_tuples)["format"] do
+    "RENDER_FORMAT_UNIX_TERMINAL" -> :unix_terminal
+    _ -> :unspecified
   end
 end
 
-def get_render_options(st0) do
-  {render_options_tuples, _st1} = Luerl.get_table(st0, ["Config", "render_options"])
-
-  render_options_map =
-    Map.new(
-      render_options_tuples
-      |> Enum.map(fn {k, v} -> {String.to_atom(k), String.to_atom(v)} end)
-    )
-
-  render_options = %MelbyRenderer.RenderOptions{}
-  Map.merge(render_options, render_options_map)
-end
-
 def widget_from_tuples(widget_tuples) do
-  {widget, tp} =
-    Enum.reduce(
-      widget_tuples,
-      {%MelbyRenderer.Widget{}, %MelbyRenderer.TextProperty{}},
-      fn {k, v}, acc ->
-        {acc_w, acc_tp} = acc
-        # We only recognize certain keywords.
-        case k do
-          "str" ->
-            {Map.put(acc_w, :str, v), acc_tp}
+  Enum.reduce(
+    widget_tuples,
+    %{str: "", fg: nil, bg: nil, styles: [], drop_delim_left: false, drop_delim_right: false},
+    fn {k, v}, widget ->
+      # We only recognize certain keywords.
+      case k do
+        "str" ->
+          Map.put(widget, :str, v)
 
-          "fg" ->
-            {acc_w, Map.put(acc_tp, :fg, color_from_str(v))}
+        "fg" ->
+          Map.put(widget, :fg, color_from_str(v))
 
-          "bg" ->
-            {acc_w, Map.put(acc_tp, :bg, color_from_str(v))}
+        "bg" ->
+          Map.put(widget, :bg, color_from_str(v))
 
-          "styles" ->
-            styles = Enum.map(v, fn {_idx, s} -> style_from_str(s) end)
-            {acc_w, Map.put(acc_tp, :styles, styles)}
+        "styles" ->
+          styles = Enum.map(v, fn {_idx, s} -> style_from_str(s) end)
+          Map.put(widget, :styles, styles)
 
-          # Skip over any unrecognized key.
-          "drop_delim_left" ->
-            {Map.put(acc_w, :drop_delim_left, v), acc_tp}
+        "drop_delim_left" ->
+          Map.put(widget, :drop_delim_left, v)
 
-          "drop_delim_right" ->
-            {Map.put(acc_w, :drop_delim_right, v), acc_tp}
+        "drop_delim_right" ->
+          Map.put(widget, :drop_delim_right, v)
 
-          _ ->
-            acc
-        end
+        # Skip over any unrecognized key.
+        _ ->
+          widget
       end
-    )
-
-  Map.put(widget, :prop, tp)
+    end
+  )
 end
 
 def color_from_str(s) do
   {r, g, b} = Melbyd.Color.parse(s)
-  c24bit = %MelbyRenderer.Color24Bit{red: r, green: g, blue: b}
-  %MelbyRenderer.Color{color_oneof: {:color_24_bit, c24bit}}
+  {:rgb, {r, g, b}}
 end
 
 def style_from_str(s) do
   case s do
-    "bold" -> :TEXT_STYLE_BOLD
-    _ -> :TEXT_STYLE_BOLD
+    "bold" -> :bold
+    _ -> :bold
   end
 end
 #+end_src
@@ -4245,48 +4042,28 @@ def_lua_func get_path_aliases_fake([path_aliases_raw], st0) do
 end
 
 def get_path_aliases_helper(path_aliases_raw, st0) do
-  req = %MelbyRenderer.ParsePathAliasesRequest{}
-  req = Map.put(req, :path_aliases_raw, path_aliases_raw)
+  case Melbyd.Nifs.parse_path_aliases(path_aliases_raw) do
+    {:ok, path_aliases} ->
+      {:ok, path_aliases, st0}
 
-  # Call out to melbyr over gRPC.
-  addr = get_melbyr_addr()
-  with {:ok, channel} <- GRPC.Stub.connect(addr, adapter_opts: [retry_timeout: 5]),
-       {:ok, reply} <- MelbyRenderer.Renderer.Stub.parse_path_aliases(
-         channel, req, timeout: 200) do
-    GRPC.Stub.disconnect(channel)
-    if reply.status == :PARSE_STATUS_ERROR do
-      Logger.warning("parse failed: #{inspect(reply.error)}")
-    end
-    {:ok, reply.path_aliases, st0}
-  else
-    err -> raise "failed to successfully call melbyr: #{inspect(err)}"
+    {:error, reason} ->
+      Logger.warning("parse failed: #{reason}")
+      {:ok, %{}, st0}
   end
 end
 #+end_src
 
 ***** Colorized Git SHA
 
+See [[id:52216101-f1d1-4441-9630-96c680c19db9][Colorized Git SHA]] for how the colors are chosen.
+
 #+name: melbyd_luasdk_get_colorized_sha
 #+begin_src elixir
 def_lua_func get_colorized_sha([sha, sha_length, pad_left, pad_right], st0) do
-  render_options = get_render_options(st0)
+  colorized =
+    Melbyd.Nifs.colorize_git_sha(sha, trunc(sha_length), trunc(pad_left), trunc(pad_right))
 
-  req = %MelbyRenderer.ColorizedGitShaRequest{}
-  req = Map.put(req, :sha, sha)
-  req = Map.put(req, :sha_length, sha_length)
-  req = Map.put(req, :pad_left, pad_left)
-  req = Map.put(req, :pad_right, pad_right)
-  req = Map.put(req, :render_options, render_options)
-
-  Logger.debug("elixir req was: #{inspect(req)}")
-
-  addr = get_melbyr_addr()
-  with {:ok, channel} <- GRPC.Stub.connect(addr, adapter_opts: [retry_timeout: 5]),
-       {:ok, reply} <- channel
-         |> MelbyRenderer.Renderer.Stub.get_colorized_git_sha(req, timeout: 200) do
-    GRPC.Stub.disconnect(channel)
-    {:ok, reply.sha_colorized, st0}
-  end
+  {:ok, colorized, st0}
 end
 #+end_src
 
@@ -5760,217 +5537,30 @@ end
 (old) Controller end
 #+end_comment
 
-#+begin_comment
-(old) View start
-#+end_comment
+*** Rendering
+:PROPERTIES:
+:ID:       148aff9d-f020-4e61-acb6-59250484692d
+:END:
 
-*** Purpose
+The Lua configuration does not just gather data; it also decides how to present
+it. For that it calls into the =melbyd= Lua SDK to render widgets into strings
+with ANSI escape codes (see [[melbyd_luasdk_render]]), to colorize Git SHAs (see
+[[melbyd_luasdk_get_colorized_sha]]), and to parse path aliases (see
+[[melbyd_luasdk_get_path_pretty]]). These are all pure functions, so we write
+them in Rust and call them as NIFs.
 
-=melbyr= (the melby-renderer) converts raw data into strings that can be
-interpreted and presented by some other program (e.g., Zsh prompt display).
+#+begin_note
+These functions used to live in =melbyr=, a separate renderer written in Haskell
+that =melbyd= ran as a child process and talked to over gRPC. Running them as
+NIFs removes the extra process, the gRPC round trip on every prompt, and the
+need for a Haskell toolchain. The output is byte-for-byte identical to that of
+=melbyr=.
+#+end_note
 
-There are basically 2 concrete things that =melbyr= can do:
-
-  1) Convert existing composite data types into a string token ("render" the
-     data into a string representation).
-
-  2) Convert a list of string tokens into a new string ("render" the tokens down
-     into a final string output).
-
-The second step involves interpreting layout tokens such as =FILL= and =SPACE=.
-
-*** Design by contract
-
-We would like =melbyr= to observe the following behaviors.
-
-**** Communication between melbyd and melbyr
-
-***** Proto
-
-#+name: melbyproto_melby_renderer
-#+header: :tangle melby_renderer.proto
-#+begin_src protobuf
-syntax = "proto3";
-
-package melby_renderer;
-
-// melby <-> melby-renderer communication
-service Renderer {
-  // For other Git Repo stats, each of those stats can be inserted into the
-  // layout with Lua so that the user can configure the order/orientation of
-  // each bit (they should also be able to decide how much of the 40-char sha
-  // they want to expose --- so we need a way to colorize all 40 chars by using
-  // all 160 bits of data).
-  rpc GetColorizedGitSha (ColorizedGitShaRequest) returns (ColorizedGitShaResponse);
-  rpc RenderWidgets (RenderWidgetsRequest) returns (RenderWidgetsResponse);
-  // This is not a method for rendering, but because
-  // https://github.com/higherkindness/mu-haskell/pull/309 isn't released yet,
-  // we cannot use a separate service for this, because doing so would require
-  // us to use a second TCP port. Once mu-grpc-server gets a new release that
-  // includes the above PR, we can use a separate service and multiplex it on
-  // the same port for better code organization.
-  rpc ParsePathAliases (ParsePathAliasesRequest) returns (ParsePathAliasesResponse);
-}
-
-message ColorizedGitShaRequest {
-  string sha = 1;
-  // How many SHA hex chars to colorize (and output). Typically this will be
-  // less than 40 because in practice people rarely want the full 40-char SHA in
-  // their shell prompt.
-  uint32 sha_length = 2;
-  // How many space characters to add to the left/right of the final (colorized)
-  // output. These space characters will take on the background color of their
-  // adjacent colorized hex chars in the SHA string. This is purely for
-  // aesthetic reasons.
-  uint32 pad_left = 3;
-  uint32 pad_right = 4;
-  RenderOptions render_options = 5;
-}
-
-message ColorizedGitShaResponse {
-  string sha_colorized = 1;
-}
-
-message RenderOptions {
-  RenderFormat format = 1;
-  RenderColorDepth color_depth = 2;
-}
-
-enum RenderFormat {
-  RENDER_FORMAT_UNSPECIFIED = 0;
-  RENDER_FORMAT_UNIX_TERMINAL = 1;
-}
-
-enum RenderColorDepth {
-  // "Unspecified" just means to refrain from doing any special colorizations.
-  RENDER_COLOR_DEPTH_UNSPECIFIED = 0;
-  RENDER_COLOR_DEPTH_256 = 1;
-  RENDER_COLOR_DEPTH_24_BIT = 2;
-}
-
-message RenderWidgetsRequest {
-  repeated Widget widgets = 1;
-  // By default, this is a single space character (without any colors) and acts
-  // as a separater between all widgets.
-  Widget delimiter = 2;
-  RenderOptions render_options = 3;
-}
-
-message RenderWidgetsResponse {
-  string widgets_rendered = 1;
-}
-
-message Widget {
-  string str = 1;
-  TextProperty prop = 2;
-  bool drop_delim_left = 3;
-  bool drop_delim_right = 4;
-}
-
-message TextProperty {
-  Color fg = 1;
-  Color bg = 2;
-  repeated TextStyle styles = 3;
-}
-
-message Color {
-  oneof color_oneof {
-    Color24Bit color_24_bit = 1;
-    // The well-known "256" colors as used in ANSI escade codes. The first 16
-    // colors (0 through 15) are the traditional 16 colors used before 256
-    // colors became a thing. The colors 232-255 represent a grayscale gradient
-    // (dark to light), and finally the middle 216 colors (16-231) represent
-    // additional colors in 6 squares, each with 36 colors. See the table
-    // here: https://en.wikipedia.org/wiki/ANSI_escape_code
-    uint32 color_256 = 2;
-  }
-}
-
-message Color24Bit {
-  // Ideally each of these should be a "uint8" but protobuf does not have this
-  // scalar type. So target applications have to convert to a uint8 (mask the
-  // lower 8 bits) of each color channel.
-  uint32 red = 1;
-  uint32 green = 2;
-  uint32 blue = 3;
-}
-
-enum TextStyle {
-  TEXT_STYLE_UNSPECIFIED = 0;
-  TEXT_STYLE_BOLD = 1;
-  TEXT_STYLE_ITALIC = 2;
-  TEXT_STYLE_UNDERLINE = 3;
-  TEXT_STYLE_UNDERLINE_DOUBLE = 4;
-  TEXT_STYLE_BLINK = 5;
-  TEXT_STYLE_BLINK_RAPID = 6;
-}
-
-message ParsePathAliasesRequest {
-  string path_aliases_raw = 1;
-}
-
-message ParsePathAliasesResponse {
-  ParseStatus status = 1;
-  // Happy path.
-  map<string, string> path_aliases = 2;
-  // Error message from melbyr, if any.
-  string error = 3;
-}
-
-enum ParseStatus {
-  PARSE_STATUS_UNSPECIFIED = 0;
-  PARSE_STATUS_ERROR = 1;
-  PARSE_STATUS_OK = 2;
-}
-#+end_src
-
-The Haskell renderer builds in a sandbox that only sees its own directory, so
-we also tangle a copy of the proto there.
-
-#+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/melby_renderer.proto
-#+begin_src protobuf
-<<melbyproto_melby_renderer>>
-#+end_src
-
-**** Running very quickly
-
-We don't want the client to block too long, because it is expected to be called
-as often as every second (or even more often if Zsh ever offers sub-1-second
-delay with the =TMOUT= variable).
-
-The basic way we ensure this is that we make melbyd return whatever it has
-without waiting for any of its internal calculations to finish.
-
-Because this is a daemon-side concern, there isn't much for us to do here.
-
-**** Command line argument handling
-
-This is somewhat "boring" and we actually don't have much to design here. Much
-of the choices here depend heavily on the command line argument parsing library
-that we will be using.
-
-*** Code overview
-
-This walk-through is written for the future maintainers of this codebase.
-
-**** Overall structure
-
-#+name: daemon/lib/melbyd/renderer/melby-renderer.hs
-#+caption: Layout of =melby-renderer.hs=
-#+header: :tangle daemon/lib/melbyd/renderer/melby-renderer.hs
-#+begin_src haskell
-<<melbyr_pragmas>>
-
-module Main where
-
-<<melbyr_imports>>
-<<melbyr_option_handling>>
-<<melbyr_main>>
-#+end_src
-
-*** Business logic
-
-**** Widget Rendering System
+**** Widgets
+:PROPERTIES:
+:ID:       70bc0217-2dc8-4841-a4b2-a0ae6e9e019c
+:END:
 
 A "widget" object encodes a string of text that must be rendered on the
 terminal. Widgets are encoded in Lua directly in the user configuration. Here is
@@ -5985,26 +5575,27 @@ text. The user can then just send over a list of these widgets to be rendered on
 a single line (assuming they do not encode any newlines in the =str= field).
 
 Between each widget, 1 space character is inserted by default. This can be
-adjusted with the =delimiter= option in the call to =render()=, like this:
+adjusted with the =delimiter= argument in the call to =render()=, like this:
 
 #+begin_src lua
-rendered = melbyd.render(widgets,
-                         delimiter={str="**"},
-                         render_options={format="RENDER_FORMAT_UNIX_TERMINAL",
-                                         color_depth="RENDER_COLOR_DEPTH_24_BIT"})
+rendered = melbyd.render(widgets, {str="**"})
 #+end_src
 
-This uses 2 asterisks as a delimiter.
+This uses 2 asterisks as a delimiter. The output format comes from the
+~render_options~ in the Lua configuration, and the only supported format is
+~"RENDER_FORMAT_UNIX_TERMINAL"~.
 
 ***** Widget field reference
 
 Widgets can have the following fields:
 
-| Field  | Description                                               | Examples           |
-| str    | The literal string character(s) to display.               | =" foo "=          |
-| fg     | Forground stying. Colors and/or text formatting accepted. | ="black"=          |
-| bg     | Background colors.                                        | ="white"=          |
-| styles | List of styles to apply.                                  | ="bold", "italic"= |
+| Field            | Description                                                 | Examples           |
+| str              | The literal string character(s) to display.                 | =" foo "=          |
+| fg               | Foreground color.                                           | ="black"=          |
+| bg               | Background color.                                           | ="white"=          |
+| styles           | List of styles to apply.                                    | ="bold"=           |
+| ~drop_delim_left~  | Don't put a delimiter between this widget and the previous. | ~true~             |
+| ~drop_delim_right~ | Don't put a delimiter between this widget and the next.     | ~true~             |
 
 For a complete list of color names, see
 https://www.w3.org/TR/css-color-4/#named-colors. For other accepted color
@@ -6012,143 +5603,250 @@ formats, refer to the [[https://github.com/mazznoer/csscolorparser-rs][csscolorp
 color that we cannot parse is just given a generic, grey color. This is because
 we don't yet have configuration validation.
 
-***** Optional widget delimiters
-
-List all widgets. If 0 or 1 in length, do nothing.
-
-If the length is $> 1$, then create a second copy. Shift by 1 (drop 1), and zip
-together, so that if we have e.g. =[1, 2, 3]= we get =[(1, 2), (2, 3)]=. Thus we
-are able to get a "pairwise" view of all widgets.
-
-Then just loop through this list of pairs, and build up the final widgets list
-(with or without delimiters) depending on the =drop_delim_left= and
-=drop_delim_right= fields in each pair. The final list is built up by adding in
-up to 2 widgets at a time, the left pair item and an optional delimiter widget.
-Finally, append the last widget unconditionally.
-
-Actually we can do the above with just recursion. See =injectDelimiters=.
-
 ***** Implementation
 
-#+name: daemon/lib/melbyd/renderer/lib/MelbyRenderer/Widgets.hs
-#+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/Widgets.hs
-#+begin_src haskell
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeApplications #-}
+The Elixir side converts the Lua widgets into the types below (see
+[[melbyd_luasdk_render]]).
 
-module MelbyRenderer.Widgets
-  ( renderWidgets
-  ) where
+#+name: melbyd_nifs_render_types
+#+begin_src rust
+#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "elixir_support", derive(rustler::NifTaggedEnum))]
+pub enum Color {
+    // Red, green, and blue channels. Only the lower 8 bits of each channel are
+    // used.
+    Rgb((u32, u32, u32)),
+    // One of the well-known "256" colors as used in ANSI escape codes. The
+    // first 16 colors (0 through 15) are the traditional 16 colors used before
+    // 256 colors became a thing. The colors 232-255 represent a grayscale
+    // gradient (dark to light), and finally the middle 216 colors (16-231)
+    // represent additional colors in 6 squares, each with 36 colors. See the
+    // table here: https://en.wikipedia.org/wiki/ANSI_escape_code
+    Palette(u32),
+}
 
-import Control.Monad.Logger hiding (logDebug)
-import Data.Colour.SRGB (sRGB24)
-import Data.Maybe (catMaybes, listToMaybe)
-import qualified Data.Text as T
-import GHC.Records (getField)
-import Mu.Server
-import System.Console.ANSI
-       ( setSGRCode
-       , BlinkSpeed (..)
-       , ConsoleIntensity (..)
-       , ConsoleLayer (..)
-       , SGR (..)
-       , Underlining (..))
+#[derive(Clone, Copy, Debug, PartialEq)]
+#[cfg_attr(feature = "elixir_support", derive(rustler::NifUnitEnum))]
+pub enum TextStyle {
+    Bold,
+    Italic,
+    Underline,
+    UnderlineDouble,
+    Blink,
+    BlinkRapid,
+}
 
-import MelbyRenderer.Log (logDebug)
-import MelbyRenderer.Schema
+#[derive(Clone, Debug, Default, PartialEq)]
+#[cfg_attr(feature = "elixir_support", derive(rustler::NifMap))]
+pub struct Widget {
+    pub str: String,
+    pub fg: Option<Color>,
+    pub bg: Option<Color>,
+    pub styles: Vec<TextStyle>,
+    pub drop_delim_left: bool,
+    pub drop_delim_right: bool,
+}
 
-renderWidgets
-  :: (MonadServer m, MonadLogger m)
-  => MRenderWidgetsRequest
-  -> m MRenderWidgetsResponse
-renderWidgets req = do
-  logDebug $ "request was: " <> (T.pack $ show req)
-  pure $ MRenderWidgetsResponse
-    { widgets_rendered = rendered
+#[derive(Clone, Copy, Debug, PartialEq)]
+#[cfg_attr(feature = "elixir_support", derive(rustler::NifUnitEnum))]
+pub enum RenderFormat {
+    Unspecified,
+    UnixTerminal,
+}
+#+end_src
+
+We put a delimiter between each pair of adjacent widgets, unless either of them
+asks us not to. Then each widget becomes its text, wrapped in the escape codes
+for its colors and styles, and followed by a "reset" escape code.
+
+#+name: melbyd_nifs_render_widgets
+#+begin_src rust
+#[cfg_attr(feature = "elixir_support", rustler::nif)]
+pub fn render_widgets(widgets: Vec<Widget>, delimiter: Widget, format: RenderFormat) -> String {
+    _render_widgets(&widgets, &delimiter, format)
+}
+
+fn _render_widgets(widgets: &[Widget], delimiter: &Widget, format: RenderFormat) -> String {
+    inject_delimiters(widgets, delimiter)
+        .into_iter()
+        .map(|w| render_widget(w, format))
+        .collect()
+}
+
+fn inject_delimiters<'a>(widgets: &'a [Widget], delimiter: &'a Widget) -> Vec<&'a Widget> {
+    let mut out = Vec::new();
+    for (i, w) in widgets.iter().enumerate() {
+        out.push(w);
+        if let Some(next) = widgets.get(i + 1) {
+            if !(w.drop_delim_right || next.drop_delim_left) {
+                out.push(delimiter);
+            }
+        }
     }
-  where
-  rendered = T.concat $ map (renderWidget renderOpts) widgetsWithDelimiters
-  widgetsWithDelimiters = injectDelimiters delimiterFinal $ widgets req
-  delimiterFinal = case delimiter req of
-    Just d -> d
-    Nothing -> MWidget
-      { str = " "
-      , prop = Nothing
-      , drop_delim_left = False
-      , drop_delim_right = False
-      }
-  renderOpts = case GHC.Records.getField @"render_options" req of
-    Just ro -> ro
-    Nothing -> MRenderOptions
-      { format = RENDER_FORMAT_UNIX_TERMINAL
-      , color_depth = RENDER_COLOR_DEPTH_24_BIT
-      }
+    out
+}
 
-injectDelimiters :: MWidget -> [MWidget] -> [MWidget]
-injectDelimiters delim ws = case ws of
-  [] -> []
-  [w] -> [w]
-  (w1:w2:rest) -> let recurse = injectDelimiters delim (w2:rest)
-    in if drop_delim_right w1 || drop_delim_left w2
-      then w1:recurse
-      else w1:delim:recurse
+fn render_widget(widget: &Widget, format: RenderFormat) -> String {
+    match format {
+        RenderFormat::Unspecified => "RENDER_FORMAT_UNSPECIFIED is unimplemented".to_string(),
+        RenderFormat::UnixTerminal => {
+            format!("{}{}{}", sgr(&text_prop_codes(widget)), widget.str, sgr(&[0]))
+        }
+    }
+}
+#+end_src
 
-renderWidget :: MRenderOptions -> MWidget -> T.Text
-renderWidget renderOptions widget = case format renderOptions of
-  RENDER_FORMAT_UNSPECIFIED -> "RENDER_FORMAT_UNSPECIFIED is unimplemented"
-  RENDER_FORMAT_UNIX_TERMINAL -> T.concat
-    [ propCodes
-    , MelbyRenderer.Schema.str widget
-    , T.pack $ setSGRCode [Reset]
-    ]
-  where
-  propCodes = case prop widget of
-    Just p -> textPropToAnsiCode p
-    Nothing -> ""
+An ANSI escape code that sets colors and styles is a "Select Graphic Rendition"
+(SGR) sequence. Its parameters are numbers separated by semicolons. Note that a
+widget without any colors or styles still gets an (empty) SGR sequence.
 
-textPropToAnsiCode :: MTextProperty -> T.Text
-textPropToAnsiCode tp
-  = T.pack . setSGRCode $ catMaybes
-    ([ propFg
-     , propBg
-     ] <> map (listToMaybe . styleToSGRCode) (styles tp))
-  where
-  propFg = case fg tp of
-    Nothing -> Nothing
-    Just mcolor -> colorToSGRCode mcolor Foreground
-  propBg = case bg tp of
-    Nothing -> Nothing
-    Just mcolor -> colorToSGRCode mcolor Background
-  colorToSGRCode mcolor fgOrBg = case color_oneof mcolor of
-    (MColorOneOf24Bit mcolor24bit) -> Just . SetRGBColor fgOrBg
-      $ sRGB24 (fromIntegral $ red mcolor24bit)
-               (fromIntegral $ green mcolor24bit)
-               (fromIntegral $ blue mcolor24bit)
-    (MColorOneOf256 mcolor256) -> Just $ SetPaletteColor fgOrBg (fromIntegral mcolor256)
-  styleToSGRCode = \case
-    TEXT_STYLE_UNSPECIFIED -> []
-    TEXT_STYLE_BOLD -> [SetConsoleIntensity BoldIntensity]
-    TEXT_STYLE_ITALIC -> [SetItalicized True]
-    TEXT_STYLE_UNDERLINE -> [SetUnderlining SingleUnderline]
-    TEXT_STYLE_UNDERLINE_DOUBLE -> [SetUnderlining DoubleUnderline]
-    TEXT_STYLE_BLINK -> [SetBlinkSpeed SlowBlink]
-    TEXT_STYLE_BLINK_RAPID -> [SetBlinkSpeed RapidBlink]
+#+name: melbyd_nifs_render_sgr
+#+begin_src rust
+#[derive(Clone, Copy)]
+enum Layer {
+    Foreground,
+    Background,
+}
+
+fn text_prop_codes(widget: &Widget) -> Vec<u8> {
+    let mut codes = Vec::new();
+    if let Some(c) = &widget.fg {
+        codes.extend(color_codes(c, Layer::Foreground));
+    }
+    if let Some(c) = &widget.bg {
+        codes.extend(color_codes(c, Layer::Background));
+    }
+    codes.extend(widget.styles.iter().map(|s| style_code(*s)));
+    codes
+}
+
+pub(crate) fn rgb_codes(r: u8, g: u8, b: u8, background: bool) -> Vec<u8> {
+    vec![if background { 48 } else { 38 }, 2, r, g, b]
+}
+
+fn color_codes(color: &Color, layer: Layer) -> Vec<u8> {
+    let background = matches!(layer, Layer::Background);
+    match *color {
+        Color::Rgb((r, g, b)) => rgb_codes(r as u8, g as u8, b as u8, background),
+        Color::Palette(n) => vec![if background { 48 } else { 38 }, 5, n as u8],
+    }
+}
+
+fn style_code(style: TextStyle) -> u8 {
+    match style {
+        TextStyle::Bold => 1,
+        TextStyle::Italic => 3,
+        TextStyle::Underline => 4,
+        TextStyle::UnderlineDouble => 21,
+        TextStyle::Blink => 5,
+        TextStyle::BlinkRapid => 6,
+    }
+}
+
+// Build an SGR ("Select Graphic Rendition") escape sequence out of the given
+// parameters. An empty list of parameters still results in a (valid) escape
+// sequence, "\x1b[m".
+pub(crate) fn sgr(codes: &[u8]) -> String {
+    let params: Vec<String> = codes.iter().map(|c| c.to_string()).collect();
+    format!("\x1b[{}m", params.join(";"))
+}
+#+end_src
+
+#+name: melbyd_nifs_render_tests
+#+begin_src rust
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    fn w(s: &str) -> Widget {
+        Widget {
+            str: s.to_string(),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn test_render_plain() {
+        assert_eq!(
+            _render_widgets(&[w("a"), w("b")], &w(" "), RenderFormat::UnixTerminal),
+            "\x1b[ma\x1b[0m\x1b[m \x1b[0m\x1b[mb\x1b[0m"
+        );
+    }
+
+    #[test]
+    fn test_render_colors_and_styles() {
+        let widget = Widget {
+            str: " x ".to_string(),
+            fg: Some(Color::Rgb((0, 0, 0))),
+            bg: Some(Color::Rgb((255, 215, 0))),
+            styles: vec![TextStyle::Bold],
+            ..Default::default()
+        };
+        assert_eq!(
+            _render_widgets(&[widget], &w(" "), RenderFormat::UnixTerminal),
+            "\x1b[38;2;0;0;0;48;2;255;215;0;1m x \x1b[0m"
+        );
+        let widget = Widget {
+            str: "y".to_string(),
+            fg: Some(Color::Palette(196)),
+            bg: Some(Color::Rgb((256 + 1, 2, 3))),
+            styles: vec![TextStyle::Italic, TextStyle::UnderlineDouble],
+            ..Default::default()
+        };
+        assert_eq!(
+            _render_widgets(&[widget], &w(" "), RenderFormat::UnixTerminal),
+            "\x1b[38;5;196;48;2;1;2;3;3;21my\x1b[0m"
+        );
+    }
+
+    #[test]
+    fn test_inject_delimiters() {
+        let rendered = |ws: Vec<Widget>| {
+            inject_delimiters(&ws, &w("|"))
+                .iter()
+                .map(|w| w.str.clone())
+                .collect::<String>()
+        };
+        assert_eq!(rendered(vec![]), "");
+        assert_eq!(rendered(vec![w("a")]), "a");
+        assert_eq!(rendered(vec![w("a"), w("b"), w("c")]), "a|b|c");
+        let mut b = w("b");
+        b.drop_delim_left = true;
+        assert_eq!(rendered(vec![w("a"), b.clone(), w("c")]), "ab|c");
+        b.drop_delim_right = true;
+        assert_eq!(rendered(vec![w("a"), b, w("c")]), "abc");
+    }
+
+    #[test]
+    fn test_render_unspecified_format() {
+        assert_eq!(
+            _render_widgets(&[w("a")], &w(" "), RenderFormat::Unspecified),
+            "RENDER_FORMAT_UNSPECIFIED is unimplemented"
+        );
+    }
+}
+#+end_src
+
+#+name: daemon/lib/melbyd/nifs/src/render.rs
+#+header: :tangle daemon/lib/melbyd/nifs/src/render.rs
+#+begin_src rust
+<<melbyd_nifs_render_types>>
+<<melbyd_nifs_render_widgets>>
+<<melbyd_nifs_render_sgr>>
+<<melbyd_nifs_render_tests>>
 #+end_src
 
 **** Colorized Git SHA
+:PROPERTIES:
+:ID:       52216101-f1d1-4441-9630-96c680c19db9
+:END:
 
-We want to colorized a Git SHA to make it easier to tell apart from another Git
+We want to colorize a Git SHA to make it easier to tell apart from another Git
 SHA without having to read each individual hex digit. The basic idea is to use
 the hex digits (which have a lot of entropy due to the cryptographic nature of
 the underlying SHA-1 hash algorithm) to generate the colors, so that one commit
 SHA will look very different (color-wise) from another, even if they share the
-same leading hex digits.
-
-There are two effective color modes (=OutputColorDepth=): 256 colors (available
-to all standard terminals) and 24-bit color (available to most modern
-terminals). The colorization algorithms for these modes differ significantly,
-but they both have the following properties:
+same leading hex digits. The colorization has the following properties:
 
   1) colorize all 40 hex characters,
 
@@ -6165,64 +5863,32 @@ characters to appear the same (for these leading characters). There are many
 ways to achieve this, such as using the tail end of the hex string to colorize
 the front.
 
-Our algorithms below do their best to make use of all 160 bits of entropy in
-every commit SHA. Generally they do this with 2 methods --- choosing the colors
-and distributing these colors onto the 40 hex characters.
+#+name: melbyd_nifs_git_sha
+#+begin_src rust
+use crate::render::{rgb_codes, sgr};
 
-***** Overview
+#[cfg_attr(feature = "elixir_support", rustler::nif)]
+pub fn colorize_git_sha(sha: &str, sha_length: u32, pad_left: u32, pad_right: u32) -> String {
+    _colorize_git_sha(sha, sha_length, pad_left, pad_right)
+}
 
-#+name: daemon/lib/melbyd/renderer/lib/MelbyRenderer/Colorizer.hs
-#+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/Colorizer.hs
-#+begin_src haskell
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeApplications #-}
+fn _colorize_git_sha(sha: &str, sha_length: u32, pad_left: u32, pad_right: u32) -> String {
+    let mut parts: Vec<(Code, String)> = vec![(Code::Bold, String::new())];
+    parts.extend(add_padding(
+        pad_left,
+        pad_right,
+        colorize_git_sha_24_bit(sha, sha_length),
+    ));
+    parts.push((Code::Reset, String::new()));
+    render_colorized(&parts)
+}
 
-module MelbyRenderer.Colorizer
-  ( getColorizedGitSha
-  ) where
-
-import Control.Monad.Logger hiding (logDebug)
-import Data.Bits (xor)
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Base16 as B16
-import Data.Colour.CIE.Illuminant (d65)
-import Data.Colour.CIE (lightness)
-import Data.Colour.SRGB (sRGB24, toSRGB24)
-import Data.Colour.RGBSpace
-import Data.Either (fromRight)
-import qualified Data.Text.Encoding as T
-import qualified Data.Text as T
-import Data.Word (Word32)
-import Mu.Server
-import System.Console.ANSI (setSGRCode, ConsoleIntensity (..), ConsoleLayer (..), SGR (..))
-
-import MelbyRenderer.Log (logDebug)
-import MelbyRenderer.Schema
-
-getColorizedGitSha
-  :: (MonadServer m, MonadLogger m)
-  => MColorizedGitShaRequest
-  -> m MColorizedGitShaResponse
-getColorizedGitSha req = do
-  logDebug $ "request was: " <> (T.pack $ show req)
-  pure $ MColorizedGitShaResponse{ sha_colorized = colorize
-                                                   (sha req)
-                                                   (sha_length req)
-                                                   (pad_left req)
-                                                   (pad_right req)}
-  where
-  colorize bytes len padl padr
-    = renderColorized
-    . (<> [(Reset, "")])
-    . ((SetConsoleIntensity BoldIntensity, "") :)
-    . addPadding padl padr
-    $ colorizeGitSha24bit bytes len
-
-<<melbyr_colorize_git_sha_24_bit>>
-<<melbyr_add_padding>>
-<<melbyr_render_misc>>
-<<melbyr_perceived_lightness>>
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum Code {
+    Bold,
+    Reset,
+    Background((u8, u8, u8)),
+}
 #+end_src
 
 ***** 24-bit colors
@@ -6235,18 +5901,95 @@ Now we have 240 bits to work with, and this is a "nice" number because we can
 now choose 10 24-bit colors. We then split up the 40 hex chars into 10 groups of
 4 characters, and colorize each of these groups using the 10 chosen colors.
 
-****** Cosmetics
+#+name: melbyd_nifs_git_sha_24_bit
+#+begin_src rust
+fn colorize_git_sha_24_bit(sha: &str, sha_length: u32) -> Vec<(Code, String)> {
+    let bytes = hex_decode(sha);
+    // XOR the first and second halves of the input bytes (20 bytes) to generate
+    // 10 more bytes. Now we have 30 bytes in total in bytes_final.
+    let bytes1 = &bytes[..bytes.len().min(10)];
+    let bytes2 = &bytes[bytes.len().saturating_sub(10)..];
+    let mut bytes_final: Vec<u8> = bytes1.iter().zip(bytes2).map(|(a, b)| a ^ b).collect();
+    bytes_final.extend(bytes.iter().rev());
+    // Using the 30 bytes in bytes_final, generate 10 colors (of 3 bytes, or 24
+    // bits, each).
+    let colors: Vec<(u8, u8, u8)> = bytes_final
+        .chunks_exact(3)
+        .map(|c| (c[0], c[1], c[2]))
+        .collect();
+
+    // Split the (shortened) hex string into groups of 4 hex chars each.
+    let hex_chars: Vec<char> = sha.chars().take(sha_length as usize).collect();
+    let groups: Vec<String> = hex_chars.chunks(4).map(|c| c.iter().collect()).collect();
+
+    // Pair up the colors and groups, starting from the end of both lists. So
+    // the last group always gets the last color.
+    let n = colors.len().min(groups.len());
+    (0..n)
+        .rev()
+        .map(|k| {
+            (
+                Code::Background(colors[colors.len() - 1 - k]),
+                groups[groups.len() - 1 - k].clone(),
+            )
+        })
+        .collect()
+}
+
+// Decode a string of hex digits into bytes. Like Haskell's base16-bytestring
+// (which we used before), we give up and return no bytes at all if the input
+// is not entirely made of pairs of hex digits.
+fn hex_decode(s: &str) -> Vec<u8> {
+    let digits: Option<Vec<u8>> = s
+        .chars()
+        .map(|c| c.to_digit(16).map(|d| d as u8))
+        .collect();
+    match digits {
+        Some(d) if d.len() % 2 == 0 => d.chunks(2).map(|p| (p[0] << 4) | p[1]).collect(),
+        _ => Vec::new(),
+    }
+}
+#+end_src
+
+***** Cosmetics
 
 We do 2 additional things for colorization:
 
-  1) optionally pad the left and right by an extra space character, so that the
+  1) optionally pad the left and right by extra space characters, so that the
      hex characters (with the colored background) are easier to read on the
      eyes, and
 
   2) choose to display the hex char text in either black or white depending on
      the perceived brightness of the background color.
 
-******* Choose black or white foreground text based on perceived lightness
+#+name: melbyd_nifs_git_sha_padding
+#+begin_src rust
+fn add_padding(pad_left: u32, pad_right: u32, mut colorized: Vec<(Code, String)>) -> Vec<(Code, String)> {
+    if let Some(first) = colorized.first_mut() {
+        first.1 = " ".repeat(pad_left as usize) + &first.1;
+    }
+    if let Some(last) = colorized.last_mut() {
+        last.1.push_str(&" ".repeat(pad_right as usize));
+    }
+    colorized
+}
+
+fn render_colorized(parts: &[(Code, String)]) -> String {
+    parts
+        .iter()
+        .map(|(code, text)| match *code {
+            Code::Bold => sgr(&[1]) + text,
+            Code::Reset => sgr(&[0]) + text,
+            Code::Background((r, g, b)) => {
+                let (fr, fg, fb) = get_contrasting_color(r, g, b);
+                sgr(&rgb_codes(r, g, b, true)) + &sgr(&rgb_codes(fr, fg, fb, false)) + text
+            }
+        })
+        .collect()
+}
+#+end_src
+
+****** Choose black or white foreground text based on perceived lightness
 
 The [[https://en.wikipedia.org/wiki/RGB_color_model][RGB color model]], which is used extensively in computer graphics, noticeably
 lacks a "luminance" value. The [[https://en.wikipedia.org/wiki/CIELAB_color_space][CIELAB color space]] includes a luminance value to
@@ -6257,966 +6000,469 @@ extract the lightness value from it.
 Note that a color model is just how a color is described, whereas a color space
 is responsible for generating actual (physically real) colors from the color
 model's discrete (limited) values. See [[https://photo.stackexchange.com/a/48985][this post]] for more information about
-color models vs color spaces.
-
-Anyway, see https://stackoverflow.com/a/56678483/437583 for an explanation of
-how to find perceived lightness from an RGB (color model) value. However, we
-don't follow that guide because the work has already been done for us in the
-[[https://hackage.haskell.org/package/colour-2.3.6][colour]] library for Haskell, which includes conversion into the CIELAB color
-space.
-
-#+name: melbyr_perceived_lightness
-#+begin_src haskell
-getPerceivedLightness :: (Floating b, RealFrac b) => Colour b -> Double
-getPerceivedLightness c = lightness d65 $ sRGB24 r g b
-  where
-  m = toSRGB24 c
-  r = channelRed m
-  g = channelGreen m
-  b = channelBlue m
-
-getContrastingColor :: (Floating b, RealFrac b) => Colour b -> Colour b
-getContrastingColor c = if (getPerceivedLightness c) < 50.0
-  then sRGB24 255 255 255
-  else sRGB24 0 0 0
-#+end_src
-
-****** Implementation
-
-#+name: melbyr_colorize_git_sha_24_bit
-#+begin_src haskell
-colorizeGitSha24bit :: T.Text -> Word32 -> [(SGR, T.Text)]
-colorizeGitSha24bit shaStr len
-  = reverse
-  . zip colorCodes
-  . buildOutput []
-  $ T.take (fromIntegral len) shaStr
-  where
-  bytes = asBytes shaStr
-  -- XOR the first and second halves of the input bytes (20 bytes) to generate
-  -- 10 more bytes. Now we have 30 bytes in total in bytesFinal.
-  bytes1 = B.take 10 bytes
-  bytes2 = B.drop (B.length bytes - 10) bytes
-  bytesFinal = B.concat
-    [(B.pack $ B.zipWith (\a b -> xor a b) bytes1 bytes2), B.reverse bytes]
-  -- Using the 30 bytes in bytesFinal, generate 10 colors (of 3 bytes, or 24 bits, each).
-  colorCodes = gen10Colors [] bytesFinal
-  gen10Colors acc bs = case B.length (B.take 3 bs) of
-    3 -> gen10Colors ((toSgrCode . toRgbTuple $ B.take 3 bs) : acc) (B.drop 3 bs)
-    _ -> acc
-  toRgbTuple bs3
-    = ( fromIntegral $ B.index bs3 0
-      , fromIntegral $ B.index bs3 1
-      , fromIntegral $ B.index bs3 2
-      )
-  toSgrCode (r, g, b) = SetRGBColor Background $ sRGB24 r g b
-  -- Construct the output string as groups of 4 hex chars each. Use the same
-  -- recursion pattern as in gen10Colors to build up an output that colorizes 4
-  -- hex chars at a time.
-  buildOutput acc hexChars = case T.length (T.take 4 hexChars) of
-    0 -> acc
-    _ -> buildOutput (T.take 4 hexChars : acc) (T.drop 4 hexChars)
-#+end_src
-
-#+name: melbyr_add_padding
-#+begin_src haskell
-addPadding :: Word32 -> Word32 -> [(SGR, T.Text)] -> [(SGR, T.Text)]
-addPadding padl padr colorized = case colorized of
-  [] -> []
-  (c, t):[] -> [(c, prefix <> t <> suffix)]
-  (c1, t1):(c2, t2):[] -> [(c1, prefix <> t1), (c2, t2 <> suffix)]
-  _ -> let
-    (c1, t1) = head colorized
-    (c2, t2) = last colorized
-    mid = init $ drop 1 colorized
-    in [(c1, prefix <> t1)] <> mid <> [(c2, t2 <> suffix)]
-  where
-  prefix = T.replicate (fromIntegral padl) " "
-  suffix = T.replicate (fromIntegral padr) " "
-#+end_src
-
-#+name: melbyr_render_misc
-#+begin_src haskell
-renderColorized :: [(SGR, T.Text)] -> T.Text
-renderColorized = T.concat . map f
-  where
-  f (code, hexChars) = T.pack (setSGRCode [code]) <> fgColor <> hexChars
-    where
-    fgColor = case code of
-      (SetRGBColor Background bgColor) -> ( T.pack
-                                          $ setSGRCode [ SetRGBColor Foreground
-                                                       $ getContrastingColor bgColor
-                                                       ])
-      _ -> T.empty
-
-asBytes :: T.Text -> B.ByteString
-asBytes = (fromRight B.empty . B16.decode) . T.encodeUtf8
-#+end_src
-
-**** Parse path aliases
-
-#+name: daemon/lib/melbyd/renderer/lib/MelbyRenderer/PathAliases.hs
-#+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/PathAliases.hs
-#+begin_src haskell
-{-# LANGUAGE FlexibleContexts #-}
-
-module MelbyRenderer.PathAliases
-  ( parsePathAliases
-  , pPathAliases
-  , pPathAlias
-  ) where
-
-import Control.Applicative hiding (many, some)
-import Data.Map.Strict as M
-import qualified Data.Text as T
-import Data.Void
-import Text.Megaparsec
-import Text.Megaparsec.Char
-import qualified Text.Megaparsec.Char.Lexer as L
-import Data.Char (isAsciiUpper, isAsciiLower, isDigit, isPunctuation, isAlphaNum)
-import Mu.Server (MonadServer)
-import Control.Monad.Logger hiding (logDebug)
-
-import MelbyRenderer.Log (logDebug)
-import MelbyRenderer.Schema
-
-type Megaparser = Parsec Void T.Text
-
-parsePathAliases
-  :: (MonadServer m, MonadLogger m)
-  => MParsePathAliasesRequest
-  -> m MParsePathAliasesResponse
-parsePathAliases req = do
-  logDebug $ "request was: " <> (T.pack $ show req)
-  let
-    result = parsePathAliasesRaw $ path_aliases_raw req
-  case result of
-    Right pathAliases -> pure $ MParsePathAliasesResponse
-      { status = PARSE_STATUS_OK
-      , path_aliases = pathAliases
-      , error = ""
-      }
-    Left err -> pure $ MParsePathAliasesResponse
-      { status = PARSE_STATUS_ERROR
-      , path_aliases = M.empty
-      , error = err
-      }
-
-parsePathAliasesRaw :: T.Text -> Either T.Text (M.Map T.Text T.Text)
-parsePathAliasesRaw input = case parse pPathAliases "" input of
-  Left err -> Left . T.pack $ errorBundlePretty err
-  Right m -> Right m
-
-pPathAliases :: Megaparser (M.Map T.Text T.Text)
-pPathAliases = do
-  -- Clear leading whitespace/comments.
-  _ <- optional sc
-  pathAliasesAsTuples <- Text.Megaparsec.many pPathAlias
-  eof
-  pure $ M.fromList pathAliasesAsTuples
-
-pPathAlias :: Megaparser (T.Text, T.Text)
-pPathAlias = do
-  -- Example of the kind of line we want to parse:
-  --    hash -d   kt=${HOME}/go/src/k8s.io/test-infra
-  _ <- symbol "hash"
-  _ <- symbol "-d"
-  alias <- pAlias
-  _ <- char '='
-  path <- T.concat <$> lexeme (directoryPath <?> "directory path")
-  -- We want to have the path as the key to the Map, because that's how we use
-  -- it back in Elixir.
-  pure (path, alias)
-  where
-  directoryPath = do
-    dp <- some $ choice [pPath, pVariable]
-    -- This is a hacky way of checking cases where we should fail when the user
-    -- has put in an aberrant "$" symbol (when it is *not* used as part of
-    -- defining an environment variable like "${FOO}".) This is the only way we
-    -- can expect a kind of "eof" at the end here without actually using "eof"
-    -- (we can't use eof because this parser is part of a larger parser that
-    -- uses eof, namely pPathAliases). We would ideally want to use an eof here
-    -- because we want this parser to consume all non-space characters while
-    -- still playing nicely with the lexeme which consumes all trailing comments
-    -- and newlines.
-
-    -- In other words, this checks the case where we have a badly formed path
-    -- like "/clam-chowder-$oup" --- here the "/clam-chowder-" will get
-    -- successfully parsed, and neither pVariable nor pPath will succeed on the
-    -- remaining "$oup" input. We want to ensure that whatever we end up
-    -- parsing, we will *NOT* get a dollar symbol immediately following a
-    -- successful parse.
-    notFollowedBy (char '$')
-    pure dp
-
-pAlias :: Megaparser T.Text
-pAlias = do
-  firstLetter <- satisfy isAllowedFirstLetter <?> "first letter of alias"
-  rest <- takeWhileP (Just "alias chars") isAllowedTrailingLetter
-  pure $ T.cons firstLetter rest
-  where
-  -- The equivalent regex for the allowed range is "_A-Za-z0-9".
-  isAllowedFirstLetter c
-    = or $ Prelude.map ($ c)
-      [ isAsciiLower
-      , isAsciiUpper
-      , isDigit
-      , (== '_')
-      ]
-  -- Same as isAllowedFirstLetter, but also allow dashes. Note that these
-  -- parsing rules is just a reflection of what is normally allowed by Zsh's
-  -- "hash" builtin function. There, if we try something like "hash -d
-  -- -myalias=/a/very/long/path", the "-myalias" gets interpreted as a flag to
-  -- the "hash" function. This is why we don't allow the dash character to be
-  -- used as the first letter of the alias.
-  isAllowedTrailingLetter c = isAllowedFirstLetter c || c == '-'
-
-pPath :: Megaparser T.Text
-pPath = takeWhile1P (Just "directory chars") isAllowedPathChar
-  where
-  -- Technically speaking, a folder can have a literal "$" character in it, like
-  -- this: "/foo/bar/\$baz", but in order to simplify our implementation we
-  -- forbid them because they are too rare. So, we just prohibit the dollar
-  -- symbol, because it is the first expected character of a variable.
-  isAllowedPathChar c = (c /= '$') && (isAlphaNum c || isPunctuation c)
-
-pVariable :: Megaparser T.Text
-pVariable = do
-  _ <- string "${" <?> "dollar-and-opening-brace"
-  firstLetter <- satisfy isAllowedFirstLetter <?> "first letter of shell variable name"
-  rest <- takeWhile1P (Just "shell variable name chars") isAllowedTrailingLetter
-  _ <- char '}'
-  pure $ "${" <> T.cons firstLetter rest <> "}"
-  where
-  isAllowedFirstLetter c
-    | isAsciiUpper c = True
-    | c == '_' = True
-    | otherwise = False
-  isAllowedTrailingLetter c = isAllowedFirstLetter c || isDigit c
-
--- This is taken from https://markkarpov.com/tutorial/megaparsec.html#lexing. We
--- want to use these lexeme-based helpers to create parsers that ignore both
--- whitespace as well as comment lines. Othwerwise, we'd have to manually
--- construct these parsers as well, which is annoying and too low-level for us.
-sc :: Megaparser ()
-sc = L.space
-  space1
-  (L.skipLineComment "#")
-  Text.Megaparsec.empty
-
-lexeme :: Megaparser a -> Megaparser a
-lexeme = L.lexeme sc
-
-symbol :: T.Text -> Megaparser T.Text
-symbol = L.symbol sc
-#+end_src
-
-#+name: daemon/lib/melbyd/renderer/test/Main.hs
-#+header: :tangle daemon/lib/melbyd/renderer/test/Main.hs
-#+begin_src haskell
-{-# LANGUAGE QuasiQuotes #-}
-
-module Main (main) where
-
-import Data.Map.Strict as M
-import NeatInterpolation
-import Test.Hspec
-import Test.Hspec.Megaparsec
-import Text.Megaparsec
-
-import MelbyRenderer.PathAliases (pPathAlias, pPathAliases)
-
-main :: IO ()
-main = hspec $ do
-  describe "pPathAlias" $ do
-    -- Good cases.
-    context "when parsing a typical case" $
-      it "works" $
-        parse pPathAlias "" "hash -d foo=/bar" `shouldParse` ("/bar", "foo")
-    context "when parsing a typical case with extra spaces" $
-      it "works" $
-        parse pPathAlias "" "hash   -d     foo=/bar   " `shouldParse` ("/bar", "foo")
-    context "when parsing a path with an embedded variable" $
-      it "works" $
-        parse pPathAlias "" "hash -d   kk=${HOME}/go/src/k8s.io/kubernetes"
-          `shouldParse` ("${HOME}/go/src/k8s.io/kubernetes", "kk")
-    context "when parsing a path with multiple embedded variables" $
-      it "works" $
-        parse pPathAlias "" "hash -d   x=${HOME}/foo/${SUBDIR}/baz"
-          `shouldParse` ("${HOME}/foo/${SUBDIR}/baz", "x")
-    context "when parsing a path with a trailing comment" $
-      it "works" $
-        parse pPathAlias "" "hash -d   x=${HOME}/hello # Comment text"
-          `shouldParse` ("${HOME}/hello", "x")
-    -- Bad cases.
-    context "when the equal sign has a space to the left" $
-      it "fails" $
-        parse pPathAlias "" "hash   -d     foo =/bar   "
-          `shouldFailWith` err 17 (utok ' ' <> etok '=' <> elabel "alias chars")
-    context "when the equal sign has a space to the right" $
-      it "fails" $
-        parse pPathAlias "" "hash   -d     foo= /bar   "
-          `shouldFailWith` err 18 (utoks " /" <> elabel "directory path")
-    context "when there is an aberrant dollar sign in the path" $
-      it "fails" $
-        parse pPathAlias "" "hash -d x=/clam-chowder-$oup\n"
-          `shouldFailWith` err 24 (utok '$' <> elabel "directory chars"
-                                            <> elabel "dollar-and-opening-brace")
-  describe "pPathAliases" $ do
-    context "when there are comment lines" $
-      it "works" $
-        let
-          x =
-            [trimming|
-
-            # Comment at beginning of file.
-
-            hash -d x=/foo # Trailing comment.
-            # Commented out declaration.
-            # hash -d x=/foo
-
-            # Unfortunately we have to escape the dollar sign to make it play
-            # nicely with Template Haskell.
-            hash -d kk=$${HOME}/go/src/k8s.io/kubernetes
-
-            # Indented entry.
-              hash    -d   y=/hello
-            # Comment at end of file.
-            |]
-        in parse pPathAliases "" x
-           `shouldParse` M.fromList
-             [ ("/foo", "x")
-             , ("${HOME}/go/src/k8s.io/kubernetes", "kk")
-             , ("/hello", "y")]
-#+end_src
-
-*** Boilerplate
-
-**** Option handling
-
-#+name: melbyr_option_handling
-#+begin_src haskell
-<<melbyr_option_handling_types>>
-<<melbyr_option_handling_parsers>>
-<<melbyr_option_handling_dispatcher>>
-#+end_src
-
-
-#+name: melbyr_option_handling_types
-#+begin_src haskell
-newtype Opts = Opts
-  { subcommand :: Subcommand }
-
-data Subcommand
-  = Serve ServeOpts
-  | Ping
-
-data ServeOpts = ServeOpts
-  { oPort :: Int
-  }
-#+end_src
-
-
-#+name: melbyr_option_handling_parsers
-#+begin_src haskell
-optionsP :: Parser Opts
-optionsP = Opts <$> subcommandP
-
-subcommandP :: Parser Subcommand
-subcommandP = hsubparser
-  (  command "serve" (info (Serve <$> serveOptsP) (progDesc "get prompt information with Lua"))
-  <> command "ping" (info (pure Ping) (progDesc "not implemented"))
-  <> metavar "SUBCOMMAND"
-  )
-
-serveOptsP :: Parser ServeOpts
-serveOptsP
-  = ServeOpts
-  <$> (argument auto (metavar "PORT"))
-
-#+end_src
-
-
-#+name: melbyr_option_handling_dispatcher
-#+begin_src haskell
-optsHandler :: Opts -> IO ()
-optsHandler (Opts subcommand') = do
-  case subcommand' of
-    Serve o -> do
-      putStrLn $ "serving over port " <> (show (oPort o))
-      mixEnv <- lookupEnv "MIX_ENV"
-      let
-        logFilter = case mixEnv of
-          -- For production, disable LevelDebug logs.
-          Just "prod" -> (\_logSource logLevel -> logLevel > LevelInfo)
-          _ -> (\_ _ -> True)
-      runGRpcAppTrans msgProtoBuf (oPort o) (runStderrLoggingT . filterLogger logFilter) renderer
-    Ping -> putStrLn "not implemented"
-
-renderer :: (MonadServer m, MonadLogger m) => SingleServerT info Renderer m _
-renderer = singleService
-  ( method @"GetColorizedGitSha" getColorizedGitSha
-  , method @"RenderWidgets" renderWidgets
-  , method @"ParsePathAliases" parsePathAliases
-  )
-#+end_src
-
-**** Main
-
-#+name: melbyr_main
-#+begin_src haskell
-main :: IO ()
-main = do
-  opts <- customExecParser (prefs showHelpOnEmpty) optsP
-  optsHandler opts
-  where
-  optsP = info parserProgramOptions infoMod
-  parserProgramOptions = helper
-    <*> versionOption
-    <*> optionsP
-  infoMod = fullDesc
-    <> header "melbyr - melby renderer"
-  <<melbyr_gitVersion>>
-#+end_src
-
-**** gRPC schema
-:PROPERTIES:
-:ID:       92ee3578-498a-441e-8335-b859bc907d99
-:END:
-
-#+name: melbyr_lib_schema
-#+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/Schema.hs
-#+begin_src haskell
-{-# language CPP                   #-}
-{-# language DataKinds             #-}
-{-# language DeriveAnyClass        #-}
-{-# language DeriveGeneric         #-}
-{-# language DerivingVia           #-}
-{-# language DuplicateRecordFields #-}
-{-# language FlexibleContexts      #-}
-{-# language FlexibleInstances     #-}
-{-# language MultiParamTypeClasses #-}
-{-# language OverloadedLabels      #-}
-{-# language PolyKinds             #-}
-{-# language TemplateHaskell       #-}
-{-# language TypeFamilies          #-}
-{-# language TypeOperators         #-}
-
-module MelbyRenderer.Schema where
-
-import qualified Data.Map.Strict as M
-import qualified Data.Text as T
-import Data.Word (Word32)
-import GHC.Generics
-
-import Mu.Quasi.GRpc
-import Mu.Schema
-
-grpc "MelbyRendererSchema" id "lib/MelbyRenderer/melby_renderer.proto"
-
-<<melbyr_schema_colorized_git_sha>>
-<<melbyr_schema_widgets>>
-<<melbyr_schema_render_options>>
-<<melbyr_schema_parse_path_aliases>>
-#+end_src
-
-***** Colorized Git SHA
-
-#+name: melbyr_schema_colorized_git_sha
-#+begin_src haskell
-data MColorizedGitShaRequest = MColorizedGitShaRequest
-  -- In mu-haskell, nested types must be contained in a Maybe. See
-  -- https://github.com/higherkindness/mu-haskell/issues/255#issuecomment-730468011.
-  { sha :: T.Text
-  , sha_length :: Word32
-  , pad_left :: Word32
-  , pad_right :: Word32
-  , render_options :: Maybe MRenderOptions
-  } deriving (Eq, Show, Ord, Generic
-             , ToSchema MelbyRendererSchema "ColorizedGitShaRequest"
-             , FromSchema MelbyRendererSchema "ColorizedGitShaRequest")
-
-data MColorizedGitShaResponse = MColorizedGitShaResponse
-  { sha_colorized :: T.Text
-  } deriving (Eq, Ord, Show, Generic
-             , ToSchema MelbyRendererSchema "ColorizedGitShaResponse"
-             , FromSchema MelbyRendererSchema "ColorizedGitShaResponse")
-#+end_src
-
-***** Render options
-
-#+name: melbyr_schema_render_options
-#+begin_src haskell
-data MRenderOptions = MRenderOptions
-  { format :: MRenderFormat
-  , color_depth :: MRenderColorDepth
-  } deriving (Eq, Ord, Show, Generic
-           , ToSchema MelbyRendererSchema "RenderOptions"
-           , FromSchema MelbyRendererSchema "RenderOptions")
-
-data MRenderFormat
-  = RENDER_FORMAT_UNSPECIFIED
-  | RENDER_FORMAT_UNIX_TERMINAL
-  deriving (Eq, Ord, Show, Generic
-           , ToSchema MelbyRendererSchema "RenderFormat"
-           , FromSchema MelbyRendererSchema "RenderFormat")
-
-data MRenderColorDepth
-  = RENDER_COLOR_DEPTH_UNSPECIFIED
-  | RENDER_COLOR_DEPTH_256
-  | RENDER_COLOR_DEPTH_24_BIT
-  deriving (Eq, Ord, Show, Generic
-           , ToSchema MelbyRendererSchema "RenderColorDepth"
-           , FromSchema MelbyRendererSchema "RenderColorDepth")
-#+end_src
-
-***** Widgets
-
-#+name: melbyr_schema_widgets
-#+begin_src haskell
-data MRenderWidgetsRequest = MRenderWidgetsRequest
-  { widgets :: [MWidget]
-  , delimiter :: Maybe MWidget
-  , render_options :: Maybe MRenderOptions
-  } deriving (Eq, Show, Ord, Generic
-             , ToSchema MelbyRendererSchema "RenderWidgetsRequest"
-             , FromSchema MelbyRendererSchema "RenderWidgetsRequest")
-
-data MRenderWidgetsResponse = MRenderWidgetsResponse
-  { widgets_rendered :: T.Text
-  } deriving (Eq, Ord, Show, Generic
-             , ToSchema MelbyRendererSchema "RenderWidgetsResponse"
-             , FromSchema MelbyRendererSchema "RenderWidgetsResponse")
-
-data MWidget = MWidget
-  { str :: T.Text
-  , prop :: Maybe MTextProperty
-  , drop_delim_left :: Bool
-  , drop_delim_right :: Bool
-  } deriving (Eq, Ord, Show, Generic
-           , ToSchema MelbyRendererSchema "Widget"
-           , FromSchema MelbyRendererSchema "Widget")
-
-data MTextProperty = MTextProperty
-  { fg :: Maybe MColor
-  , bg :: Maybe MColor
-  , styles :: [MTextStyle]
-  } deriving (Eq, Ord, Show, Generic
-           , ToSchema MelbyRendererSchema "TextProperty"
-           , FromSchema MelbyRendererSchema "TextProperty")
-
-data MColor = MColor
-  { color_oneof :: MColorOneof
-  } deriving (Eq, Ord, Show, Generic
-           , ToSchema MelbyRendererSchema "Color"
-           , FromSchema MelbyRendererSchema "Color")
-
-data MColorOneof
-  = MColorOneOf24Bit MColor24Bit
-  | MColorOneOf256 Word32
-  deriving (Eq, Ord, Show, Generic)
-
-data MColor24Bit = MColor24Bit
-  { red :: Word32
-  , green :: Word32
-  , blue :: Word32
-  } deriving (Eq, Ord, Show, Generic
-             , ToSchema MelbyRendererSchema "Color24Bit"
-             , FromSchema MelbyRendererSchema "Color24Bit")
-
-data MTextStyle
-  = TEXT_STYLE_UNSPECIFIED
-  | TEXT_STYLE_BOLD
-  | TEXT_STYLE_ITALIC
-  | TEXT_STYLE_UNDERLINE
-  | TEXT_STYLE_UNDERLINE_DOUBLE
-  | TEXT_STYLE_BLINK
-  | TEXT_STYLE_BLINK_RAPID
-  deriving (Eq, Ord, Show, Generic
-           , ToSchema MelbyRendererSchema "TextStyle"
-           , FromSchema MelbyRendererSchema "TextStyle")
-#+end_src
-
-***** Parse path aliases
-
-#+name: melbyr_schema_parse_path_aliases
-#+begin_src haskell
-data MParsePathAliasesRequest = MParsePathAliasesRequest
-  { path_aliases_raw :: T.Text
-  } deriving (Eq, Show, Ord, Generic
-             , ToSchema MelbyRendererSchema "ParsePathAliasesRequest"
-             , FromSchema MelbyRendererSchema "ParsePathAliasesRequest")
-
-data MParsePathAliasesResponse = MParsePathAliasesResponse
-  { status :: MParseStatus
-  , path_aliases :: M.Map T.Text T.Text
-  , error :: T.Text
-  } deriving (Eq, Ord, Show, Generic
-             , ToSchema MelbyRendererSchema "ParsePathAliasesResponse"
-             , FromSchema MelbyRendererSchema "ParsePathAliasesResponse")
-
-data MParseStatus
-  = PARSE_STATUS_UNSPECIFIED
-  | PARSE_STATUS_ERROR
-  | PARSE_STATUS_OK
-  deriving (Eq, Ord, Show, Generic
-           , ToSchema MelbyRendererSchema "ParseStatus"
-           , FromSchema MelbyRendererSchema "ParseStatus")
-#+end_src
-
-**** Logging
-
-#+name: daemon/lib/melbyd/renderer/lib/MelbyRenderer/Log.hs
-#+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/Log.hs
-#+begin_src haskell
-module MelbyRenderer.Log where
-
-import Control.Monad.Logger
-import Control.Monad.Logger.Prefix
-import qualified Data.Text as T
-
-logDebug :: MonadLogger m => T.Text -> m ()
-logDebug t = prefixLogs "melbyr" $ logDebugN t
-#+end_src
-
-**** Other
-***** Pragmas
-
-#+name: melbyr_pragmas
-#+begin_src haskell
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE OverloadedLabels #-}
-{-# LANGUAGE PartialTypeSignatures #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeApplications #-}
--- It's funny that we have to specify this, when we already declare
--- PartialTypeSignatures above.
-{-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
-#+end_src
-
-***** Imports
-
-#+name: melbyr_imports
-#+begin_src haskell
-import Control.Monad.Logger hiding (logDebug)
-import Data.Version (showVersion)
-import Mu.GRpc.Server
-import Mu.Server
-import Options.Applicative
-import System.Environment (lookupEnv)
-
-import Paths_melby_renderer (version)
-import MelbyRenderer.Colorizer (getColorizedGitSha)
-import MelbyRenderer.GitVersion
-import MelbyRenderer.Schema
-import MelbyRenderer.PathAliases (parsePathAliases)
-import MelbyRenderer.Widgets (renderWidgets)
-#+end_src
-
-***** Git versioning
-:PROPERTIES:
-:ID:       fecf74ac-b70d-486f-b239-d60cce73f42d
-:END:
-
-#+name: melbyr_gitVersion
-#+begin_src haskell
-versionOption = infoOption
-  (concat [showVersion version, "-g", $(gitVersion)])
-  (long "version" <> short 'v' <> help "Show version")
-#+end_src
-
-#+name: melbyr_lib_gitVersion
-#+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/GitVersion.hs
-#+begin_src haskell
-module MelbyRenderer.GitVersion
-  ( gitVersion
-  ) where
-
-import Data.Time.LocalTime
-import Language.Haskell.TH
-import System.Environment
-import System.Process
-
-gitVersion :: Q Exp
-gitVersion = stringE =<< runIO getCombinedInfo
-
-getCombinedInfo :: IO String
-getCombinedInfo = do
-  gi <- getGitInfo
-  ti <- getTimeInfo
-  pure $ concat [gi, "  (", ti, ")"]
-
-getGitInfo :: IO String
-getGitInfo = do
-  maybeProjectRoot <- lookupEnv "MELBY_PROJECT_ROOT"
-  case maybeProjectRoot of
-    Just projectRoot -> readProcess "git"
-      ["-C", projectRoot, "describe", "--abbrev=10", "--always", "--dirty"] ""
-    Nothing -> pure "-unknown"
-
-getTimeInfo :: IO String
-getTimeInfo = show <$> getZonedTime
-#+end_src
-
-*** Build system
-
-**** Makefile
-:PROPERTIES:
-:ID:       56d459b3-aead-4986-958b-9bd90c67bd2d
-:END:
-
-This follows the Makefile for =melbyc=.
-
-#+header: :tangle daemon/lib/melbyd/renderer/Makefile
-#+begin_src makefile
-ZLIB_SO_DIR=$(shell pkg-config --libs-only-L zlib)
-ZLIB_H_DIR=$(shell pkg-config --cflags-only-I zlib)
-
-all: melbyr
-
-melbyr:
-	MELBY_PROJECT_ROOT=$(PWD) stack build \
-		--copy-bins \
-		--local-bin-path $(PWD) \
-		--no-nix-pure \
-		--extra-lib-dirs=$(ZLIB_SO_DIR:-L%=%) \
-		--extra-include-dirs=$(ZLIB_H_DIR:-I%=%)
-.PHONY: melbyr
-
-ghci:
-	stack exec -- ghci
-.PHONY: ghci
-
-# This avoids building the main executable on top of the base library and test
-# executable. For various reasons, Stack always builds the main executable
-# binary. See https://github.com/commercialhaskell/stack/issues/5647#issuecomment-1106796448.
-test:
-	stack build melby-renderer:test
-.PHONY: test
-#+end_src
-
-**** Cabal
-
-#+name: melby-renderer.cabal
-#+header: :tangle daemon/lib/melbyd/renderer/melby-renderer.cabal
-#+begin_src haskell-cabal
-name: melby-renderer
-version: 1.0.0.0
-author: Linus Arver
-maintainer: linusa@google.com
-category: Utility
-build-type: Simple
-cabal-version: >=1.10
-license: Apache-2.0
-license-file: LICENSE
-data-files: lib/MelbyRenderer/melby_renderer.proto
-
-executable melbyr
-  main-is: melby-renderer.hs
-  default-language: Haskell2010
-  other-modules:
-    Paths_melby_renderer
-  default-extensions:
-    DisambiguateRecordFields
-    DuplicateRecordFields
-    ImportQualifiedPost
-    LambdaCase
-    MultiWayIf
-    NoDoAndIfThenElse
-    NoNondecreasingIndentation
-    OverloadedStrings
-  ghc-options:
-    -O2 -Werror -threaded -fno-warn-tabs
-    -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
-    -Wincomplete-record-updates -Wredundant-constraints
-    -fhide-source-paths -Wpartial-fields -fforce-recomp
-  build-depends:
-      base >= 4.8
-    , melby-renderer
-    , monad-logger >= 0.3 && <0.4
-    , mu-grpc-server >=0.3.0.0
-    , mu-rpc >= 0.4.0
-    , optparse-applicative >= 0.16.1.0
-
-library
-  default-language: Haskell2010
-  exposed-modules:
-    MelbyRenderer.Colorizer
-    MelbyRenderer.GitVersion
-    MelbyRenderer.Log
-    MelbyRenderer.PathAliases
-    MelbyRenderer.Schema
-    MelbyRenderer.Widgets
-  hs-source-dirs:
-    lib
-  default-extensions:
-    DisambiguateRecordFields
-    DuplicateRecordFields
-    ImportQualifiedPost
-    LambdaCase
-    MultiWayIf
-    NoDoAndIfThenElse
-    NoNondecreasingIndentation
-    OverloadedStrings
-  ghc-options:
-    -O2 -Werror -fno-warn-tabs
-    -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
-    -Wincomplete-record-updates -Wredundant-constraints
-    -fhide-source-paths -Wpartial-fields -fforce-recomp
-  build-depends:
-      base >= 4.8
-    , aeson
-    , ansi-terminal
-    , base16-bytestring
-    , bytestring
-    , colour
-    , containers >= 0.6.5.1
-    , megaparsec >= 9.0.1
-    , monad-logger >= 0.3 && <0.4
-    , monad-logger-prefix >= 0.1.12 && <0.2
-    , mu-protobuf >= 0.4.0
-    , mu-grpc-server >=0.3.0.0
-    , mu-rpc >= 0.4.0
-    , mu-schema >= 0.3.0
-    , process
-    , template-haskell
-    , text >=1.2 && <2
-    , time
-
-test-suite test
-  type: exitcode-stdio-1.0
-  hs-source-dirs: test
-  main-is: Main.hs
-  default-language: Haskell2010
-  default-extensions:
-    DisambiguateRecordFields
-    DuplicateRecordFields
-    ImportQualifiedPost
-    LambdaCase
-    MultiWayIf
-    NoDoAndIfThenElse
-    NoNondecreasingIndentation
-    OverloadedStrings
-  ghc-options:
-    -O2 -Werror -threaded -fno-warn-tabs
-    -Wall -Wcompat -Widentities -Wincomplete-uni-patterns
-    -Wincomplete-record-updates -Wredundant-constraints
-    -fhide-source-paths -Wpartial-fields -fforce-recomp
-  build-depends:
-      base >= 4.8
-    , containers >= 0.6.5.1
-    , melby-renderer
-    , hspec >=2.0 && <3.0
-    , hspec-expectations >=0.8 && <0.9
-    , hspec-megaparsec
-    , megaparsec >= 9.0.1
-    , neat-interpolation
-#+end_src
-
-#+name: daemon/lib/melbyd/renderer/cabal.project
-#+header: :tangle daemon/lib/melbyd/renderer/cabal.project
-#+begin_src haskell-cabal
-executable-stripping: True
-packages:
-  ./melby-renderer.cabal
-#+end_src
-
-**** Nix
-
-#+header: :tangle daemon/lib/melbyd/renderer/melby-renderer.nix
-#+begin_src nix
-let
-  sources = import ../../../../package/nix/sources.nix;
-  pkgs = import sources.nixpkgs { };
-  fakeGit = pkgs.writeShellScriptBin "git"
-  ''
-    echo -unknown
-  '';
-  files = [
-    ./LICENSE
-    ./cabal.project
-    ./lib
-    ./lib/MelbyRenderer
-    ./lib/MelbyRenderer/Colorizer.hs
-    ./lib/MelbyRenderer/GitVersion.hs
-    ./lib/MelbyRenderer/Log.hs
-    ./lib/MelbyRenderer/melby_renderer.proto
-    ./lib/MelbyRenderer/PathAliases.hs
-    ./lib/MelbyRenderer/Schema.hs
-    ./lib/MelbyRenderer/Widgets.hs
-    ./melby-renderer.cabal
-    ./melby-renderer.hs
-    ./melby-renderer.nix
-    ./stack.yaml
-    ./stack.yaml.lock
-  ];
-  macOS-security =
-    # Make `/usr/bin/security` available in `PATH`, which is needed for stack
-    # on darwin which calls this binary to find certificates. See
-    # https://github.com/tweag/rules_haskell/commit/31171a520f49f263895112678ac93c7ed958ead1.
-    pkgs.writeScriptBin "security" ''exec /usr/bin/security "$@"'';
-in
-
-{ ghc }:
-
-pkgs.haskell.lib.buildStackProject {
-  inherit ghc;
-  name = "melby-renderer";
-  src = ./.;
-  buildInputs = [
-    pkgs.zlib
-    fakeGit
-  ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [pkgs.llvm_12 macOS-security];
+color models vs color spaces. See https://stackoverflow.com/a/56678483/437583
+for an explanation of how to find perceived lightness from an RGB (color model)
+value.
+
+We do the conversion the same way as the [[https://hackage.haskell.org/package/colour-2.3.6][colour]] library for Haskell (which
+=melbyr= used), down to the exact chromaticity of the D65 white point. This
+matters for colors whose lightness is very close to the cutoff of 50, where even
+a tiny rounding difference would flip the text from white to black.
+
+#+name: melbyd_nifs_git_sha_lightness
+#+begin_src rust
+// Choose white text for dark backgrounds, and black text for light ones.
+fn get_contrasting_color(r: u8, g: u8, b: u8) -> (u8, u8, u8) {
+    if get_perceived_lightness(r, g, b) < 50.0 {
+        (255, 255, 255)
+    } else {
+        (0, 0, 0)
+    }
+}
+
+// The CIE L* lightness (0 to 100) of an sRGB color, relative to the D65 white
+// point.
+fn get_perceived_lightness(r: u8, g: u8, b: u8) -> f64 {
+    let [yr, yg, yb] = srgb_luminance_coefficients();
+    let y = yr * linearize(r) + yg * linearize(g) + yb * linearize(b);
+    if (6.0f64 / 29.0).powi(3) < y {
+        116.0 * y.powf(1.0 / 3.0) - 16.0
+    } else {
+        (29.0f64 / 3.0).powi(3) * y
+    }
+}
+
+// Undo the sRGB transfer function (gamma).
+fn linearize(c: u8) -> f64 {
+    let c = c as f64 / 255.0;
+    if c == 1.0 {
+        1.0
+    } else if c <= 0.04045 {
+        c / 12.92
+    } else {
+        ((c + 0.055) / 1.055).powf(2.4)
+    }
+}
+
+// The Y row of the matrix that converts linear sRGB into CIE XYZ. We derive it
+// from the chromaticities of the sRGB primaries and of the D65 white point (the
+// same way that Haskell's colour library does), instead of hardcoding rounded
+// coefficients.
+fn srgb_luminance_coefficients() -> [f64; 3] {
+    let primaries = [(0.64, 0.33), (0.30, 0.60), (0.15, 0.06)];
+    let (wx, wy) = (0.31271, 0.32902);
+    let xyz = |(x, y): (f64, f64)| [x / y, 1.0, (1.0 - x - y) / y];
+    let p: Vec<[f64; 3]> = primaries.iter().map(|&c| xyz(c)).collect();
+    let w = xyz((wx, wy));
+    // Solve P * s = w for s, where the columns of P are the primaries.
+    let m = [
+        [p[0][0], p[1][0], p[2][0]],
+        [p[0][1], p[1][1], p[2][1]],
+        [p[0][2], p[1][2], p[2][2]],
+    ];
+    let det3 = |m: [[f64; 3]; 3]| {
+        m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
+            - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+            + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0])
+    };
+    let d = det3(m);
+    let mut s = [0.0; 3];
+    for (i, si) in s.iter_mut().enumerate() {
+        let mut mi = m;
+        for row in 0..3 {
+            mi[row][i] = w[row];
+        }
+        *si = det3(mi) / d;
+    }
+    // The Y row of the final matrix is just the scaled Y components of the
+    // primaries, which are all 1.
+    [s[0], s[1], s[2]]
 }
 #+end_src
 
-**** Stack
+#+name: melbyd_nifs_git_sha_tests
+#+begin_src rust
+#[cfg(test)]
+mod test {
+    use super::*;
 
-#+header: :tangle daemon/lib/melbyd/renderer/stack.yaml
-#+begin_src yaml
-resolver: lts-18.28
-allow-newer: true
+    #[test]
+    fn test_hex_decode() {
+        assert_eq!(hex_decode("00ff10"), vec![0, 255, 16]);
+        assert_eq!(hex_decode("ABcd"), vec![0xab, 0xcd]);
+        assert_eq!(hex_decode("abc"), Vec::<u8>::new());
+        assert_eq!(hex_decode("zz"), Vec::<u8>::new());
+    }
 
-packages:
-- .
+    #[test]
+    fn test_luminance_coefficients() {
+        let [r, g, b] = srgb_luminance_coefficients();
+        assert!((r - 0.2126).abs() < 1e-3);
+        assert!((g - 0.7152).abs() < 1e-3);
+        assert!((b - 0.0722).abs() < 1e-3);
+        assert!((r + g + b - 1.0).abs() < 1e-9);
+    }
 
-extra-deps:
-- compendium-client-0.2.1.1@sha256:cd477438d507273b34b82581ade333921ae997c1618b48af0c1da2a4968623e0,1203
-- graphql-1.0.3.0
-- http2-2.0.6
-- http2-client-0.10.0.0
-- http2-client-grpc-0.8.0.0
-- http2-grpc-proto3-wire-0.1.0.0
-- http2-grpc-types-0.5.0.0
-- hw-kafka-conduit-2.7.0
-- mu-avro-0.4.0.4@sha256:10e317c633c5152a26e89becba749456b76f70eb640d1c0b2ccdc0e45a7ef5da,2096
-- mu-grpc-common-0.4.0.0@sha256:568b5879cd67c0bc0e956d53fb87552bb6d9a6287c5d1b09e2284ed5b04de418,1394
-- mu-optics-0.3.0.1@sha256:c3494c71c6300e6a0dcb77c9782481150956e912c1b47fccd69cbb795e461d52,1068
-- mu-protobuf-0.4.2.0@sha256:4787a2688abdda107e150736433b61448acdf0b71eb0c174232239b4c143f78b,2119
-- mu-rpc-0.5.0.2@sha256:470f5bc372de1b212f625f9e7310cdf82b7fa41ddea03e092fccff0cd9e19db1,1430
-- mu-grpc-server-0.5.0.0@sha256:c67bd7c5dcc87e11ec34ac07b4d18fb1f6de036f58db4176274e6826099fe0a8,2749
-- mu-schema-0.3.1.2@sha256:c05e58de29d50376638d19dd3357cd3644d39f984664484f3568d5305b3034d9,1933
-- stm-containers-1.2
-- stm-hamt-1.2.0.7
-- tracing-0.0.7.2
-- tracing-control-0.0.7.3
-- warp-3.3.14
-- warp-grpc-0.4.0.1
+    #[test]
+    fn test_lightness() {
+        assert!((get_perceived_lightness(255, 255, 255) - 100.0).abs() < 1e-9);
+        assert_eq!(get_perceived_lightness(0, 0, 0), 0.0);
+        assert_eq!(get_contrasting_color(0, 0, 0), (255, 255, 255));
+        assert_eq!(get_contrasting_color(255, 255, 0), (0, 0, 0));
+    }
+
+    #[test]
+    fn test_colorize_empty() {
+        // Not a hex string, so there are no colors to use.
+        assert_eq!(_colorize_git_sha("xyz", 3, 1, 1), "\x1b[1m\x1b[0m");
+    }
+
+    #[test]
+    fn test_colorize_groups() {
+        let sha = "3b83e1cd0123456789abcdef0123456789abcdef";
+        let out = _colorize_git_sha(sha, 8, 1, 1);
+        // Two groups of 4 hex chars, with 1 space of padding on each side.
+        assert!(out.starts_with("\x1b[1m\x1b[48;2;"));
+        assert!(out.contains("m 3b83\x1b[48;2;"));
+        assert!(out.ends_with("me1cd \x1b[0m"));
+    }
+}
 #+end_src
 
-**** .gitignore
-
-#+header: :tangle daemon/lib/melbyd/renderer/.gitignore
-#+begin_src gitignore
-melbyr
-.stack-work
+#+name: daemon/lib/melbyd/nifs/src/git_sha.rs
+#+header: :tangle daemon/lib/melbyd/nifs/src/git_sha.rs
+#+begin_src rust
+<<melbyd_nifs_git_sha>>
+<<melbyd_nifs_git_sha_24_bit>>
+<<melbyd_nifs_git_sha_padding>>
+<<melbyd_nifs_git_sha_lightness>>
+<<melbyd_nifs_git_sha_tests>>
 #+end_src
 
-#+begin_comment
-(old) View end
-#+end_comment
+**** Path aliases
+:PROPERTIES:
+:ID:       1c4e56d2-70c0-4d27-847a-4a66818d5b2d
+:END:
+
+Users can give their directories short aliases, which we use when we display
+paths (see [[melbyd_luasdk_get_path_pretty]]). The aliases come from a file
+(named by ~MELBY_PATH_ALIASES_FILE~) in the same format as Zsh's named
+directories, so that the same file can be sourced by Zsh. For example:
+
+#+begin_src sh
+# Kubernetes main repo.
+hash -d   kk=${HOME}/go/src/k8s.io/kubernetes
+#+end_src
+
+Each line names an alias (~kk~) for a path, and the path can refer to shell
+variables like ~${HOME}~. Comments start with ~#~ and run to the end of the line.
+If any part of the file fails to parse, we reject the whole file (and the Elixir
+side falls back to no aliases at all).
+
+The parser below is a straightforward recursive descent parser.
+
+#+name: melbyd_nifs_path_aliases
+#+begin_src rust
+use std::collections::HashMap;
+
+// Parse the contents of a path aliases file. The keys of the resulting map are
+// the paths and the values are the aliases, because that's how we use them
+// back in Elixir.
+#[cfg_attr(feature = "elixir_support", rustler::nif)]
+pub fn parse_path_aliases(path_aliases_raw: &str) -> Result<HashMap<String, String>, String> {
+    _parse_path_aliases(path_aliases_raw)
+}
+
+fn _parse_path_aliases(path_aliases_raw: &str) -> Result<HashMap<String, String>, String> {
+    let mut p = Parser {
+        s: path_aliases_raw,
+        pos: 0,
+    };
+    let mut path_aliases = HashMap::new();
+    // Clear leading whitespace/comments.
+    p.sc();
+    while p.peek().is_some() {
+        let (path, alias) = p.path_alias()?;
+        path_aliases.insert(path, alias);
+    }
+    Ok(path_aliases)
+}
+#+end_src
+
+The parser keeps track of where it is in the input, so that error messages can
+say where things went wrong.
+
+#+name: melbyd_nifs_path_aliases_parser
+#+begin_src rust
+struct Parser<'a> {
+    s: &'a str,
+    // Byte offset into s.
+    pos: usize,
+}
+
+impl<'a> Parser<'a> {
+    fn peek(&self) -> Option<char> {
+        self.s[self.pos..].chars().next()
+    }
+
+    fn rest(&self) -> &'a str {
+        &self.s[self.pos..]
+    }
+
+    fn error<T>(&self, expected: &str) -> Result<T, String> {
+        let found = match self.peek() {
+            Some(c) => format!("{:?}", c),
+            None => "end of input".to_string(),
+        };
+        Err(format!(
+            "offset {}: unexpected {}; expecting {}",
+            self.pos, found, expected
+        ))
+    }
+
+    fn take_while(&mut self, f: impl Fn(char) -> bool) -> &'a str {
+        let start = self.pos;
+        while let Some(c) = self.peek() {
+            if !f(c) {
+                break;
+            }
+            self.pos += c.len_utf8();
+        }
+        &self.s[start..self.pos]
+    }
+
+    // Skip over any whitespace and comment lines. Comments start with "#" and
+    // run up to the end of the line.
+    fn sc(&mut self) {
+        loop {
+            if !self.take_while(is_space).is_empty() {
+                continue;
+            }
+            if self.rest().starts_with('#') {
+                self.take_while(|c| c != '\n');
+                continue;
+            }
+            break;
+        }
+    }
+
+    fn symbol(&mut self, sym: &str) -> Result<(), String> {
+        if !self.rest().starts_with(sym) {
+            return self.error(&format!("{:?}", sym));
+        }
+        self.pos += sym.len();
+        self.sc();
+        Ok(())
+    }
+#+end_src
+
+The grammar for each line is as follows.
+
+#+name: melbyd_nifs_path_aliases_rules
+#+begin_src rust
+    // Parse a line like
+    //
+    //    hash -d   kt=${HOME}/go/src/k8s.io/test-infra
+    //
+    // into the path and alias.
+    fn path_alias(&mut self) -> Result<(String, String), String> {
+        self.symbol("hash")?;
+        self.symbol("-d")?;
+        let alias = self.alias()?;
+        if self.peek() != Some('=') {
+            return self.error("'=' or alias chars");
+        }
+        self.pos += 1;
+        let path = self.directory_path()?;
+        self.sc();
+        Ok((path, alias))
+    }
+
+    fn alias(&mut self) -> Result<String, String> {
+        // The equivalent regex for the allowed range is "_A-Za-z0-9" for the
+        // first letter, plus "-" for the rest. This just reflects what is
+        // normally allowed by Zsh's "hash" builtin function. There, if we try
+        // something like "hash -d -myalias=/a/very/long/path", the "-myalias"
+        // gets interpreted as a flag to the "hash" function.
+        let is_allowed_first_letter = |c: char| c.is_ascii_alphanumeric() || c == '_';
+        match self.peek() {
+            Some(c) if is_allowed_first_letter(c) => {}
+            _ => return self.error("first letter of alias"),
+        }
+        Ok(self
+            .take_while(|c| is_allowed_first_letter(c) || c == '-')
+            .to_string())
+    }
+
+    // A directory path is made up of literal path segments and shell variables
+    // like "${HOME}".
+    fn directory_path(&mut self) -> Result<String, String> {
+        let mut path = String::new();
+        loop {
+            if self.rest().starts_with("${") {
+                path.push_str(&self.variable()?);
+            } else {
+                let segment = self.take_while(is_allowed_path_char);
+                if segment.is_empty() {
+                    break;
+                }
+                path.push_str(segment);
+            }
+        }
+        if path.is_empty() {
+            return self.error("directory path");
+        }
+        // We don't allow a "$" symbol unless it is used as part of a shell
+        // variable like "${FOO}". This catches badly formed paths like
+        // "/clam-chowder-$oup".
+        if self.peek() == Some('$') {
+            return self.error("directory chars or dollar-and-opening-brace");
+        }
+        Ok(path)
+    }
+
+    fn variable(&mut self) -> Result<String, String> {
+        self.pos += "${".len();
+        let is_allowed_first_letter = |c: char| c.is_ascii_uppercase() || c == '_';
+        match self.peek() {
+            Some(c) if is_allowed_first_letter(c) => self.pos += 1,
+            _ => return self.error("first letter of shell variable name"),
+        }
+        let rest = self.take_while(|c| is_allowed_first_letter(c) || c.is_ascii_digit());
+        if rest.is_empty() {
+            return self.error("shell variable name chars");
+        }
+        let name = &self.s[self.pos - rest.len() - 1..self.pos];
+        if self.peek() != Some('}') {
+            return self.error("'}'");
+        }
+        self.pos += 1;
+        Ok(format!("${{{}}}", name))
+    }
+}
+#+end_src
+
+These are the characters that we accept for whitespace and for paths. They
+follow the rules of Haskell's ~Data.Char~ module, because the parser in ~melbyr~
+used them.
+
+#+name: melbyd_nifs_path_aliases_chars
+#+begin_src rust
+// Like Haskell's Data.Char.isSpace.
+fn is_space(c: char) -> bool {
+    matches!(c, ' ' | '\t' | '\n' | '\r' | '\x0b' | '\x0c' | '\u{a0}')
+        || (c > '\u{ff}' && c.is_whitespace() && c != '\u{2028}' && c != '\u{2029}')
+}
+
+// Technically speaking, a folder can have a literal "$" character in it, like
+// this: "/foo/bar/\$baz", but in order to simplify our implementation we forbid
+// them because they are too rare. Apart from that, we allow letters, digits,
+// and punctuation. For ASCII, "punctuation" means the same characters as for
+// Haskell's Data.Char.isPunctuation (so for example "+" and "~" are not
+// allowed, because they are symbols). We don't treat any non-ASCII characters
+// as punctuation.
+fn is_allowed_path_char(c: char) -> bool {
+    c != '$'
+        && (c.is_alphanumeric()
+            || (c.is_ascii_punctuation() && !matches!(c, '+' | '<' | '=' | '>' | '^' | '`' | '|' | '~')))
+}
+#+end_src
+
+#+name: melbyd_nifs_path_aliases_tests
+#+begin_src rust
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    fn parse_one(s: &str) -> Result<(String, String), String> {
+        let mut p = Parser { s, pos: 0 };
+        p.path_alias()
+    }
+
+    fn ok(path: &str, alias: &str) -> Result<(String, String), String> {
+        Ok((path.to_string(), alias.to_string()))
+    }
+
+    fn err_at(r: Result<(String, String), String>, offset: usize) {
+        match r {
+            Err(e) => assert!(e.starts_with(&format!("offset {}:", offset)), "{}", e),
+            Ok(x) => panic!("unexpected success: {:?}", x),
+        }
+    }
+
+    #[test]
+    fn test_path_alias() {
+        assert_eq!(parse_one("hash -d foo=/bar"), ok("/bar", "foo"));
+        assert_eq!(parse_one("hash   -d     foo=/bar   "), ok("/bar", "foo"));
+        assert_eq!(
+            parse_one("hash -d   kk=${HOME}/go/src/k8s.io/kubernetes"),
+            ok("${HOME}/go/src/k8s.io/kubernetes", "kk")
+        );
+        assert_eq!(
+            parse_one("hash -d   x=${HOME}/foo/${SUBDIR}/baz"),
+            ok("${HOME}/foo/${SUBDIR}/baz", "x")
+        );
+        assert_eq!(
+            parse_one("hash -d   x=${HOME}/hello # Comment text"),
+            ok("${HOME}/hello", "x")
+        );
+    }
+
+    #[test]
+    fn test_path_alias_errors() {
+        // The equal sign has a space to the left.
+        err_at(parse_one("hash   -d     foo =/bar   "), 17);
+        // The equal sign has a space to the right.
+        err_at(parse_one("hash   -d     foo= /bar   "), 18);
+        // There is an aberrant dollar sign in the path.
+        err_at(parse_one("hash -d x=/clam-chowder-$oup\n"), 24);
+        // Shell variables must be in uppercase, and have at least 2 letters.
+        err_at(parse_one("hash -d x=${home}"), 12);
+        err_at(parse_one("hash -d x=${H}"), 13);
+        // Aliases cannot start with a dash.
+        err_at(parse_one("hash -d -x=/foo"), 8);
+    }
+
+    #[test]
+    fn test_path_aliases() {
+        let input = "
+# Comment at beginning of file.
+
+hash -d x=/foo # Trailing comment.
+# Commented out declaration.
+# hash -d x=/foo
+
+hash -d kk=${HOME}/go/src/k8s.io/kubernetes
+
+# Indented entry.
+  hash    -d   y=/hello
+# Comment at end of file.
+";
+        let want: HashMap<String, String> = [
+            ("/foo", "x"),
+            ("${HOME}/go/src/k8s.io/kubernetes", "kk"),
+            ("/hello", "y"),
+        ]
+        .iter()
+        .map(|(k, v)| (k.to_string(), v.to_string()))
+        .collect();
+        assert_eq!(_parse_path_aliases(input), Ok(want));
+        assert_eq!(_parse_path_aliases(""), Ok(HashMap::new()));
+        assert!(_parse_path_aliases("hash -d x=/foo\nbogus").is_err());
+    }
+}
+#+end_src
+
+#+name: daemon/lib/melbyd/nifs/src/path_aliases.rs
+#+header: :tangle daemon/lib/melbyd/nifs/src/path_aliases.rs
+#+begin_src rust
+<<melbyd_nifs_path_aliases>>
+<<melbyd_nifs_path_aliases_parser>>
+<<melbyd_nifs_path_aliases_rules>>
+<<melbyd_nifs_path_aliases_chars>>
+<<melbyd_nifs_path_aliases_tests>>
+#+end_src
+
 ** Installation
 
 We use Nix for both Linux and Mac (via https://github.com/LnL7/nix-darwin).
@@ -7255,7 +6501,6 @@ Type=simple
 # See https://stackoverflow.com/a/73509979/437583 for getting the directory of
 # this Makefile.
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-export MELBYR_PATH := $(ROOT_DIR)/lib/melbyd/renderer/melbyr
 export LUA_PATH := $(ROOT_DIR)/test/sample/?.lua
 export MELBY_DIR := $(ROOT_DIR)/test/sample
 
@@ -7269,8 +6514,7 @@ all:
 	protoc --elixir_out=plugins=grpc:lib/generated --proto_path=.. \
 	  ../melby.proto \
 	  ../melby_client.proto \
-	  ../melby_daemon.proto \
-	  ../melby_renderer.proto
+	  ../melby_daemon.proto
 check-deps:
 	mix hex.outdated
 update-mix:
@@ -7369,7 +6613,6 @@ defmodule Melbyd.MixProject do
       {:gproc, "~> 1.0.0"},
       {:grpc, "~> 0.8.0"},
       {:luerl, "~> 1.0"},
-      {:muontrap, "~> 1.4.0"},
       {:phoenix_pubsub, "~> 2.0"},
       {:protobuf, "~> 0.12.0"},
       {:rustler, "~> 0.33.0"},
@@ -7504,7 +6747,6 @@ let
     ./lib/generated/melby_client.pb.ex
     ./lib/generated/melby_daemon.pb.ex
     ./lib/generated/melby.pb.ex
-    ./lib/generated/melby_renderer.pb.ex
     ./lib/melbyd
     ./lib/melbyd/router.ex
 
@@ -7515,6 +6757,9 @@ let
     ./lib/melbyd/nifs/src
     ./lib/melbyd/nifs/src/path_shorten.rs
     ./lib/melbyd/nifs/src/color.rs
+    ./lib/melbyd/nifs/src/git_sha.rs
+    ./lib/melbyd/nifs/src/path_aliases.rs
+    ./lib/melbyd/nifs/src/render.rs
     ./lib/melbyd/nifs/src/lib.rs
     ./lib/melbyd/nifs/Makefile
 
@@ -7528,23 +6773,6 @@ let
     ./lib/melbyd/lua_api.ex
     ./lib/melbyd/nifs.ex
     ./lib/melbyd/path.ex
-    ./lib/melbyd/renderer
-    ./lib/melbyd/renderer/cabal.project
-    ./lib/melbyd/renderer/.ghci
-    ./lib/melbyd/renderer/lib
-    ./lib/melbyd/renderer/lib/MelbyRenderer
-    ./lib/melbyd/renderer/lib/MelbyRenderer/melby_renderer.proto
-    ./lib/melbyd/renderer/lib/MelbyRenderer/Schema.hs
-    ./lib/melbyd/renderer/lib/MelbyRenderer/GitVersion.hs
-    ./lib/melbyd/renderer/lib/MelbyRenderer/Log.hs
-    ./lib/melbyd/renderer/melby-renderer.cabal
-    ./lib/melbyd/renderer/stack.yaml.lock
-    ./lib/melbyd/renderer/melby-renderer.hs
-    ./lib/melbyd/renderer/.gitignore
-    ./lib/melbyd/renderer/Makefile
-    ./lib/melbyd/renderer/melby-renderer.nix
-    ./lib/melbyd/renderer/stack.yaml
-    ./lib/melbyd/renderer/LICENSE
     ./Makefile
     ./mix.exs
     ./mix.lock
@@ -7589,7 +6817,6 @@ in
       pkgs.rust-bin.stable.latest.default
       pkgs.rust-analyzer
       melby.melby-nifs
-      melby.melby-renderer
     ]
     # For file_system on Linux.
     ++ pkgs.lib.optional pkgs.stdenv.isLinux pkgs.inotify-tools
@@ -7620,10 +6847,8 @@ in
       ${nifs_cp_lib_cmd}
     '';
 
-    # Make melbyr available as a runtime dependency.
     postBuild = ''
       mkdir -p $out/bin
-      cp ${melby.melby-renderer}/bin/melbyr $out/bin
       ${mac_compile_mac_listener_cmd}
     '';
 
@@ -7676,6 +6901,9 @@ let
     ./src
     ./src/path_shorten.rs
     ./src/color.rs
+    ./src/git_sha.rs
+    ./src/path_aliases.rs
+    ./src/render.rs
     ./src/lib.rs
     ./Makefile
   ];
@@ -7762,18 +6990,7 @@ config :melbyd,
          50051
        else
          50052
-       end),
-  melbyr_port:
-    System.get_env("MELBYR_PORT") ||
-      (if config_env() == :prod do
-         50055
-       else
-         50056
-       end),
-  # Users can set this variable to make melbyd use it directly (useful for
-  # testing out development, non-packaged versions of melbyr). In production we
-  # would simply expect to run the first "melbyr" binary found on the PATH.
-  melbyr_path: System.get_env("MELBYR_PATH") || "melbyr"
+       end)
 
 # Avoid
 #
@@ -7807,6 +7024,13 @@ defmodule Melbyd.Nifs do
     do: :erlang.nif_error(:nif_not_loaded)
 
   def parse_color(_color_str), do: :erlang.nif_error(:nif_not_loaded)
+
+  def render_widgets(_widgets, _delimiter, _format), do: :erlang.nif_error(:nif_not_loaded)
+
+  def colorize_git_sha(_sha, _sha_length, _pad_left, _pad_right),
+    do: :erlang.nif_error(:nif_not_loaded)
+
+  def parse_path_aliases(_path_aliases_raw), do: :erlang.nif_error(:nif_not_loaded)
 end
 #+end_src
 
@@ -7815,7 +7039,10 @@ end
 #+header: :tangle daemon/lib/melbyd/nifs/src/lib.rs
 #+begin_src rust
 pub mod color;
+pub mod git_sha;
+pub mod path_aliases;
 pub mod path_shorten;
+pub mod render;
 
 #[cfg(feature = "elixir_support")]
 rustler::init!(
@@ -7823,6 +7050,9 @@ rustler::init!(
     [
         path_shorten::path_shorten,
         color::parse_color,
+        render::render_widgets,
+        git_sha::colorize_git_sha,
+        path_aliases::parse_path_aliases,
     ]
 );
 #+end_src
@@ -7873,20 +7103,6 @@ https://doc.rust-lang.org/cargo/faq.html#why-do-binaries-have-cargolock-in-versi
 #+begin_src gitignore
 /target
 Cargo.lock
-#+end_src
-
-*** Haskell (melbyr)
-:PROPERTIES:
-:ID:       70dfc13c-8847-4a99-850c-f18ebdbcda8c
-:END:
-
-**** Set up GHCi environment
-
-These are development defaults for interacting with GHCi.
-
-#+header: :tangle daemon/lib/melbyd/renderer/.ghci
-#+begin_src text
-:set -XOverloadedStrings
 #+end_src
 
 ** Tests

@@ -10,4 +10,11 @@ defmodule Melbyd.Nifs do
     do: :erlang.nif_error(:nif_not_loaded)
 
   def parse_color(_color_str), do: :erlang.nif_error(:nif_not_loaded)
+
+  def render_widgets(_widgets, _delimiter, _format), do: :erlang.nif_error(:nif_not_loaded)
+
+  def colorize_git_sha(_sha, _sha_length, _pad_left, _pad_right),
+    do: :erlang.nif_error(:nif_not_loaded)
+
+  def parse_path_aliases(_path_aliases_raw), do: :erlang.nif_error(:nif_not_loaded)
 end

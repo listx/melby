@@ -52,7 +52,6 @@
 % Outer box around melbyd, which includes the LuaVMs.
 \node[fit={(0,2) (LuaVMs) (0,-1)}, draw, rounded corners,
   inner xsep=5mm, inner ysep=-\pgflinewidth] (melbydOutline) {};
-\node[module, left=1.5cm of melbydOutline] (melbyr) {Renderer\\(melbyr)};
 
 % We could just use "right=1.5cm of melbydOutline" here but use calc's syntax
 % for computing a coordinate combined with a (X,Y) delta for future reference in
@@ -61,7 +60,6 @@
 \node[module, right=1cm of melbyc] (Configs) {Configs\\(Lua)};
 \node[user, below=1.5cm of melbyc] (User) {User};
 
-\draw[arrowX] (melbyr)--(melbydOutline);
 \draw[arrowX] (User)--(melbyc);
 \draw[arrowL] (melbyc)--(Configs);
 \draw[arrowX] (melbyc)--(melbydOutline);

@@ -1,7 +1,6 @@
 # See https://stackoverflow.com/a/73509979/437583 for getting the directory of
 # this Makefile.
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-export MELBYR_PATH := $(ROOT_DIR)/lib/melbyd/renderer/melbyr
 export LUA_PATH := $(ROOT_DIR)/test/sample/?.lua
 export MELBY_DIR := $(ROOT_DIR)/test/sample
 
@@ -15,8 +14,7 @@ all:
 	protoc --elixir_out=plugins=grpc:lib/generated --proto_path=.. \
 	  ../melby.proto \
 	  ../melby_client.proto \
-	  ../melby_daemon.proto \
-	  ../melby_renderer.proto
+	  ../melby_daemon.proto
 check-deps:
 	mix hex.outdated
 update-mix:

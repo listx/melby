@@ -18,50 +18,10 @@ let
     ];
   };
 
-  # Wrap Stack to configure Nix integration and target the correct Stack-Nix
-  # file
-  #
-  # - nix: Enable Nix support (use Stack's built-in Nix integration; this makes
-  #   Stack populate the "ghc" variable in our nix/stack.nix file with the GHC
-  #   version found in the stack.yaml file; this way we don't have to specify a
-  #   GHC version in Nix (when we already define it transitively through
-  #   specifying Stack's LTS version in stack.yaml)). This also makes it so that
-  #   ghci is not available in the nix-shell; rather it can only be accessed
-  #   through "stack exec -- ghci".
-  #
-  # - nix-pure: Do not pass environment variables, like `NIX_PATH`
-  #
-  # - nix-shell-file: Specify the Nix file to use (otherwise it uses `shell.nix`
-  #   by default)
-  #
-  # Vanilla (unwrapped) stack is available as `.stack-wrapped`, courtesy of
-  # pkgs.symlinkJoin.
-  stack-wrapped = pkgs.symlinkJoin {
-    name = "stack";
-    paths = [ pkgs.stack ];
-    buildInputs = [ pkgs.makeWrapper ];
-    postBuild = ''
-      wrapProgram $out/bin/stack \
-        --add-flags "\
-          --nix \
-          --nix-pure \
-          --system-ghc \
-          --no-install-ghc \
-          --nix-shell-file=./stack.nix \
-        "
-    '';
-  };
-
   protoc-gen-elixir = pkgs.callPackage ./package/protoc-gen-elixir.nix {};
   darwin-cargo-build-rustflags = pkgs.lib.attrsets.optionalAttrs pkgs.stdenv.isDarwin {
     CARGO_BUILD_RUSTFLAGS = "-C link-arg=-undefined -C link-arg=dynamic_lookup";
   };
-  macOS-security =
-    # Make `/usr/bin/security` available in `PATH`, which is needed for stack
-    # on darwin which calls this binary to find certificates. See
-    # https://github.com/tweag/rules_haskell/commit/31171a520f49f263895112678ac93c7ed958ead1.
-    pkgs.writeScriptBin "security" ''exec /usr/bin/security "$@"'';
-
   # See https://nixos.wiki/wiki/TexLive for customizing texlive packages
   # (picking only those packages we need as in here).
   tex = (pkgs.texlive.combine {
@@ -89,11 +49,6 @@ in
 # This is our development shell.
 pkgs.mkShell ({
   buildInputs = [
-    # Haskell
-    stack-wrapped
-    # Let stack use Nix with the Nix we version here.
-    pkgs.nix
-
     # Rust
     pkgs.rust-bin.stable.latest.default
     pkgs.rust-analyzer
@@ -136,26 +91,16 @@ pkgs.mkShell ({
     # `nix-shell --pure` environment. See
     # https://github.com/NixOS/nixpkgs/issues/66716#issuecomment-883399373.
     pkgs.cacert
-    macOS-security
   ];
 
   shellHook = ''
-    # Prefer to use melbyr and melbyc from the local development tree path.
-    export PATH=$PWD/daemon/test:$PWD/daemon/lib/melbyd/renderer:$PWD/client/target/debug:$PATH
+    # Prefer to use melbyc from the local development tree path.
+    export PATH=$PWD/daemon/test:$PWD/client/target/debug:$PATH
     export KUBECONFIG=$PWD/daemon/test/fake_kube_config
     export MELBY_DIR=$PWD/daemon/test/sample
     export MELBY_PROJECT_ROOT=$PWD
-    export MELBYR_PATH=$PWD/daemon/lib/melbyd/renderer/melbyr
     export LUA_PATH="$PWD/daemon/test/sample/?.lua"
   '';
-
-  # Configure the Nix path to our own `pkgs`, to ensure Stack-with-Nix uses the
-  # correct one rather than the global <nixpkgs> when looking for the right
-  # `ghc` argument to pass in `nix/stack.nix`
-  #
-  # See https://nixos.org/nixos/nix-pills/nix-search-paths.html for more
-  # information.
-  NIX_PATH = "nixpkgs=" + pkgs.path;
 
   # Make Elixir not complain about using "latin1" encoding.
   LANG = "en_US.UTF-8";

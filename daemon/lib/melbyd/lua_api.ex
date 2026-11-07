@@ -555,16 +555,12 @@ defmodule Melbyd.LuaSdk do
 
   @newlines ["\n", "\r", "\r\n", "\n\r"]
 
-  def get_melbyr_addr() do
-    "localhost:#{Application.get_env(:melbyd, :melbyr_port)}"
-  end
-
   def_lua_func render([widgets_list_ref, delimiter_ref], st0) do
     delimiter_tuples = Luerl.decode(st0, delimiter_ref)
     delimiter = widget_from_tuples(delimiter_tuples)
 
     # Retrieve render_options from the Config table in the Lua state.
-    render_options = get_render_options(st0)
+    format = get_render_format(st0)
 
     widgets =
       Luerl.decode(st0, widgets_list_ref)
@@ -572,83 +568,61 @@ defmodule Melbyd.LuaSdk do
         widget_from_tuples(widget_tuples)
       end)
 
-    req = %MelbyRenderer.RenderWidgetsRequest{}
-    req = Map.put(req, :widgets, widgets)
-    req = Map.put(req, :delimiter, delimiter)
-    req = Map.put(req, :render_options, render_options)
+    {:ok, Melbyd.Nifs.render_widgets(widgets, delimiter, format), st0}
+  end
 
-    # Call out to melbyr over gRPC.
-    addr = get_melbyr_addr()
-    with {:ok, channel} <- GRPC.Stub.connect(addr, adapter_opts: [retry_timeout: 5]),
-         {:ok, reply} <- MelbyRenderer.Renderer.Stub.render_widgets(channel, req, timeout: 200) do
-      GRPC.Stub.disconnect(channel)
-      {:ok, reply.widgets_rendered, st0}
-    else
-      err -> raise "could not parse response from melbyr: #{inspect(err)}"
+  def get_render_format(st0) do
+    {render_options_tuples, _st1} = Luerl.get_table(st0, ["Config", "render_options"])
+
+    case Map.new(render_options_tuples)["format"] do
+      "RENDER_FORMAT_UNIX_TERMINAL" -> :unix_terminal
+      _ -> :unspecified
     end
   end
 
-  def get_render_options(st0) do
-    {render_options_tuples, _st1} = Luerl.get_table(st0, ["Config", "render_options"])
-
-    render_options_map =
-      Map.new(
-        render_options_tuples
-        |> Enum.map(fn {k, v} -> {String.to_atom(k), String.to_atom(v)} end)
-      )
-
-    render_options = %MelbyRenderer.RenderOptions{}
-    Map.merge(render_options, render_options_map)
-  end
-
   def widget_from_tuples(widget_tuples) do
-    {widget, tp} =
-      Enum.reduce(
-        widget_tuples,
-        {%MelbyRenderer.Widget{}, %MelbyRenderer.TextProperty{}},
-        fn {k, v}, acc ->
-          {acc_w, acc_tp} = acc
-          # We only recognize certain keywords.
-          case k do
-            "str" ->
-              {Map.put(acc_w, :str, v), acc_tp}
+    Enum.reduce(
+      widget_tuples,
+      %{str: "", fg: nil, bg: nil, styles: [], drop_delim_left: false, drop_delim_right: false},
+      fn {k, v}, widget ->
+        # We only recognize certain keywords.
+        case k do
+          "str" ->
+            Map.put(widget, :str, v)
 
-            "fg" ->
-              {acc_w, Map.put(acc_tp, :fg, color_from_str(v))}
+          "fg" ->
+            Map.put(widget, :fg, color_from_str(v))
 
-            "bg" ->
-              {acc_w, Map.put(acc_tp, :bg, color_from_str(v))}
+          "bg" ->
+            Map.put(widget, :bg, color_from_str(v))
 
-            "styles" ->
-              styles = Enum.map(v, fn {_idx, s} -> style_from_str(s) end)
-              {acc_w, Map.put(acc_tp, :styles, styles)}
+          "styles" ->
+            styles = Enum.map(v, fn {_idx, s} -> style_from_str(s) end)
+            Map.put(widget, :styles, styles)
 
-            # Skip over any unrecognized key.
-            "drop_delim_left" ->
-              {Map.put(acc_w, :drop_delim_left, v), acc_tp}
+          "drop_delim_left" ->
+            Map.put(widget, :drop_delim_left, v)
 
-            "drop_delim_right" ->
-              {Map.put(acc_w, :drop_delim_right, v), acc_tp}
+          "drop_delim_right" ->
+            Map.put(widget, :drop_delim_right, v)
 
-            _ ->
-              acc
-          end
+          # Skip over any unrecognized key.
+          _ ->
+            widget
         end
-      )
-
-    Map.put(widget, :prop, tp)
+      end
+    )
   end
 
   def color_from_str(s) do
     {r, g, b} = Melbyd.Color.parse(s)
-    c24bit = %MelbyRenderer.Color24Bit{red: r, green: g, blue: b}
-    %MelbyRenderer.Color{color_oneof: {:color_24_bit, c24bit}}
+    {:rgb, {r, g, b}}
   end
 
   def style_from_str(s) do
     case s do
-      "bold" -> :TEXT_STYLE_BOLD
-      _ -> :TEXT_STYLE_BOLD
+      "bold" -> :bold
+      _ -> :bold
     end
   end
 
@@ -719,43 +693,21 @@ defmodule Melbyd.LuaSdk do
   end
 
   def get_path_aliases_helper(path_aliases_raw, st0) do
-    req = %MelbyRenderer.ParsePathAliasesRequest{}
-    req = Map.put(req, :path_aliases_raw, path_aliases_raw)
+    case Melbyd.Nifs.parse_path_aliases(path_aliases_raw) do
+      {:ok, path_aliases} ->
+        {:ok, path_aliases, st0}
 
-    # Call out to melbyr over gRPC.
-    addr = get_melbyr_addr()
-    with {:ok, channel} <- GRPC.Stub.connect(addr, adapter_opts: [retry_timeout: 5]),
-         {:ok, reply} <- MelbyRenderer.Renderer.Stub.parse_path_aliases(
-           channel, req, timeout: 200) do
-      GRPC.Stub.disconnect(channel)
-      if reply.status == :PARSE_STATUS_ERROR do
-        Logger.warning("parse failed: #{inspect(reply.error)}")
-      end
-      {:ok, reply.path_aliases, st0}
-    else
-      err -> raise "failed to successfully call melbyr: #{inspect(err)}"
+      {:error, reason} ->
+        Logger.warning("parse failed: #{reason}")
+        {:ok, %{}, st0}
     end
   end
 
   def_lua_func get_colorized_sha([sha, sha_length, pad_left, pad_right], st0) do
-    render_options = get_render_options(st0)
+    colorized =
+      Melbyd.Nifs.colorize_git_sha(sha, trunc(sha_length), trunc(pad_left), trunc(pad_right))
 
-    req = %MelbyRenderer.ColorizedGitShaRequest{}
-    req = Map.put(req, :sha, sha)
-    req = Map.put(req, :sha_length, sha_length)
-    req = Map.put(req, :pad_left, pad_left)
-    req = Map.put(req, :pad_right, pad_right)
-    req = Map.put(req, :render_options, render_options)
-
-    Logger.debug("elixir req was: #{inspect(req)}")
-
-    addr = get_melbyr_addr()
-    with {:ok, channel} <- GRPC.Stub.connect(addr, adapter_opts: [retry_timeout: 5]),
-         {:ok, reply} <- channel
-           |> MelbyRenderer.Renderer.Stub.get_colorized_git_sha(req, timeout: 200) do
-      GRPC.Stub.disconnect(channel)
-      {:ok, reply.sha_colorized, st0}
-    end
+    {:ok, colorized, st0}
   end
 
   def_lua_func get_time([format, unix_seconds, time_zone], st0) do

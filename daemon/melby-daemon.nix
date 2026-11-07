@@ -45,7 +45,6 @@ let
     ./lib/generated/melby_client.pb.ex
     ./lib/generated/melby_daemon.pb.ex
     ./lib/generated/melby.pb.ex
-    ./lib/generated/melby_renderer.pb.ex
     ./lib/melbyd
     ./lib/melbyd/router.ex
 
@@ -56,6 +55,9 @@ let
     ./lib/melbyd/nifs/src
     ./lib/melbyd/nifs/src/path_shorten.rs
     ./lib/melbyd/nifs/src/color.rs
+    ./lib/melbyd/nifs/src/git_sha.rs
+    ./lib/melbyd/nifs/src/path_aliases.rs
+    ./lib/melbyd/nifs/src/render.rs
     ./lib/melbyd/nifs/src/lib.rs
     ./lib/melbyd/nifs/Makefile
 
@@ -69,23 +71,6 @@ let
     ./lib/melbyd/lua_api.ex
     ./lib/melbyd/nifs.ex
     ./lib/melbyd/path.ex
-    ./lib/melbyd/renderer
-    ./lib/melbyd/renderer/cabal.project
-    ./lib/melbyd/renderer/.ghci
-    ./lib/melbyd/renderer/lib
-    ./lib/melbyd/renderer/lib/MelbyRenderer
-    ./lib/melbyd/renderer/lib/MelbyRenderer/melby_renderer.proto
-    ./lib/melbyd/renderer/lib/MelbyRenderer/Schema.hs
-    ./lib/melbyd/renderer/lib/MelbyRenderer/GitVersion.hs
-    ./lib/melbyd/renderer/lib/MelbyRenderer/Log.hs
-    ./lib/melbyd/renderer/melby-renderer.cabal
-    ./lib/melbyd/renderer/stack.yaml.lock
-    ./lib/melbyd/renderer/melby-renderer.hs
-    ./lib/melbyd/renderer/.gitignore
-    ./lib/melbyd/renderer/Makefile
-    ./lib/melbyd/renderer/melby-renderer.nix
-    ./lib/melbyd/renderer/stack.yaml
-    ./lib/melbyd/renderer/LICENSE
     ./Makefile
     ./mix.exs
     ./mix.lock
@@ -130,7 +115,6 @@ in
       pkgs.rust-bin.stable.latest.default
       pkgs.rust-analyzer
       melby.melby-nifs
-      melby.melby-renderer
     ]
     # For file_system on Linux.
     ++ pkgs.lib.optional pkgs.stdenv.isLinux pkgs.inotify-tools
@@ -161,10 +145,8 @@ in
       ${nifs_cp_lib_cmd}
     '';
 
-    # Make melbyr available as a runtime dependency.
     postBuild = ''
       mkdir -p $out/bin
-      cp ${melby.melby-renderer}/bin/melbyr $out/bin
       ${mac_compile_mac_listener_cmd}
     '';
 

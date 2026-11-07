@@ -73,19 +73,6 @@ let
       beamDeps = [];
     };
 
-    elixir_make = buildMix rec {
-      name = "elixir_make";
-      version = "0.8.4";
-
-      src = fetchHex {
-        pkg = "elixir_make";
-        version = "${version}";
-        sha256 = "6e7f1d619b5f61dfabd0a20aa268e575572b542ac31723293a4c1a567d5ef040";
-      };
-
-      beamDeps = [ certifi ];
-    };
-
     eternal = buildMix rec {
       name = "eternal";
       version = "1.2.2";
@@ -292,19 +279,6 @@ let
       };
 
       beamDeps = [ hpax ];
-    };
-
-    muontrap = buildMix rec {
-      name = "muontrap";
-      version = "1.4.1";
-
-      src = fetchHex {
-        pkg = "muontrap";
-        version = "${version}";
-        sha256 = "c12a3469974f99b25a0cfa4bcf45aa15d122a1384308f602ca1c20c16f195729";
-      };
-
-      beamDeps = [ elixir_make ];
     };
 
     parse_trans = buildRebar3 rec {

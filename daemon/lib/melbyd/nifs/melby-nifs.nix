@@ -7,6 +7,9 @@ let
     ./src
     ./src/path_shorten.rs
     ./src/color.rs
+    ./src/git_sha.rs
+    ./src/path_aliases.rs
+    ./src/render.rs
     ./src/lib.rs
     ./Makefile
   ];
