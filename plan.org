@@ -54,7 +54,7 @@ to track JJ repos differently (might need to set up jj-specific resources).
 
 ** TODO set up github actions to build and push to cachix
 
-** TODO cache the Lua VM between view requests
+** DONE cache the Lua VM between view requests
 
 Every view request builds a Lua VM from scratch twice. First
 [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyd_lua_config_validation][~melbyd_lua_config_validation~]] creates one and runs the config, just to compute

@@ -14,10 +14,11 @@ defmodule Melbyd.View do
     Logger.info("MELBY_DIR is #{inspect(env_vars["MELBY_DIR"])}")
 
     with :ok <- validate(config_path, env_vars, shell_pid),
-         {:ok, view_params_types} <- Melbyd.LuaConfigValidation.validate(config_path),
+         {:ok, %{vm: vm, view_params_types: view_params_types}} <-
+           Melbyd.LuaVmCache.get(config_path),
          {:ok, env_vars_reduced} <- Melbyd.LuaConfigValidation.enforce_view_params_types(view_params_types, env_vars),
          {:ok, val} when is_list(val) and val != [] and is_binary(hd(val)) <-
-           Melbyd.LuaInterop.run(config_path, ["Config", "view"], [env_vars_reduced, shell_pid]) do
+           Melbyd.LuaInterop.call(vm, ["Config", "view"], [env_vars_reduced, shell_pid]) do
       [view] = val
 
       %MelbyClient.ViewResponse{

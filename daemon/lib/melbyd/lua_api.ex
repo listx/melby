@@ -2,13 +2,20 @@ defmodule Melbyd.LuaInterop do
   @moduledoc false
 
   def run(lua_file, func_path, func_args) do
-    with {:ok, _, st} <- run_file(lua_file),
-         {:ok, res, _st} <- Luerl.call_function_dec(st, func_path, func_args) do
+    with {:ok, _, st} <- run_file(lua_file) do
+      call(st, func_path, func_args)
+    end
+  end
+
+  # Call a Lua function in an already loaded Lua state (such as one from
+  # Melbyd.LuaVmCache). We throw away the Lua state that the call returns, so
+  # the given state stays the same for the next call.
+  def call(st, func_path, func_args) do
+    case Luerl.call_function_dec(st, func_path, func_args) do
       # Now that we have the Lua state with all custom callback functions loaded
       # inside it (as well as calls to our Elixir Melbyd SDK), we can piece
       # together what the user wants.
-      {:ok, res}
-    else
+      {:ok, res, _st} -> {:ok, res}
       reason -> {:error, "#{inspect(reason)}"}
     end
   end

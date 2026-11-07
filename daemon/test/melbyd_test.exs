@@ -188,6 +188,127 @@ defmodule MelbydTest do
              Melbyd.LuaConfigValidation.validate(mix_root <> "/test/sample/melby.lua")
   end
 
+  # Write a small Lua config (config.lua) into the given directory, which
+  # requires a module (Part.lua) from the same directory. The config's only view
+  # test expects the output to contain "hello", so the config fails validation
+  # if the greeting doesn't have "hello" in it.
+  defp write_lua_config(dir, greeting) do
+    File.write!(Path.join(dir, "Part.lua"), """
+    local Part = {}
+    function Part.greeting()
+      return "#{greeting}"
+    end
+    return Part
+    """)
+
+    File.write!(Path.join(dir, "config.lua"), """
+    package.path = "#{dir}/?.lua;" .. package.path
+    local Part = require "Part"
+
+    Config = {}
+    Config.view_params_types = {
+      env = {
+        PWD = {"required", "path"},
+      },
+      shell_pid = {"required", "uint"}
+    }
+    Config.view_tests = {
+      {
+        env = {PWD = "/a/b"},
+        expected_substrings = {"hello"}
+      }
+    }
+    function Config.view(env, shell_pid)
+      return Part.greeting() .. " from " .. env["PWD"]
+    end
+    """)
+
+    Path.join(dir, "config.lua")
+  end
+
+  defp view_with_cached_vm(lua_file) do
+    {:ok, entry} = Melbyd.LuaVmCache.get(lua_file)
+    {:ok, [view]} = Melbyd.LuaInterop.call(entry.vm, ["Config", "view"], [%{"PWD" => "/x"}, "1"])
+    view
+  end
+
+  @tag lua_vm_cache: true
+  test "Lua VM cache: reuse the VM until a required file changes" do
+    lua_file = write_lua_config(mk_tmp_dir("lua_vm_cache"), "hello")
+
+    assert view_with_cached_vm(lua_file) == "hello from /x"
+    assert view_with_cached_vm(lua_file) == "hello from /x"
+    assert Melbyd.LuaVmCache.build_count(lua_file) == 1
+
+    {:ok, entry} = Melbyd.LuaVmCache.get(lua_file)
+    assert Path.join(Path.dirname(lua_file), "Part.lua") in entry.files
+
+    # Change only the required file. The next request still gets the old VM
+    # (stale-while-revalidate), but kicks off a rebuild.
+    write_lua_config(Path.dirname(lua_file), "hello there")
+    assert view_with_cached_vm(lua_file) == "hello from /x"
+
+    assert WaitForIt.wait(Melbyd.LuaVmCache.build_count(lua_file) == 2,
+             frequency: 50,
+             timeout: 5_000
+           )
+
+    assert view_with_cached_vm(lua_file) == "hello there from /x"
+  end
+
+  @tag lua_vm_cache: true
+  test "Lua VM cache: build only once for concurrent misses" do
+    lua_file = write_lua_config(mk_tmp_dir("lua_vm_cache"), "hello")
+
+    views =
+      1..20
+      |> Task.async_stream(fn _ -> view_with_cached_vm(lua_file) end, max_concurrency: 20)
+      |> Enum.map(fn {:ok, view} -> view end)
+
+    assert Enum.uniq(views) == ["hello from /x"]
+    assert Melbyd.LuaVmCache.build_count(lua_file) == 1
+  end
+
+  @tag lua_vm_cache: true
+  test "Lua VM cache: keep the old VM when the new config fails validation" do
+    lua_file = write_lua_config(mk_tmp_dir("lua_vm_cache"), "hello")
+    assert view_with_cached_vm(lua_file) == "hello from /x"
+
+    write_lua_config(Path.dirname(lua_file), "goodbye")
+    assert view_with_cached_vm(lua_file) == "hello from /x"
+
+    assert WaitForIt.wait(Melbyd.LuaVmCache.build_count(lua_file) == 2,
+             frequency: 50,
+             timeout: 5_000
+           )
+
+    # The failed build doesn't replace the old VM, and we don't retry it on
+    # every request while the files stay the same.
+    assert view_with_cached_vm(lua_file) == "hello from /x"
+    assert view_with_cached_vm(lua_file) == "hello from /x"
+    Process.sleep(200)
+    assert Melbyd.LuaVmCache.build_count(lua_file) == 2
+
+    # Fixing the config makes us try again.
+    write_lua_config(Path.dirname(lua_file), "hello again")
+    view_with_cached_vm(lua_file)
+
+    assert WaitForIt.wait(view_with_cached_vm(lua_file) == "hello again from /x",
+             frequency: 50,
+             timeout: 5_000
+           )
+  end
+
+  @tag lua_vm_cache: true
+  test "Lua VM cache: report an error for a config that never passed validation" do
+    lua_file = write_lua_config(mk_tmp_dir("lua_vm_cache"), "goodbye")
+
+    assert {:error, _} = Melbyd.LuaVmCache.get(lua_file)
+    # Asking again right away gives the same error without another build.
+    assert {:error, _} = Melbyd.LuaVmCache.get(lua_file)
+    assert Melbyd.LuaVmCache.build_count(lua_file) == 1
+  end
+
   # This tag lets us do "mix test --only basic" to only run this test.
   @tag basic: true
   test "basic smoke test (no git repo)", %{test: test_name} do

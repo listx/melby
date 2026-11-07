@@ -3153,6 +3153,11 @@ defmodule Melbyd.Application do
       # from Phoenix.PubSub's perspective.
       {Phoenix.PubSub, name: Melbyd.PubSub},
 
+      # Cache of loaded Lua VMs. This must start after everything that building
+      # a VM uses (Melbyd.TaskSupervisor, the validation cache, the SRS
+      # supervisor and PubSub), and before the gRPC service that uses it.
+      Melbyd.LuaVmCache,
+
       # gRPC service. (controller)
       {GRPC.Server.Supervisor,
        endpoint: Melbyd.GRPC,
@@ -3226,7 +3231,9 @@ Notice that we define the top-level =Melbyd.Endpont= module, which contains the
 :ID:       bfc9b5c9-64e2-4d3f-a38c-1167eea1828b
 :END:
 
-Below is =melby-client='s =ViewRequest= that we handle.
+Below is =melby-client='s =ViewRequest= that we handle. We get the user's Lua
+config, already loaded and validated, from the [[id:7646b12b-aa3f-45a0-be59-79ec4d0347e3][Lua VM cache]], and call its
+~Config.view~ function.
 
 #+header: :tangle daemon/lib/melbyd/view.ex
 #+begin_src elixir
@@ -3246,10 +3253,11 @@ defmodule Melbyd.View do
     Logger.info("MELBY_DIR is #{inspect(env_vars["MELBY_DIR"])}")
 
     with :ok <- validate(config_path, env_vars, shell_pid),
-         {:ok, view_params_types} <- Melbyd.LuaConfigValidation.validate(config_path),
+         {:ok, %{vm: vm, view_params_types: view_params_types}} <-
+           Melbyd.LuaVmCache.get(config_path),
          {:ok, env_vars_reduced} <- Melbyd.LuaConfigValidation.enforce_view_params_types(view_params_types, env_vars),
          {:ok, val} when is_list(val) and val != [] and is_binary(hd(val)) <-
-           Melbyd.LuaInterop.run(config_path, ["Config", "view"], [env_vars_reduced, shell_pid]) do
+           Melbyd.LuaInterop.call(vm, ["Config", "view"], [env_vars_reduced, shell_pid]) do
       [view] = val
 
       %MelbyClient.ViewResponse{
@@ -3362,13 +3370,20 @@ defmodule Melbyd.LuaInterop do
   @moduledoc false
 
   def run(lua_file, func_path, func_args) do
-    with {:ok, _, st} <- run_file(lua_file),
-         {:ok, res, _st} <- Luerl.call_function_dec(st, func_path, func_args) do
+    with {:ok, _, st} <- run_file(lua_file) do
+      call(st, func_path, func_args)
+    end
+  end
+
+  # Call a Lua function in an already loaded Lua state (such as one from
+  # Melbyd.LuaVmCache). We throw away the Lua state that the call returns, so
+  # the given state stays the same for the next call.
+  def call(st, func_path, func_args) do
+    case Luerl.call_function_dec(st, func_path, func_args) do
       # Now that we have the Lua state with all custom callback functions loaded
       # inside it (as well as calls to our Elixir Melbyd SDK), we can piece
       # together what the user wants.
-      {:ok, res}
-    else
+      {:ok, res, _st} -> {:ok, res}
       reason -> {:error, "#{inspect(reason)}"}
     end
   end
@@ -3820,6 +3835,411 @@ defmodule Melbyd.LuaConfigValidation do
            ]
          ]}
     }
+  end
+end
+#+end_src
+
+**** Lua VM cache
+:PROPERTIES:
+:ID:       7646b12b-aa3f-45a0-be59-79ec4d0347e3
+:END:
+
+Every view request needs the user's Lua config loaded into a Lua VM, and that
+config must have passed [[melbyd_lua_config_validation][validation]]. Doing this from scratch for every request
+is expensive: running the config with ~Luerl.dofile/2~ takes about 10ms for the
+sample config, and computing the VM fingerprint that the validation cache is
+keyed by takes about 25ms. Calling ~Config.view~ on an already loaded VM takes
+only about 5ms. So [[melbyd_lua_vm_cache][~Melbyd.LuaVmCache~]] keeps the loaded VM around and reuses it
+for every request that uses the same config.
+
+This is safe because Luerl VM states are immutable Erlang terms. Calling
+~Config.view~ on a cached state gives us back a new state (which we throw away)
+and leaves the cached one untouched, so every request still starts from the
+same pristine state, just like when we loaded the config afresh each time.
+
+The cache is keyed by the path of the config, not by the directory that the
+shell is in. The directory only reaches the config as the =PWD= env var passed
+to ~Config.view~, so all shells that use the same config share one VM.
+Per-directory data (like the state of a Git repo) is already shared through the
+[[id:a3de47b0-eb38-4e08-9ceb-3730abe70bf9][Standard Resource Service]], which runs one GenServer per resource.
+
+There are three things to get right:
+
+  1) Invalidation. The config can pull in other Lua files with ~require~ (the
+     sample config requires =Git.lua=, which in turn requires =GitFake.lua=), so
+     a change to any of them must invalidate the cache. After loading the
+     config, we ask the VM itself which files it loaded (see
+     [[melbyd_lua_vm_cache_loaded_files][~loaded_files/2~]]), and remember a hash of each file's contents. Every
+     request hashes these files again and compares. We hash the contents instead
+     of comparing modification times, because modification times only have a
+     resolution of one second (so two saves within the same second could go
+     unnoticed), and the files are small enough that hashing them takes only
+     microseconds.
+
+  2) Cache stampedes. Many shells can ask for the same config at the same time,
+     such as when tmux restores many panes at once. Without coordination, each
+     of them would load and validate the config on its own. Instead, cache
+     misses go through a GenServer, which starts only one build per config and
+     makes every other request for that config wait for it. Cache hits don't
+     go through the GenServer, so they never wait on each other.
+
+  3) Edits to the config. When a request notices that the config changed, it
+     keeps using the old VM and asks the GenServer to rebuild it in the
+     background (this is the "stale-while-revalidate" pattern). The new VM only
+     replaces the old one once it passes validation. So shells never wait for a
+     rebuild after an edit, and a broken config never replaces a working one.
+     The price is that the first prompt after an edit still uses the old config.
+
+We store the cached VMs with ~:persistent_term~ instead of ETS (or the state of
+a GenServer), because a Luerl VM state is a large term (about 190KB for the
+sample config), and ETS and GenServer replies copy the whole term on every
+read. Reading from ~:persistent_term~ copies nothing. Updating a
+~:persistent_term~ is expensive (it makes every process do a garbage
+collection), but we only do it when a config changes.
+
+#+name: melbyd_lua_vm_cache
+#+caption: =Melbyd.LuaVmCache=
+#+header: :tangle daemon/lib/melbyd/lua_vm_cache.ex
+#+begin_src elixir
+defmodule Melbyd.LuaVmCache do
+  @moduledoc """
+  Cache of loaded (and validated) Lua VMs, keyed by the path of the Lua config.
+  """
+
+  use GenServer
+  require Logger
+
+  <<melbyd_lua_vm_cache_get>>
+
+  <<melbyd_lua_vm_cache_server>>
+
+  <<melbyd_lua_vm_cache_build>>
+
+  <<melbyd_lua_vm_cache_loaded_files>>
+end
+#+end_src
+
+***** Reading from the cache
+
+[[melbyd_lua_vm_cache_get][~get/1~]] is what [[id:bfc9b5c9-64e2-4d3f-a38c-1167eea1828b][~Melbyd.View~]] calls on every request. On a hit, it checks
+that the files are unchanged and returns the entry without talking to the
+GenServer. If any of the files changed, it still returns the (stale) entry, but
+also tells the GenServer to rebuild it in the background. Only on a miss (when
+there is no entry at all, such as for the first request after melbyd starts)
+does it wait for the GenServer, which replies once the VM is built.
+
+We wait on the GenServer without a timeout, because the build can take a while
+(validation runs every ~Config.view_tests~ entry) and the GenServer always
+replies, even when the build crashes. Callers that need a deadline should run
+~get/1~ in a task.
+
+#+name: melbyd_lua_vm_cache_get
+#+begin_src elixir
+@doc """
+Return the cache entry for the Lua config at the given path, building it first
+if necessary. The entry is a map with the loaded Lua VM state (:vm), the
+validated view params types (:view_params_types), and the files that the config
+loaded (:files) along with their hashes (:hashes).
+"""
+def get(lua_file) do
+  lua_file = Path.expand(lua_file)
+
+  case :persistent_term.get({__MODULE__, lua_file}, nil) do
+    nil ->
+      GenServer.call(__MODULE__, {:get, lua_file}, :infinity)
+
+    entry ->
+      if hashes(entry.files) != entry.hashes do
+        GenServer.cast(__MODULE__, {:refresh, lua_file})
+      end
+
+      {:ok, entry}
+  end
+end
+
+@doc """
+Return how many times we have built a VM for the given config. Useful for
+debugging (and testing) the cache.
+"""
+def build_count(lua_file) do
+  GenServer.call(__MODULE__, {:build_count, Path.expand(lua_file)})
+end
+
+# Hash the contents of each file. A missing (or unreadable) file gets the error
+# reason instead, so that deleting a file also counts as a change.
+defp hashes(files) do
+  Enum.map(files, fn file ->
+    case File.read(file) do
+      {:ok, contents} -> :crypto.hash(:sha256, contents)
+      {:error, reason} -> reason
+    end
+  end)
+end
+#+end_src
+
+***** The GenServer
+
+The GenServer's state tracks three things:
+
+  - =building= :: the builds in progress, keyed by config path. Each build has
+    the reference of its task and the callers waiting for it.
+
+  - =failed= :: the last failed build of each config, so that we don't retry a
+    broken config on every request (see below).
+
+  - =build_counts= :: how many times we built each config.
+
+When ~get/1~ misses, we first check whether an entry appeared in the meantime
+(another request could have built it after our caller looked), and then whether
+a build is already running. Only if neither is the case do we start a build.
+
+The build itself runs in a task under =Melbyd.TaskSupervisor=, so that the
+GenServer stays free to answer other requests while the build runs. We use
+~Task.Supervisor.async_nolink/2~ so that a crash in the build (say, from a bug in
+the Lua SDK) doesn't take the GenServer down with it. Instead we get a =:DOWN=
+message and reply with an error to everyone waiting.
+
+If a build fails while there is still an old entry, the old entry stays in place
+and we log why the build failed. But we have to remember the failure, because
+until the user fixes the config, every request would see that the files changed
+and ask us to rebuild. So we remember the hashes of the files at the time of the
+failure, and only try again once they change. We also try again after
+=@retry_after_ms= no matter what, because we only know about the files that the
+last successful build loaded (and the config itself). If the user adds a
+~require~ of a new file that is broken, and then fixes only that new file, none
+of the files we know about change. The same goes for a config that fails on the
+very first build, where we can't tell which files it would have loaded.
+
+#+name: melbyd_lua_vm_cache_server
+#+begin_src elixir
+# How long to wait before retrying a failed build, even if none of the files
+# that we know about changed.
+@retry_after_ms 5_000
+
+def start_link(_init_arg) do
+  GenServer.start_link(__MODULE__, nil, name: __MODULE__)
+end
+
+@impl true
+def init(_init_arg) do
+  {:ok, %{building: %{}, failed: %{}, build_counts: %{}}}
+end
+
+@impl true
+def handle_call({:get, lua_file}, from, state) do
+  case :persistent_term.get({__MODULE__, lua_file}, nil) do
+    nil ->
+      case recent_failure(state, lua_file) do
+        nil -> {:noreply, start_build(state, lua_file, [from])}
+        reason -> {:reply, {:error, reason}, state}
+      end
+
+    entry ->
+      {:reply, {:ok, entry}, state}
+  end
+end
+
+@impl true
+def handle_call({:build_count, lua_file}, _from, state) do
+  {:reply, Map.get(state.build_counts, lua_file, 0), state}
+end
+
+@impl true
+def handle_cast({:refresh, lua_file}, state) do
+  if recent_failure(state, lua_file) == nil do
+    {:noreply, start_build(state, lua_file, [])}
+  else
+    {:noreply, state}
+  end
+end
+
+# The build finished (whether it succeeded or not).
+@impl true
+def handle_info({ref, result}, state) when is_reference(ref) do
+  Process.demonitor(ref, [:flush])
+  {:noreply, finish_build(state, ref, result)}
+end
+
+# The build crashed.
+@impl true
+def handle_info({:DOWN, ref, :process, _pid, reason}, state) do
+  {:noreply, finish_build(state, ref, {:error, "build crashed: #{inspect(reason)}", nil})}
+end
+
+# Start a build of the given config, unless one is running already. Either way,
+# add the waiters to the build.
+defp start_build(state, lua_file, waiters) do
+  case state.building[lua_file] do
+    nil ->
+      Logger.info("building Lua VM for #{inspect(lua_file)}")
+      old_entry = :persistent_term.get({__MODULE__, lua_file}, nil)
+      known_files = if old_entry, do: old_entry.files, else: [lua_file]
+
+      task =
+        Task.Supervisor.async_nolink(Melbyd.TaskSupervisor, fn ->
+          build(lua_file, known_files)
+        end)
+
+      put_in(state.building[lua_file], %{ref: task.ref, waiters: waiters})
+
+    build ->
+      put_in(state.building[lua_file].waiters, waiters ++ build.waiters)
+  end
+end
+
+defp finish_build(state, ref, result) do
+  case Enum.find(state.building, fn {_, build} -> build.ref == ref end) do
+    nil ->
+      state
+
+    {lua_file, build} ->
+      state = %{state | building: Map.delete(state.building, lua_file)}
+
+      reply =
+        case result do
+          {:ok, entry} ->
+            :persistent_term.put({__MODULE__, lua_file}, entry)
+            {:ok, entry}
+
+          {:error, reason, _known_files} ->
+            Logger.warning("failed to build Lua VM for #{inspect(lua_file)}: #{reason}")
+            {:error, reason}
+        end
+
+      Enum.each(build.waiters, &GenServer.reply(&1, reply))
+
+      state = update_in(state.build_counts[lua_file], &((&1 || 0) + 1))
+
+      case result do
+        {:ok, _} ->
+          %{state | failed: Map.delete(state.failed, lua_file)}
+
+        {:error, reason, known_files} ->
+          # If the build crashed, we don't know which files it read. Assume
+          # the config itself.
+          known_files = known_files || [lua_file]
+
+          failure = %{
+            files: known_files,
+            hashes: hashes(known_files),
+            reason: reason,
+            at: System.monotonic_time(:millisecond)
+          }
+
+          put_in(state.failed[lua_file], failure)
+      end
+  end
+end
+
+# Return the reason for the last failed build of this config, if it failed
+# recently and none of the files it knew about have changed since.
+defp recent_failure(state, lua_file) do
+  case state.failed[lua_file] do
+    nil ->
+      nil
+
+    failure ->
+      age = System.monotonic_time(:millisecond) - failure.at
+
+      if age < @retry_after_ms and hashes(failure.files) == failure.hashes do
+        failure.reason
+      else
+        nil
+      end
+  end
+end
+#+end_src
+
+***** Building a VM
+
+[[melbyd_lua_vm_cache_build][~build/2~]] validates the config first (exactly as we did before we had this
+cache), and only then loads it for real with [[lua_api.ex][~Melbyd.LuaInterop.run_file/1~]]. This
+way, we never run the top-level code of a config that fails validation outside
+of the fake environment that validation uses.
+
+Validation and the real load each read the files separately, so the user could
+save a file in between, and we would end up with a VM for a version of the
+config that we never validated. To catch this, we hash the files that we know
+about (from the previous build, or else just the config itself) before
+validating, and hash them again once we're done. If they changed, we start over.
+We give up after a few tries, in case something keeps rewriting the files.
+
+#+name: melbyd_lua_vm_cache_build
+#+begin_src elixir
+# How many times to try building a VM if its files keep changing underneath us.
+@build_tries 3
+
+# Build the cache entry for the given config. Return {:ok, entry} on success, or
+# {:error, reason, files} on failure, where files are the files that we know
+# the config loaded (if any).
+defp build(lua_file, known_files, tries \\ @build_tries) do
+  hashes_before = hashes(known_files)
+
+  with {:ok, view_params_types} <- Melbyd.LuaConfigValidation.validate(lua_file),
+       {:ok, _, vm} <- Melbyd.LuaInterop.run_file(lua_file),
+       {:ok, files} <- loaded_files(lua_file, vm) do
+    entry = %{
+      vm: vm,
+      view_params_types: view_params_types,
+      files: files,
+      hashes: hashes(files)
+    }
+
+    cond do
+      hashes(known_files) == hashes_before ->
+        {:ok, entry}
+
+      tries > 1 ->
+        Logger.info("#{inspect(lua_file)} changed while building its Lua VM; retrying")
+        build(lua_file, files, tries - 1)
+
+      true ->
+        {:error, "#{inspect(lua_file)} kept changing while building its Lua VM", files}
+    end
+  else
+    {:error, reason} when is_binary(reason) -> {:error, reason, known_files}
+    {:error, reason} -> {:error, inspect(reason), known_files}
+    err -> {:error, inspect(err), known_files}
+  end
+end
+#+end_src
+
+[[melbyd_lua_vm_cache_loaded_files][~loaded_files/2~]] asks the loaded VM which files it read. Lua's ~require~ records
+every module it loads in the =package.loaded= table, and ~package.searchpath~
+finds the file that a module name resolves to (with the same =package.path= that
+~require~ used). Modules that don't come from a file (such as the =string=
+library) have no file on the =package.path=, so ~package.searchpath~ skips them.
+
+We do this in Lua instead of decoding =package.loaded= into Elixir, because
+=package.loaded= also holds the global table =_G= (which contains itself), so
+decoding it would be expensive.
+
+Note that this only finds files loaded with ~require~ when the config is first
+run. A file that the config only loads later (from inside ~Config.view~) or loads
+with ~dofile~ won't invalidate the cache.
+
+#+name: melbyd_lua_vm_cache_loaded_files
+#+begin_src elixir
+@loaded_files_lua """
+local files = {}
+for name in pairs(package.loaded) do
+  local file = package.searchpath(name, package.path)
+  if file then
+    files[#files + 1] = file
+  end
+end
+return files
+"""
+
+# Return the config itself and every file that it loaded with "require".
+defp loaded_files(lua_file, vm) do
+  case Luerl.do_dec(vm, @loaded_files_lua) do
+    {:ok, [files], _vm} ->
+      required = files |> Melbyd.LuerlUtil.array_to_native_list() |> Enum.sort()
+      {:ok, Enum.uniq([lua_file | required])}
+
+    err ->
+      {:error, "could not list the files loaded by #{inspect(lua_file)}: #{inspect(err)}"}
   end
 end
 #+end_src
@@ -5109,6 +5529,127 @@ defmodule MelbydTest do
 
     assert {:ok, %{"env" => _}} =
              Melbyd.LuaConfigValidation.validate(mix_root <> "/test/sample/melby.lua")
+  end
+
+  # Write a small Lua config (config.lua) into the given directory, which
+  # requires a module (Part.lua) from the same directory. The config's only view
+  # test expects the output to contain "hello", so the config fails validation
+  # if the greeting doesn't have "hello" in it.
+  defp write_lua_config(dir, greeting) do
+    File.write!(Path.join(dir, "Part.lua"), """
+    local Part = {}
+    function Part.greeting()
+      return "#{greeting}"
+    end
+    return Part
+    """)
+
+    File.write!(Path.join(dir, "config.lua"), """
+    package.path = "#{dir}/?.lua;" .. package.path
+    local Part = require "Part"
+
+    Config = {}
+    Config.view_params_types = {
+      env = {
+        PWD = {"required", "path"},
+      },
+      shell_pid = {"required", "uint"}
+    }
+    Config.view_tests = {
+      {
+        env = {PWD = "/a/b"},
+        expected_substrings = {"hello"}
+      }
+    }
+    function Config.view(env, shell_pid)
+      return Part.greeting() .. " from " .. env["PWD"]
+    end
+    """)
+
+    Path.join(dir, "config.lua")
+  end
+
+  defp view_with_cached_vm(lua_file) do
+    {:ok, entry} = Melbyd.LuaVmCache.get(lua_file)
+    {:ok, [view]} = Melbyd.LuaInterop.call(entry.vm, ["Config", "view"], [%{"PWD" => "/x"}, "1"])
+    view
+  end
+
+  @tag lua_vm_cache: true
+  test "Lua VM cache: reuse the VM until a required file changes" do
+    lua_file = write_lua_config(mk_tmp_dir("lua_vm_cache"), "hello")
+
+    assert view_with_cached_vm(lua_file) == "hello from /x"
+    assert view_with_cached_vm(lua_file) == "hello from /x"
+    assert Melbyd.LuaVmCache.build_count(lua_file) == 1
+
+    {:ok, entry} = Melbyd.LuaVmCache.get(lua_file)
+    assert Path.join(Path.dirname(lua_file), "Part.lua") in entry.files
+
+    # Change only the required file. The next request still gets the old VM
+    # (stale-while-revalidate), but kicks off a rebuild.
+    write_lua_config(Path.dirname(lua_file), "hello there")
+    assert view_with_cached_vm(lua_file) == "hello from /x"
+
+    assert WaitForIt.wait(Melbyd.LuaVmCache.build_count(lua_file) == 2,
+             frequency: 50,
+             timeout: 5_000
+           )
+
+    assert view_with_cached_vm(lua_file) == "hello there from /x"
+  end
+
+  @tag lua_vm_cache: true
+  test "Lua VM cache: build only once for concurrent misses" do
+    lua_file = write_lua_config(mk_tmp_dir("lua_vm_cache"), "hello")
+
+    views =
+      1..20
+      |> Task.async_stream(fn _ -> view_with_cached_vm(lua_file) end, max_concurrency: 20)
+      |> Enum.map(fn {:ok, view} -> view end)
+
+    assert Enum.uniq(views) == ["hello from /x"]
+    assert Melbyd.LuaVmCache.build_count(lua_file) == 1
+  end
+
+  @tag lua_vm_cache: true
+  test "Lua VM cache: keep the old VM when the new config fails validation" do
+    lua_file = write_lua_config(mk_tmp_dir("lua_vm_cache"), "hello")
+    assert view_with_cached_vm(lua_file) == "hello from /x"
+
+    write_lua_config(Path.dirname(lua_file), "goodbye")
+    assert view_with_cached_vm(lua_file) == "hello from /x"
+
+    assert WaitForIt.wait(Melbyd.LuaVmCache.build_count(lua_file) == 2,
+             frequency: 50,
+             timeout: 5_000
+           )
+
+    # The failed build doesn't replace the old VM, and we don't retry it on
+    # every request while the files stay the same.
+    assert view_with_cached_vm(lua_file) == "hello from /x"
+    assert view_with_cached_vm(lua_file) == "hello from /x"
+    Process.sleep(200)
+    assert Melbyd.LuaVmCache.build_count(lua_file) == 2
+
+    # Fixing the config makes us try again.
+    write_lua_config(Path.dirname(lua_file), "hello again")
+    view_with_cached_vm(lua_file)
+
+    assert WaitForIt.wait(view_with_cached_vm(lua_file) == "hello again from /x",
+             frequency: 50,
+             timeout: 5_000
+           )
+  end
+
+  @tag lua_vm_cache: true
+  test "Lua VM cache: report an error for a config that never passed validation" do
+    lua_file = write_lua_config(mk_tmp_dir("lua_vm_cache"), "goodbye")
+
+    assert {:error, _} = Melbyd.LuaVmCache.get(lua_file)
+    # Asking again right away gives the same error without another build.
+    assert {:error, _} = Melbyd.LuaVmCache.get(lua_file)
+    assert Melbyd.LuaVmCache.build_count(lua_file) == 1
   end
 
   # This tag lets us do "mix test --only basic" to only run this test.

@@ -31,6 +31,11 @@ defmodule Melbyd.Application do
       # from Phoenix.PubSub's perspective.
       {Phoenix.PubSub, name: Melbyd.PubSub},
 
+      # Cache of loaded Lua VMs. This must start after everything that building
+      # a VM uses (Melbyd.TaskSupervisor, the validation cache, the SRS
+      # supervisor and PubSub), and before the gRPC service that uses it.
+      Melbyd.LuaVmCache,
+
       # gRPC service. (controller)
       {GRPC.Server.Supervisor,
        endpoint: Melbyd.GRPC,
