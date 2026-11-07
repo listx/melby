@@ -57,16 +57,13 @@ We use several programming languages: Elixir, Lua, Rust, and Haskell.
     stability, and so it is the preferred language for building smaller
     independent components outside of the base (Elixir) system.
 
-We also use [[https://en.wikipedia.org/wiki/Literate_programming][Literate Programming]] (LP). To this end, we use Emacs Org mode
-(=*.org= files) as the source of truth. These files are /tangled/ into the above
-languages for the application binaries. These same Org files are /woven/ to
-produce HTML files for documentation (what you are probably reading now). We use
-several languages for weaving:
-
-  - *Emacs Lisp*: We use Emacs Lisp to tame Emacs Org mode for LP. Emacs Org mode
-    is used for LP in this project because it is probably the most flexible and
-    widely-used LP system out there. LaTeX + Noweb is another possibility, but
-    it was not chosen because Org mode by default looks reasonable in plaintext.
+We also use [[https://en.wikipedia.org/wiki/Literate_programming][Literate Programming]] (LP). To this end, we use Org files
+(=*.org=) as the source of truth, and [[https://github.com/listx/lilac][Lilac]] to process them. LaTeX + Noweb is
+another possibility, but it was not chosen because Org looks reasonable in
+plaintext. These files are /tangled/ into the above languages for the
+application binaries. These same Org files are /woven/ to produce HTML files for
+documentation (what you are probably reading now). We use several languages for
+weaving:
 
   - *TikZ*: [[https://en.wikipedia.org/wiki/PGF/TikZ][PGF/TikZ]] is used for writing all of the diagrams and figures used for
     documentation. This is because TikZ is extremely stable, powerful, and
@@ -213,7 +210,7 @@ Weaving for requires the following dependencies:
 
 | Dependency    | Why                              | How to install it |
 | GNU Make      |                                  | ?                 |
-| emacs         |                                  |                   |
+| lilac         |                                  |                   |
 | texlive       | Diagrams                         |                   |
 | pdf2svg       | Diagrams                         |                   |
 | inkscape      | Diagrams                         |                   |
