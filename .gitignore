@@ -7,10 +7,6 @@
 # Haskell "stack" tooling metadata.
 .stack-work
 
-# Ignore all HTML files because we don't want ripgrep to search them when we
-# perform text searches.
-*.html
-
 # Temporary files related to image generation.
 image/*.aux
 image/*.log
