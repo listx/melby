@@ -30,6 +30,7 @@ Also see https://orgmode.org/manual/Comment-Lines.html.
 developer-manual.org
 user-manual.org
 image.org
+plan.org
 #+end_src
 
 * Introduction

@@ -1,0 +1,58 @@
+:PROPERTIES:
+:ID:       82dfa224-b136-44ae-a689-2a02adada197
+:END:
+#+begin_comment
+Copyright 2026 Linus Arver
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+#+end_comment
+#+title: Plan
+
+This document explains planned work (what's on the roadmap, etc).
+
+  - The [[id:5c13b3ed-27fb-41c2-9661-b4a4ef3c9eb1][Prioritized TODOs]] section lists all TODOs that have currently been
+    prioritized. This is essentially the short-term roadmap.
+
+  - The [[id:702bb2cb-999d-4ae2-b195-4b859f7f13a4][Backlog]] section lists medium-term TODO items, or ideas that seem
+    interesting.
+
+  - The [[id:fcca703e-7933-44f1-8088-ec6836d5c392][Icebox]] section lists TODO items that are much more difficult to do, but
+    are still interesting. It also has items which have a low priority.
+
+New TODOs start out in the [[id:702bb2cb-999d-4ae2-b195-4b859f7f13a4][Backlog]] and over time they are then moved around to
+other sections as needed.
+
+* Prioritized TODOs
+:PROPERTIES:
+:ID:       5c13b3ed-27fb-41c2-9661-b4a4ef3c9eb1
+:END:
+
+* Backlog
+:PROPERTIES:
+:ID:       702bb2cb-999d-4ae2-b195-4b859f7f13a4
+:END:
+
+** TODO triage FIXMEs in the manuals
+:PROPERTIES:
+:ID:       76886fd8-466e-4fa4-87ef-67a23d8cc39e
+:END:
+
+The [[id:db4f2717-87ac-47b7-9299-11004e8dfa63][developer manual]] and the [[id:4ab7d52a-caf1-4793-8ec3-628ff95ad167][user manual]] have many ~FIXME~ notes scattered
+throughout their prose and code blocks. Go through them and either fix them
+directly or move them here as TODO items, so that this document becomes the one
+place to look for planned work.
+
+* Icebox
+:PROPERTIES:
+:ID:       fcca703e-7933-44f1-8088-ec6836d5c392
+:END:

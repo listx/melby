@@ -1,7 +1,7 @@
 PROJ_ROOT := $(shell git rev-parse --show-toplevel)
 PROCS := $(shell nproc)
 
-org_files := index.org developer-manual.org user-manual.org image.org
+org_files := index.org developer-manual.org user-manual.org image.org plan.org
 obj_files := $(org_files:%.org=%.lobj)
 archive_file := melby.larc
 
