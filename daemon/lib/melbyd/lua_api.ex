@@ -35,17 +35,6 @@ import Cachex.Spec
 defmodule Melbyd.LuaConfigValidation do
   require Logger
 
-  # FIXME: Add Cachex lookup to see if this config was validated previously. We
-  # should add this lookup after we've implemented the validation functionality
-  # completely.
-  #
-  # FIXME: (For caching) We should require env vars (which we use) to be
-  # declared ahead of time, and hash the *names* of these env vars (not their
-  # contents) as required inputs (you can think of them as types) to a function
-  # (this Lua config). And then if the config does not declare this list of env
-  # vars, we can refuse to validate it. This way we capture the exact "function
-  # definition", so to speak, of the Lua config by precisely describing its
-  # definition.
   def validate(lua_file) do
     with st0 <- Luerl.init(),
          st1 <- Luerl.load_module(st0, ["melbyd"], Melbyd.LuaSdk),
@@ -88,9 +77,6 @@ defmodule Melbyd.LuaConfigValidation do
 
   # Return the blank state of the initial Lua VM state meant for validation
   # purposes only.
-  #
-  # FIXME: Add a fake for SLG also? And also delete it when we're done with
-  # validation?
   def preloaded_fake_lua_vm() do
     Luerl.init()
     |> Luerl.load_module(["melbyd"], Melbyd.LuaSdk)
@@ -134,9 +120,6 @@ defmodule Melbyd.LuaConfigValidation do
     with {_, st1} <- Luerl.dofile(preloaded_fake_lua_vm, String.to_charlist(lua_file)),
          view_params_types <- get_view_params_types(st1),
          :ok <- assert_expected_views(st1, view_params_types, vm_fingerprint) do
-      # FIXME: Maybe store some more useful metrics beyond just
-      # "view_params_types". E.g., the number of test cases executed, how long
-      # it took to run it (at what time), etc.
       {:commit, view_params_types}
     else
       # If there's any error, abort and return nil.
@@ -271,8 +254,6 @@ defmodule Melbyd.LuaConfigValidation do
   end
 
   def assert_type_path(path) do
-    # FIXME: use haskell parsec to do a full parse
-
     # Use a basic heuristic. Assert that the first character starts with a slash
     # "/", that the last character is not a slash, and that there are no runs of
     # consecutive slashes. No null bytes. Last character cannot  be "." (this
@@ -290,8 +271,6 @@ defmodule Melbyd.LuaConfigValidation do
   end
 
   def assert_type_paths(paths) do
-    # FIXME: use haskell parsec to do a full parse
-
     # Use a basic heuristic. Assert that the first character starts with a slash
     # "/", that the last character is not a slash, and that there are no runs of
     # consecutive slashes. No null bytes. Last character cannot  be "." (this
@@ -313,33 +292,6 @@ defmodule Melbyd.LuaConfigValidation do
     end
   end
 
-  # FIXME: Each of the SRS models have a "fake" field with faked readers in it
-  # (which return plausible, well-formatted data). We just have to use them
-  # somehow.
-  #
-  # We can make this fake tick runner just run the ["Config", "view"] function
-  # in the Lua state, wait 1 second, check the result and compare it to the
-  # expectation, and repeat. The expectations can come from the config file
-  # itself (add it under another key path). The behind the scenes the
-  # StandardResource should behave almost like in prod, but with the difference
-  # that it'll run the fake readers instead of the actual readers, as well as
-  # provision the SRS GenServer in a different namespace so as not to clash with
-  # the production resources.
-
-  # The config should tell us how many "ticks" and corresponding expectations to
-  # run. We could enforce a minimum of 3 rounds from our side (i.e., fail
-  # validation if the user has not configured at lesat 3 rounds of
-  # expectations).
-  #
-  # Each iteration should be:
-  #
-  #     1. Execute ["Config", "view"] function in the Lua VM state (time_idx is 1).
-  #
-  #     2. Expectation: check expected return value of the above versus what we
-  #     actually got (got vs want).
-  #
-  #     3. Increment time_idx by 1, and re-run step 1. Continue until time_idx
-  #     == 10 or some other number.
   def assert_expected_views(st0, view_params_types, vm_fingerprint) do
     # Set the vm_fingerprint inside the Lua VM, so that the fake Lua SDK
     # functions can use them to pass them on to Elixir.
@@ -362,7 +314,6 @@ defmodule Melbyd.LuaConfigValidation do
         # Check vals of fake env_vars in view_tests.
         env_vars_fake = view_test["env"] |> Melbyd.LuerlUtil.table_to_native_map()
 
-        # FIXME: dedupe this logic (copied from enforce_view_params_types)
         type_errors =
           Enum.reduce(view_params_types["env"], [], fn {name, type_array}, errors ->
             [req_or_opt, type] =
@@ -554,7 +505,7 @@ defmodule Melbyd.LuaSdkLoader do
       lua_func_name =
         String.replace_prefix(Atom.to_string(elixir_func), "__handle_lua_call__", "")
 
-      # The arity is fixed at 2, because (FIXME: add link).
+      # The arity is fixed at 2.
       elixir_func_reference = Function.capture(module, elixir_func, 2)
       {lua_func_name, {:erl_func, elixir_func_reference}}
     end)
@@ -697,7 +648,6 @@ defmodule Melbyd.LuaSdk do
   def style_from_str(s) do
     case s do
       "bold" -> :TEXT_STYLE_BOLD
-      # FIXME: skip over unrecogized values
       _ -> :TEXT_STYLE_BOLD
     end
   end
@@ -886,11 +836,6 @@ defmodule Melbyd.LuaSdk do
         ret <> "\n)\n"
 
       _ ->
-        # FIXME: Technically this is broken if "v" has a string "END_HEREDOC" on
-        # its own line. There are ways around this but for now we don't care.
-        #
-        # It's doubly broken because "k" could have an invalid non-keyword
-        # character in it. But again we don't care for now.
         """
         #{name}=$(cat << 'END_HEREDOC'
         #{val}

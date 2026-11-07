@@ -29,6 +29,9 @@ This document explains planned work (what's on the roadmap, etc).
   - The [[id:fcca703e-7933-44f1-8088-ec6836d5c392][Icebox]] section lists TODO items that are much more difficult to do, but
     are still interesting. It also has items which have a low priority.
 
+  - The [[id:f6721c0a-5fd5-427f-825b-96d980f45a92][Legacy items]] section lists old TODO items that were written before this
+    document existed. They have not been sorted into the other sections yet.
+
 New TODOs start out in the [[id:702bb2cb-999d-4ae2-b195-4b859f7f13a4][Backlog]] and over time they are then moved around to
 other sections as needed.
 
@@ -42,7 +45,7 @@ other sections as needed.
 :ID:       702bb2cb-999d-4ae2-b195-4b859f7f13a4
 :END:
 
-** TODO triage FIXMEs in the manuals
+** DONE triage FIXMEs in the manuals
 :PROPERTIES:
 :ID:       76886fd8-466e-4fa4-87ef-67a23d8cc39e
 :END:
@@ -56,3 +59,635 @@ place to look for planned work.
 :PROPERTIES:
 :ID:       fcca703e-7933-44f1-8088-ec6836d5c392
 :END:
+
+* Legacy items
+:PROPERTIES:
+:ID:       f6721c0a-5fd5-427f-825b-96d980f45a92
+:END:
+
+These are old TODO and FIXME notes. They used to be scattered throughout the
+prose and the code comments of the [[id:db4f2717-87ac-47b7-9299-11004e8dfa63][developer manual]] and the [[id:4ab7d52a-caf1-4793-8ec3-628ff95ad167][user manual]] (and
+so also throughout the tangled source code), and were moved here so that this
+document is the one place to look for planned work. Their wording is mostly
+unchanged, and they have not been checked for whether they still apply. Each
+item links to the place where the note used to be.
+
+When we look at one of these items again, we should either delete it (if it no
+longer applies), or move it to one of the sections above.
+
+** Build system and packaging
+:PROPERTIES:
+:ID:       118df1ba-1ce4-40b5-b6b6-7f9fdd9caf9b
+:END:
+
+*** TODO get the Git version into the release environment
+
+From the [[id:b2e59b7b-584d-42a6-9be6-62ce1ccf5240][Nix shell]]: How to get the git version into the environment? The setting
+for ~MELBY_PROJECT_ROOT~ in the ~shellHook~ only works for the dev env, not the
+release env.
+
+*** TODO create version strings for the Haskell packages
+
+From [[id:03f01b07-6887-4d68-8f16-612adf9edd60][Releasing]] (~package/build.nix~): We need to pass in a "version" attribute
+to all Haskell packages because the default ~buildStackProject~ helper does not
+provide a version. This means we need to start creating version strings,
+probably in the format "YY.MM.DD-<sha>" to make it incremental.
+
+These commented-out lines were next to the note:
+
+#+begin_example
+#melby-client-2 = (import melby-client-1) {};
+#melby-client-3 = pkgs.haskell.lib.addBuildTool melby-client-2 fakeGit;
+#+end_example
+
+*** TODO add production settings to the systemd env file
+
+From [[id:03f01b07-6887-4d68-8f16-612adf9edd60][Releasing]]: Add in "prod" settings to ~\~/.melby/systemd/env~ for
+~MELBYR_PATH~, ~MELBYR_PORT~, and so on so as to not conflict with the dev
+environment. Even better, add these settings in our Elixir code so that the user
+does not (normally) have to configure them.
+
+*** TODO merge the env vars in the daemon Makefile with nix-shell
+
+From the [[id:c5e1e3c9-faa3-4910-b9af-a1b5d03f10c2][melbyd Makefile]]: Merge the env vars that it exports (~MELBYR_PATH~,
+~LUA_PATH~ and ~MELBY_DIR~) with the env vars already exported in nix-shell.
+
+*** TODO build protoc-gen-elixir without compiling the entire project
+
+From [[id:c9790759-edd9-41c9-82b7-1a2ff17c0b4e][protoc-gen-elixir.nix]]: This is very heavy as it compiles the entire project
+(which we don't need to do). However this appears to be the only way possible to
+compile the protoc-gen-elixir escript executable.
+
+*** TODO fetch the Mix dependencies with mix2nix
+
+From [[id:ab469927-5592-4cc6-b743-2d3584cda8e5][Mix release]]: ~fetchMixDeps~ appears to result in a SHA mismatch between
+Linux and Mac. We should probably use mix2nix to download mix dependencies
+reproducibly, as described in
+https://github.com/NixOS/nixpkgs/blame/2ea8b001f6ba09cc6eb9a30f4e117cbc3ec5afe2/doc/languages-frameworks/beam.section.md#L79.
+
+Hmm but this appears to be the same now since upgrading to 23.11.
+
+*** TODO take the melby-daemon version from Git tags
+
+From [[id:ab469927-5592-4cc6-b743-2d3584cda8e5][Mix release]]: When ~melby-daemon.nix~ is eventually upstreamed to Nixpkgs
+(if we want that), at that point we can start referring to Git tags/releases and
+use the version string from that instead (and download the tarball/zip, and
+proceed to build the package).
+
+*** TODO deduplicate the build inputs of melby-daemon.nix and shell.nix
+
+From [[id:ab469927-5592-4cc6-b743-2d3584cda8e5][Mix release]]: The build inputs for ~file_system~ (on Linux and macOS) are a
+copy/paste of ~shell.nix~ at the root and should be deduplicated.
+
+** melbyc
+:PROPERTIES:
+:ID:       3c01021f-664f-4d5c-84ec-b0b812806e2f
+:END:
+
+*** TODO configure the domain and port in a file shared with the daemon
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyc_option_handling_dispatcher][~melbyc_option_handling_dispatcher~]]: Configure the domain and port to be
+configurable through TOML or yaml in a shared location with the daemon. The
+daemon should configure its port with it. The precedence of settings (where
+later mechanisms override earlier ones) is:
+
+  1) the configuration file (in TOML) converted to a native Haskell type (with
+     sane defaults) with tomland
+     (https://kowainik.github.io/posts/2019-01-14-tomland), and
+
+  2) command-line options that are passed in at runtime.
+
+*** TODO only send an allowlist of env vars to the daemon
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::client-rust--business-logic][~client-rust--business-logic~]]: Instead of slurping up everything, only slurp
+up an "allowlist" of known ENV vars we want to feed into the daemon. This
+allowlist could be defined in settings.yml or even as an additive list of flags.
+We could do the additive list of flags first and then move to settings.yml in
+the future if there are just too many flags.
+
+*** TODO move ~shell_pid~ into ~env_vars~
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyproto_melby_client][~melbyproto_melby_client~]] and the [[id:b3f3eb4b-55aa-4fc2-a9fc-c3d3cd6b31a6][main configuration]]: Move ~shell_pid~ to an
+env var, to unify all inputs into ~env_vars~.
+
+*** TODO look for the Lua configuration in ~\~/.melby~ by default
+
+From the [[id:b3f3eb4b-55aa-4fc2-a9fc-c3d3cd6b31a6][main configuration]]: Make ~LUA_PATH~ also include ~$HOME/.melby/?.lua~.
+Make melbyc use that path as a default if it's there, and only overwrite it with
+the ~FILEPATH~ argument (move this ~FILEPATH~ argument to an optional, not
+required, flag).
+
+** melbyd
+:PROPERTIES:
+:ID:       a52fc705-cdb4-4654-ab2d-9a8e6fcf44a3
+:END:
+
+*** TODO move the staleness flagger setup into its own function
+
+From the [[id:e23de83a-180c-4051-9a16-eecb4b3a7c31][SRS implementation]]: Move all of the code that sets up the staleness
+flaggers to a ~setup_staleness_flaggers~ function.
+
+*** TODO decide whether SRS should crash when fake readers fail validation
+
+From the [[id:e23de83a-180c-4051-9a16-eecb4b3a7c31][SRS implementation]]: When the key/value pairs parsed from the fake readers
+fail validation, we log the errors and then raise "failed validation". Or should
+we not crash here?
+
+*** TODO optionally run the readers concurrently
+
+From the [[id:e23de83a-180c-4051-9a16-eecb4b3a7c31][SRS implementation]]: Optionally run the readers concurrently for cases
+where we do want the concurrency (e.g., we're hitting N different IP targets
+over the network). E.g., for kubernetes contexts, most likely we should run them
+all in parallel because they are talking to different clusters with different
+IPs.
+
+(The code next to this note already reads in parallel when the ~read_parallel~
+resource option is set.)
+
+*** TODO show a shorter diff when a fake reading is not what we expected
+
+From the [[id:e23de83a-180c-4051-9a16-eecb4b3a7c31][SRS implementation]]: Maybe use a map diffing library, like
+https://hexdocs.pm/map_diff/MapDiff.html to get a shorter "diff" of any
+key/value differences.
+
+*** TODO move ~handle_call(:read, ...)~ into the callbacks section
+
+From the [[id:e23de83a-180c-4051-9a16-eecb4b3a7c31][SRS implementation]]: Put the ~handle_call~ for ~:read~ inside the
+callbacks section for ~handle_call~.
+
+*** TODO rename the "Boilerplate" heading for filesystem-based staleness
+
+Rename the [[id:7edeccf0-870f-4a2c-9e74-26618a2c33b6][Boilerplate]] heading and avoid "boilerplate" because it means nothing.
+
+*** TODO stop the SRS process with ~{:stop, reason, new_state}~
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyd_srs_handle_info-3][~melbyd_srs_handle_info-3~]]: When the filesystem watcher dies, use
+~{:stop, reason, new_state}~ to stop the process instead of (ab)using ttl. See
+pages 174-175 of Elixir In Action.
+
+*** TODO decide whether SLG needs to unsubscribe from topics
+
+From the [[id:9795bf90-1367-4f60-b313-ef057b32f392][Shell Logger GenServer (SLG)]]: In practice, because our Lua config is
+essentially immutable, we never unsubscribe from topics because the topics list
+never changes.
+
+*** TODO deduplicate the code shared by SLG and SRS
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyd_sps_tick][~melbyd_sps_tick~]]: This code is identical to the one in
+~Melbyd.StandardResource.tick/2~. Can we make it DRY somehow?
+
+From [[id:f99ef583-6d25-4de0-b212-da672c2223dc][Graceful shutdown]] (for SLG): Can we make it DRY? Maybe use a macro, or some
+new utility functions? Or a behaviour or protocol...?
+
+*** TODO optionally colorize path depth
+
+From [[id:46a84d53-0b37-4656-8a46-7e11456bc78f][Path]]: Optionally colorize path depth. Maybe take in something like keyword
+args...? Ideally user should be able to define a list of colors to use for each
+directory depth (using modulo for cyclicness), as well as the color of the slash
+and leading tilde (aliases).
+
+*** TODO don't panic in path shortening when HOME is not set
+
+From [[id:46a84d53-0b37-4656-8a46-7e11456bc78f][Path]]: Path shortening (in the Rust NIF) requires ~HOME~ to be set. Otherwise
+we'll panic when we ~unwrap()~ it.
+
+*** TODO add ASCII art to the startup announcement
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::application.ex][~application.ex~]]: Add ASCII-art to ~announce()~.
+
+*** TODO decide whether the view request validation is worth it
+
+From [[id:bfc9b5c9-64e2-4d3f-a38c-1167eea1828b][View (melbyr interface)]]: ~validate~ performs some rudimentary validation. Is
+this even worth it?
+
+*** TODO cache the results of Lua config validation
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyd_lua_config_validation][~melbyd_lua_config_validation~]]: Add Cachex lookup to see if this config was
+validated previously. We should add this lookup after we've implemented the
+validation functionality completely.
+
+*** TODO require the Lua config to declare the env vars that it uses
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyd_lua_config_validation][~melbyd_lua_config_validation~]]: (For caching) We should require env vars
+(which we use) to be declared ahead of time, and hash the /names/ of these env
+vars (not their contents) as required inputs (you can think of them as types) to
+a function (this Lua config). And then if the config does not declare this list
+of env vars, we can refuse to validate it. This way we capture the exact
+"function definition", so to speak, of the Lua config by precisely describing
+its definition.
+
+*** TODO add a fake SLG for validation
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyd_lua_config_validation][~melbyd_lua_config_validation~]]: Add a fake for SLG also (in
+~preloaded_fake_lua_vm~)? And also delete it when we're done with validation?
+
+*** TODO store more useful validation metrics
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyd_lua_config_validation][~melbyd_lua_config_validation~]]: Maybe store some more useful metrics beyond
+just ~view_params_types~. E.g., the number of test cases executed, how long it
+took to run it (at what time), etc.
+
+*** TODO fully parse paths in the Lua config validation
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyd_lua_config_validation][~melbyd_lua_config_validation~]]: In ~assert_type_path~ and
+~assert_type_paths~, use haskell parsec to do a full parse (instead of the basic
+heuristic).
+
+*** TODO run the fake readers when validating views
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyd_lua_config_validation][~melbyd_lua_config_validation~]] (above ~assert_expected_views~): Each of the
+SRS models have a "fake" field with faked readers in it (which return plausible,
+well-formatted data). We just have to use them somehow.
+
+We can make this fake tick runner just run the ["Config", "view"] function in
+the Lua state, wait 1 second, check the result and compare it to the
+expectation, and repeat. The expectations can come from the config file itself
+(add it under another key path). The behind the scenes the StandardResource
+should behave almost like in prod, but with the difference that it'll run the
+fake readers instead of the actual readers, as well as provision the SRS
+GenServer in a different namespace so as not to clash with the production
+resources.
+
+The config should tell us how many "ticks" and corresponding expectations to
+run. We could enforce a minimum of 3 rounds from our side (i.e., fail validation
+if the user has not configured at lesat 3 rounds of expectations).
+
+Each iteration should be:
+
+  1) Execute ["Config", "view"] function in the Lua VM state (~time_idx~ is 1).
+
+  2) Expectation: check expected return value of the above versus what we
+     actually got (got vs want).
+
+  3) Increment ~time_idx~ by 1, and re-run step 1. Continue until ~time_idx~ == 10
+     or some other number.
+
+*** TODO deduplicate the env var type checks in ~assert_expected_views~
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyd_lua_config_validation][~melbyd_lua_config_validation~]]: Dedupe the type checking logic in
+~assert_expected_views~ (copied from ~enforce_view_params_types~).
+
+*** TODO skip over unrecognized text styles
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyd_luasdk_render][~melbyd_luasdk_render~]]: Skip over unrecogized values when converting text
+styles (all of them become ~:TEXT_STYLE_BOLD~ today).
+
+*** TODO use Timex for time zones
+
+From [[id:0547179a-4c70-4663-a6a3-ac2726ff9504][Time]]: Use Timex library here also to avoid making the user use the stupid
+~America/Los_Angeles~ timezone and instead the shorter names that the "%Z"
+strftime uses, because then the user doesn't have to use ~timedatectl~ as well.
+
+*** TODO make the shell script export a NIF
+
+From [[id:a7316466-f489-44a4-b426-70799725b925][Export to shell script]]: This should be another NIF because the logic here is
+purely functional (independent of the Lua VM state).
+
+*** TODO make the shell script export robust against odd values
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyd_luasdk_to_shell_script][~melbyd_luasdk_to_shell_script~]]: Technically this is broken if "v" has a
+string ~END_HEREDOC~ on its own line. There are ways around this but for now we
+don't care.
+
+It's doubly broken because "k" could have an invalid non-keyword character in
+it. But again we don't care for now.
+
+*** TODO keep validation resources apart from production resources
+
+From [[id:7b9d1640-50d2-4095-b2bc-f373b0c5d992][Fake]] (for SRS): We must put all SRS and SLG resources in a separate
+~namespace~ so as to not collide with actual production resources. E.g., we
+don't want to create an SRS or SLG GenServer instance whose ~id~ would collide
+with one for production. We need to create a unique token for a validation
+request and use that as part of the resource IDs so that multiple validation
+requests do not walk on each other. Hmm, actually, what we need is a concurrent
+non-blocking cache. We need to make it so that we hash the incoming code's
+contents to generate a deterministic key (md5sum), then use this key as the
+validation result, and cache this result. If there are any other requests coming
+into melbyd for the same config, they also will get hashed to the same key, and
+must wait for the first request's already-in-progress validation to succeed. We
+can use Cachex and its so-called "fallbacks" to get this concurrent non-blocking
+cache behavior.
+
+*** TODO explain why Lua SDK functions have an arity of 2
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyd_luasdkhelper][~melbyd_luasdkhelper~]]: Add a link that explains why the arity is fixed at 2 in
+~Melbyd.LuaSdkLoader.load~.
+
+*** TODO tests: change the argument order of ~assert_output_string~
+
+From the [[id:aa6533f7-33db-4326-93fb-87dc696dcb0c][Lua API tests]]: Change the argument order of ~assert_output_string~ to
+match ~assert_output_substrings~.
+
+*** TODO tests: check that the expected substrings appear in order
+
+From the [[id:aa6533f7-33db-4326-93fb-87dc696dcb0c][Lua API tests]]: Make ~assert_output_substrings~ stricter by consuming the
+input in order (the substrings must be found in order).
+
+*** TODO tests: use a global timeout
+
+From the [[id:aa6533f7-33db-4326-93fb-87dc696dcb0c][Lua API tests]]: Move the ~10_000~ timeout for
+~assert_receive :shutting_down~ to some global timeout (~Application.get_env~).
+
+** melbyr
+:PROPERTIES:
+:ID:       25e12b86-6839-4bc7-a230-0b47e5199428
+:END:
+
+*** TODO make verbose output an environment variable option
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyr_muontrap][~melbyr_muontrap~]] (in melbyd): Make the more verbose output of melbyr an
+environment variable option. This commented-out line was next to the note:
+
+#+begin_example
+#[stderr_to_stdout: true, log_output: :debug]]},
+#+end_example
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::daemon/lib/melbyd/renderer/lib/MelbyRenderer/Log.hs][~Log.hs~]]: Make the ~logDebug~ output an environment variable option (only
+turn it on if ~lookupEnv~ says ~MELBYR_VERBOSE~ is true).
+
+*** TODO support underlines in a different color
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyproto_melby_renderer][~melbyproto_melby_renderer~]]: It is possible to have underlines in a
+different color than the current foreground color. A ~line_color~ field in
+~TextProperty~ would capture that possibility. BUT the ansi-terminal library
+does not appear to support this. So don't bother. This commented-out field was
+next to the note:
+
+#+begin_example
+// Color line_color = 4;
+#+end_example
+
+*** TODO blend 24-bit colors against the terminal background
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::daemon/lib/melbyd/renderer/lib/MelbyRenderer/Widgets.hs][~Widgets.hs~]]: Get the default terminal background color and use it to
+blend the foreground color against it to get a Colour (instead of AlphaColour).
+These commented-out lines were next to the note:
+
+#+begin_example
+-- (MColorOneOf24Bit mcolor24bit) -> Just
+--                                . SetRGBColor Foreground
+--                                . withOpacity (fromIntegral $ alpha mcolor24bit)
+#+end_example
+
+*** TODO add an alpha channel to Color24Bit
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyr_schema_widgets][~melbyr_schema_widgets~]]: Add alpha channel?
+
+*** TODO use B.takeEnd and B.packZipWith
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyr_colorize_git_sha_24_bit][~melbyr_colorize_git_sha_24_bit~]]: After ByteString 0.11.1.0, use
+~B.takeEnd~ and ~B.packZipWith~. This commented-out line was next to the note:
+
+#+begin_example
+--[B.packZipWith (\a b -> xor a b) bytes1 bytes2, B.reverse bytes]
+#+end_example
+
+*** TODO recover from path alias parse errors
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::daemon/lib/melbyd/renderer/lib/MelbyRenderer/PathAliases.hs][~PathAliases.hs~]]: Use ~withRecovery~ to recover from a parse error. See
+https://stackoverflow.com/questions/59640023/how-to-report-multiple-errors-using-megaparsec.
+These commented-out lines were next to the note:
+
+#+begin_example
+--if isValid path
+  --then pure Just (path, alias)
+  --else pure Nothing
+#+end_example
+
+*** TODO implement the ping subcommand
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyr_option_handling_parsers][~melbyr_option_handling_parsers~]]: The help text for ~melbyr ping~ was "FIXME
+?". It is now "not implemented", which is what the subcommand prints.
+
+*** TODO allow duplicate fields in the schema
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyr_schema_widgets][~melbyr_schema_widgets~]]: Allow duplicate fields (such as ~render_options~
+in ~MRenderWidgetsRequest~) once we move to GHC 9 (waiting on mu-haskell).
+
+*** TODO share the Git versioning code with melbyc
+
+From [[id:fecf74ac-b70d-486f-b239-d60cce73f42d][Git versioning]] (for melbyr): Should we move this to a common "melby" haskell
+package?
+
+** Lua configuration
+:PROPERTIES:
+:ID:       683609c6-dad5-4543-93ca-ae68c155ed15
+:END:
+
+*** TODO strip the env vars from melbyc down to the ones in ~view_params_types~
+
+From the [[id:b3f3eb4b-55aa-4fc2-a9fc-c3d3cd6b31a6][main configuration]]: Also, strip the given env vars coming from melbyc
+down to only the env vars in ~Config.view_params_types~. This forces the user to
+be explicity up-front (at this level) exactly which env vars they expect to use.
+
+*** TODO require the env vars of ~view_params_types~ in the validation env vars
+
+From the [[id:b3f3eb4b-55aa-4fc2-a9fc-c3d3cd6b31a6][main configuration]]: Require that the env vars in
+~Config.view_params_types~ are specified as keys for each element in
+~Config.validation~'s ~env_vars~.
+
+*** TODO make the view tests deterministic
+
+From the [[id:b3f3eb4b-55aa-4fc2-a9fc-c3d3cd6b31a6][main configuration]]: Set all env vars in ~allowed_env_vars~ (in
+~Config.view_tests~) to make it deterministic. Also probably set the ~shell_pid~ as
+well to make the function truly pure.
+
+*** TODO rename ~env_var_overrides~
+
+From the [[id:b3f3eb4b-55aa-4fc2-a9fc-c3d3cd6b31a6][main configuration]]: Rename ~env_var_overrides~ (in ~Config.view_tests~) to
+something else because we're overriding /every/ env var that matters to us.
+
+*** TODO fake ~get_path_aliases~
+
+From the [[id:b3f3eb4b-55aa-4fc2-a9fc-c3d3cd6b31a6][main configuration]]: We need a fake version of ~get_path_aliases~ as well,
+because we don't want to actually read from disk, but let the user instead
+specify the /contents/ of such a file.
+
+*** TODO return a list of path components from ~get_path_pretty~
+
+From the [[id:b3f3eb4b-55aa-4fc2-a9fc-c3d3cd6b31a6][main configuration]]: Make ~melbyd.get_path_pretty~ return a LIST of
+strings that should be joined with the path separator ("/"). Each element can
+have fields such as color and type (whether it's a regular folder or symlink) as
+well as the owner and permissions on it. For the first element (possibly an
+alias), we can have a field to denote whether it's an alias. All of these bits
+of information can be colorized a different way to give semantic coloring to the
+final colorized path.
+
+*** TODO read every Kubernetes context in ~MELBY_KUBE_CONTEXTS~
+
+From the [[id:b3f3eb4b-55aa-4fc2-a9fc-c3d3cd6b31a6][main configuration]]: Run ~Kube.read()~ for every Kubernetes context found
+in the set of ~MELBY_KUBE_CONTEXTS~. Need to loop this around multiple
+context:namespace combos, probably encoded in ~MELBY_KUBE_CONTEXTS~. These
+commented-out lines were next to the notes:
+
+#+begin_example
+-- get_kube_contexts(env["MELBY_KUBE_CONTEXTS"])
+-- example: "ctx1,ctx2,ctx3"
+--
+--local kube_standard_resource = Kube:read("kind-kind-prow-integration",
+--"default", env["MELBY_DIR"])
+--
+--local kube_widgets = Kube.view(kube_standard_resource)
+--for _, w in ipairs(kube_widgets) do
+--  table.insert(widgets_ps1_line2, w)
+--end
+#+end_example
+
+*** TODO Git: put each reader invocation next to its parser
+
+From the [[id:2d2ce0af-d8b4-4c05-b474-331cc21cbaae][Git resource]]: Move the invocation definition (of each reader) to a
+function, and put this function next to each parser function.
+
+*** TODO Git: add a model for linters and formatters
+
+From the [[id:2d2ce0af-d8b4-4c05-b474-331cc21cbaae][Git resource]]: If this is a "Rust" codebase, we could have a "Rust" model
+that performs linter and formatter checks.
+
+*** TODO Kubernetes: test that a changed KUBECONFIG is picked up
+
+From [[id:0e28e5cd-2cdb-48e8-bf7a-044f4a81b5fd][Kubernetes]]: Test this (marking the ~KubeCurrent~ resource as stale when a
+file pointed to by ~KUBECONFIG~ changes) by changing the config file with vim on
+disk to point to a different namespace (and see it reflected in our prompt).
+
+*** IN-PROGRESS SRS: create time-based staleness flagger (easy)
+
+From the "Things we have to implement" list under [[id:0e28e5cd-2cdb-48e8-bf7a-044f4a81b5fd][Kubernetes]].
+
+*** TODO SRS: create a command timeout for shell commands that take too long or error out
+
+From the "Things we have to implement" list under [[id:0e28e5cd-2cdb-48e8-bf7a-044f4a81b5fd][Kubernetes]]: We should let
+users configure each command with an optional timeout and/or error response
+detector, such that:
+
+  - if a command times out (still is running after waiting N seconds), we cancel
+    it and generate a message for SLG telling the user that a command timed out
+
+      - this should catch cases where kubectl or gcloud return nothing due to
+        either network connectivity issues (wifi missing) or missing
+        authentication (didn't run ~gcloud auth print-access-token~ yet)
+
+      - when the user sees the message about the command(s) misbehaving, they
+        can run something that will (e.g.) reset their auth credentials so that
+        the commands can work again
+
+  - if a command errors out (and we expect it to succeed), we mark a subset of
+    the entire data we read as "stale" ... ?
+
+*** TODO KubeCurrent: show the cluster health inside the closing brace
+
+From [[id:07296f29-c9c7-4fff-b4c7-55e54070605f][KubeCurrent.lua]]: Allow a "substrs" argument to ~KubeCurrent.view~ to pull in
+the already-rendered cluster health info, so that it is inside the closing brace
+at the end (also adjust asterisk accordingly to be there if we're loading either
+the KubeCurrent OR Kube standard resource statuses).
+
+*** TODO KubeCurrent: send fake filesystem events during validation
+
+From the [[id:d47a0066-fe39-4a63-ac71-d36f2889f3c6][KubeCurrent fake]]: The reader is supposed to be auto-invoked whenever the
+file(s) pointed by ~KUBECONFIG~ env var from the client changes (filesystem
+watch). So we need to send fake filesystem events as part of the validation
+strategy. Sending a filesystem event is as simple as sending the
+correctly-formed tuple to the SRS process.
+
+*** TODO fake kubectl: move the outputs into files
+
+From the [[id:c4326591-cffc-46a8-b9e3-ef426c4462b4][fake kubectl]]: Move the stdout contents (of ~kubectl get pods~) to a file,
+and switch between them based on a separate "state" file, just like
+~fake_kube_config~.
+
+*** TODO Kube: compute the share of running pods in the view
+
+From [[id:00718406-c25e-47b8-aa5d-6288d758a71f][Kube.lua]]: Move the computation of how many pods are in a healthy "Running"
+phase to the View section, because we shouldn't store redundant data.
+
+*** TODO Kube: find a better default for ~should_keep_message~
+
+From [[id:00718406-c25e-47b8-aa5d-6288d758a71f][Kube.lua]]: ~Kube.should_keep_message~ always returns "true". Is there a
+better default for this?
+
+*** TODO Kube: display percentages instead of raw pod counts
+
+From [[id:00718406-c25e-47b8-aa5d-6288d758a71f][Kube.lua]]: Display percentages instead of raw pod counts (in ~Kube.view~).
+We already get raw pod counts in the messaging part.
+
+*** TODO create a standard configuration library
+
+From [[id:a0d48ba3-3465-4566-86cb-78f13648c82e][On correctness]]: Maybe create some "standard configuration library" of
+preconfigured Lua modules for users. For example, we could promote the "Git"
+module (and maybe another Kubernetes one) into a standard folder that ships with
+Melby.
+
+** Documentation
+:PROPERTIES:
+:ID:       e4831013-0e52-4718-b931-ca54d3aa03d4
+:END:
+
+*** TODO describe how to test local changes
+
+From [[id:e8018df8-fde2-49ff-8489-551b7cc1a01f][How to hack on this project]]: How to do testing? What about integration
+tests? How to invoke tests? ~mix test~? (This note was the only content of a
+"Testing local changes" section, which was removed along with it.)
+
+*** TODO show examples of hacking on the Lua config
+
+From [[id:72ae0f89-3701-4644-bf6a-14bac6278096][Hacking on the Lua config]]: Show examples (of using fakes and adding
+validation tests).
+
+*** TODO link to where Elixir uses ~melby_client.proto~
+
+From the [[id:852e9113-6295-4083-aac1-aa5a642de7ef][melbyc proto]]: Add link to where it's used in Elixir.
+
+*** TODO link to the section about passing in Lua code
+
+From the [[id:79284ebb-5759-45b2-989b-d14b2be7538c][melbyc business logic]]: "Recall that we said we wanted to pass in some Lua
+code" referred to a section that was never filled in ("Recall in section
+FIXME").
+
+*** TODO break up the gRPC schemas into smaller chunks
+
+From the gRPC schemas of [[id:b3c9e375-0b11-44bd-ae54-0cdc22b86f91][melbyc]] and [[id:92ee3578-498a-441e-8335-b859bc907d99][melbyr]]: Break [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyc_lib_schema][~melbyc_lib_schema~]] and
+[[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyr_lib_schema][~melbyr_lib_schema~]] up into smaller chunks.
+
+*** TODO break up the Git resource into smaller chunks
+
+From the [[id:2d2ce0af-d8b4-4c05-b474-331cc21cbaae][Git resource]]: Break this up into multiple chunks for smaller bits of
+explanation (prefer to maximize prose comments here instead of comments in the
+Lua code).
+
+*** TODO add a diagram of the Standard Resource Server
+
+From the [[id:a6523578-acd8-40cc-b192-0011fd3802bb][Standard Resource Server]]: Add a diagram for the summary of the 2 things
+that we store.
+
+*** TODO add links to the gRPC services section
+
+From [[id:ade93de4-a3f4-4d34-b5a0-6375457b4b72][gRPC services]]: Add links for the ~GetView~ RPC method and for the proto file.
+
+*** TODO link to the Kubernetes controller pattern
+
+From the [[id:a3de47b0-eb38-4e08-9ceb-3730abe70bf9][Standard Resource Service]]: Insert a link for the Kubernetes controller
+pattern.
+
+*** TODO link to where Elixir uses the path aliases
+
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::daemon/lib/melbyd/renderer/lib/MelbyRenderer/PathAliases.hs][~PathAliases.hs~]]: Add a link to where we use the path aliases (as a Map
+keyed by path) back in Elixir.
+
+*** TODO link the melbyc and melbyr Makefiles to each other
+
+The [[id:911b124e-8fee-43bd-9911-f7f9a68ee3d2][melbyc Makefile]] section mentions the Makefile for ~melby-renderer~, and the
+[[id:56d459b3-aead-4986-958b-9bd90c67bd2d][melbyr Makefile]] section says it follows the Makefile for ~melbyc~. Add links
+for both.
+
+*** TODO link to the build system for melbyr
+
+From [[id:70dfc13c-8847-4a99-850c-f18ebdbcda8c][Haskell (melbyr)]]: Add a link (see ... for the build system for melbyr).
+
+*** TODO say what the maximum ~time_idx~ of the Kube fake is
+
+From the [[id:cbf7e465-d779-4be4-b1b2-73e9240ba77c][Kube fake]]: The comment for ~get_pods_fake~ says that ~time_idx~ wraps back
+to 0 after reaching the maximum value, but does not say what that value is.
+
+*** TODO link to the test case that uses the sample configuration
+
+From [[id:a0d48ba3-3465-4566-86cb-78f13648c82e][On correctness]]: The sample configuration is part of a test case we use in
+Melby. Link to that test case.

@@ -79,8 +79,6 @@ EOF
 		context="${1#*=}"
 		namespace="${2#*=}"
 		if [[ "${context}" == one ]]; then
-			# FIXME: Move these stdout contents to a file, and switch between
-			# them based on a separate "state" file, just like fake_kube_config.
 			cat <<-EOF
 			Pending
 			Pending

@@ -68,9 +68,6 @@ defmodule Melbyd.ShellLogger do
     # If there are topics of interest that have not yet been subscribed to,
     # subscribe to them as well. But also unsubscribe from topics that we don't
     # care about any more.
-    #
-    # FIXME: In practice, because our Lua config is essentially immutable, we
-    # never unsubscribe from topics because the topics list never changes.
     topics = Enum.map(topic_handlers, fn {topic, _handler} -> topic end)
     topics_new = topics -- already_subscribed_topics
     Enum.map(topics_new, fn topic -> Phoenix.PubSub.subscribe(Melbyd.PubSub, topic) end)
@@ -183,8 +180,6 @@ defmodule Melbyd.ShellLogger do
   end
 
   # Tick
-  # FIXME: This code is identical to the one in Melbyd.StandardResource.tick/2. Can
-  # we make it DRY somehow?
   defp tick(ttl, notify_on_exit_pid) do
     case ttl do
       n when n in -1..0 ->

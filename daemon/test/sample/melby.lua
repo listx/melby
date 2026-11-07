@@ -1,7 +1,3 @@
--- FIXME: Make LUA_PATH also include $HOME/.melby/?.lua.
--- FIXME: Make melbyc use the above path as a default if it's there, and only
--- overwrite it with the FILEPATH argument (move this FILEPATH argument to an
--- optional, not required, flag).
 local Git = require "Git"
 local KubeCurrent = require "KubeCurrent"
 local Kube = require "Kube"
@@ -14,11 +10,6 @@ Config["render_options"] = {
 
 -- This is required for both verification and reducing the inputs (env vars) to
 -- a known subset.
--- FIXME: Also, strip the given env vars coming from melbyc down to only these
--- env vars. This forces the user to be explicity up-front (at this level)
--- exactly which env vars they expect to use.
--- FIXME: Require that these env vars are specified as keys for each element in
--- Config.validation's env_vars
 Config.view_params_types = {
   env={
     HOME                      = {"required", "path"},
@@ -50,11 +41,6 @@ Config.view_params_types = {
 -- real paths that are coming from the actual melbyc invocation. For the
 -- "preview" (fake) environment we want to control, ideally, all the env vars in
 -- allowed_env_vars...!
---
--- FIXME: Set all env vars in allowed_env_vars to make it deterministic. Also
--- probably set the shell_pid as well to make the function truly pure.
--- FIXME: rename env_var_overrides to something else because we're overriding
--- _every_ env var that matters to us.
 Config.view_tests = {
   -- time_idx 0
   {env={
@@ -88,7 +74,6 @@ Config.view_tests = {
     PWD                       = "/repo/a",
     USER                      = "alice",
    },
-  -- FIXME: move shell_pid to an env_var to unify all inputs into env_vars.
   shell_pid                   = "54311",
   expected_substrings={"K8s...", "Git..."}},
 }
@@ -96,9 +81,6 @@ Config.view_tests = {
 function Config.view (env, shell_pid)
   local widgets_ps1_line1 = {}
   local widgets_ps1_line2 = {}
-  -- FIXME: We need a fake version of get_path_aliases as well, because we don't
-  -- want to actually read from disk, but let the user instead specify the
-  -- *contents* of such a file.
   local path_aliases = melbyd.get_path_aliases(env["MELBY_PATH_ALIASES_FILE"])
 
   local pwd = env["PWD"]
@@ -107,13 +89,6 @@ function Config.view (env, shell_pid)
   pwd_pretty_options["shorten_threshold"] = 30
   pwd_pretty_options["aliases"] = path_aliases
   pwd_pretty_options["env"] = env
-  -- FIXME: Make melbyd.get_path_pretty return a LIST of strings that should be
-  -- joined with the path separator ("/"). Each element can have fields such as
-  -- color and type (whether it's a regular folder or symlink) as well as the
-  -- owner and permissions on it. For the first element (possibly an alias), we
-  -- can have a field to denote whether it's an alias. All of these bits of
-  -- information can be colorized a different way to give semantic coloring to
-  -- the final colorized path.
   local pwd_pretty_str = melbyd.get_path_pretty(pwd, pwd_pretty_options)
 
   -- Get the current time. In non-test-code, we can just call melbyd.get_time("%d
@@ -174,23 +149,6 @@ function Config.view (env, shell_pid)
 
   pwd_pretty = {str=pwd_pretty_str, fg="cyan", styles={"bold"}}
   table.insert(widgets_ps1_line1, pwd_pretty)
-
-  -- FIXME: Run Kube.read() for every Kubernetes context found in the set of
-  -- MELBY_KUBE_CONTEXTS.
-  --
-  -- get_kube_contexts(env["MELBY_KUBE_CONTEXTS"])
-  -- example: "ctx1,ctx2,ctx3"
-  --
-  -- FIXME: Need to loop this around multiple context:namespace combos, probably
-  -- encoded in MELBY_KUBE_CONTEXTS
-  --
-  --local kube_standard_resource = Kube:read("kind-kind-prow-integration",
-  --"default", env["MELBY_DIR"])
-  --
-  --local kube_widgets = Kube.view(kube_standard_resource)
-  --for _, w in ipairs(kube_widgets) do
-  --  table.insert(widgets_ps1_line2, w)
-  --end
 
   local kubecurrent_standard_resource = KubeCurrent:read(env,
                                                          {"KUBECONFIG", "HOME"})

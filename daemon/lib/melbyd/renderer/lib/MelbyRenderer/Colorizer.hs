@@ -54,11 +54,8 @@ colorizeGitSha24bit shaStr len
   -- XOR the first and second halves of the input bytes (20 bytes) to generate
   -- 10 more bytes. Now we have 30 bytes in total in bytesFinal.
   bytes1 = B.take 10 bytes
-  -- FIXME: after ByteString 0.11.1.0, use B.takeEnd
   bytes2 = B.drop (B.length bytes - 10) bytes
   bytesFinal = B.concat
-    -- FIXME: after ByteString 0.11.1.0, use B.packZipWith
-    --[B.packZipWith (\a b -> xor a b) bytes1 bytes2, B.reverse bytes]
     [(B.pack $ B.zipWith (\a b -> xor a b) bytes1 bytes2), B.reverse bytes]
   -- Using the 30 bytes in bytesFinal, generate 10 colors (of 3 bytes, or 24 bits, each).
   colorCodes = gen10Colors [] bytesFinal

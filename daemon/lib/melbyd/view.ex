@@ -40,7 +40,6 @@ defmodule Melbyd.View do
   end
 
   # Perform some rudimentary validation.
-  # FIXME: Is this even worth it?
   def validate(config_path, _env_vars, shell_pid) do
     cond do
       !File.exists?(config_path) ->

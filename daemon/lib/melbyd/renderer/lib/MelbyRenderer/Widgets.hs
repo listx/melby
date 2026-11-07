@@ -86,13 +86,6 @@ textPropToAnsiCode tp
     Nothing -> Nothing
     Just mcolor -> colorToSGRCode mcolor Background
   colorToSGRCode mcolor fgOrBg = case color_oneof mcolor of
-    -- FIXME: Get the default terminal background color and use it to blend the
-    -- foreground color here against it to get a Colour (instead of
-    -- AlphaColour).
-
-    -- (MColorOneOf24Bit mcolor24bit) -> Just
-    --                                . SetRGBColor Foreground
-    --                                . withOpacity (fromIntegral $ alpha mcolor24bit)
     (MColorOneOf24Bit mcolor24bit) -> Just . SetRGBColor fgOrBg
       $ sRGB24 (fromIntegral $ red mcolor24bit)
                (fromIntegral $ green mcolor24bit)

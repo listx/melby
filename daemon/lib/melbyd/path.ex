@@ -14,10 +14,6 @@ defmodule Melbyd.Path do
       {path, aliases, env_vars})
 
     if status == :error || path_pretty == nil do
-      # FIXME: Optionally colorize path depth. Maybe take in something like
-      # keyword args...? Ideally user should be able to define a list of colors
-      # to use for each directory depth (using modulo for cyclicness), as well
-      # as the color of the slash and leading tilde (aliases).
       path_pretty =
         Melbyd.Nifs.path_shorten(
           path,

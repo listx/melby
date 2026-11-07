@@ -106,7 +106,6 @@ defmodule MelbydTest do
     get_lua_reader_state(pid) =~ want
   end
 
-  # FIXME: Change argument order to match assert_output_substrings.
   defp assert_output_string(want, shell_pid, lua_script, env_vars, ansi_escapes_allowed) do
     {:ok, pid} = init_lua_reader()
 
@@ -168,8 +167,6 @@ defmodule MelbydTest do
     Agent.stop(pid)
 
     # Check every substring, not just the last one.
-    # FIXME: Make this stricter by consuming the input in order (the substrings
-    # must be found in order).
     Enum.each(want_substrs, fn substr ->
       assert String.contains?(got, substr)
     end)
@@ -252,7 +249,6 @@ defmodule MelbydTest do
         notify_on_exit_pid: self()
       })
 
-    # FIXME: Move this 10_000 timeout to some global timeout (Application.get_env).
     assert_receive :shutting_down, 10_000
   end
 

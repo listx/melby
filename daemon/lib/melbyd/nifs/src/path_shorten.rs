@@ -126,8 +126,6 @@ fn make_canonical_path(
 
     // Encode the shell's "~" character as a special case of our "name" idiom.
     // This way, even if no aliases match, we can replace "/home/foo" with "~".
-    // FIXME: This requires HOME to be set. Otherwise we'll panic when we
-    // unwrap() below.
     let home_value = env_vars.get(&"HOME".to_string()).unwrap();
     // Don't replace $HOME with "~" becausewe we already prepend every name
     // match with a "~". So defining the value here with a tilde would result in

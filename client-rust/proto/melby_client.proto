@@ -17,8 +17,7 @@ message ViewRequest {
   // Environment variables ((name, value) pairs) of interest.
   map<string, string> env_vars = 3;
 
-  // Process ID number of the running (interactive) shell program. (FIXME: move
-  // this to env var)
+  // Process ID number of the running (interactive) shell program.
   string shell_pid = 4;
 }
 

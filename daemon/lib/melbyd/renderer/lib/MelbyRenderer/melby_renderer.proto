@@ -79,10 +79,6 @@ message TextProperty {
   Color fg = 1;
   Color bg = 2;
   repeated TextStyle styles = 3;
-  // FIXME: It is possible to have underlines in a different color than the
-  // current foreground color. This field captures that possibility. BUT the
-  // ansi-terminal library does not appear to support this. So don't bother.
-  // Color line_color = 4;
 }
 
 message Color {
@@ -92,7 +88,7 @@ message Color {
     // colors (0 through 15) are the traditional 16 colors used before 256
     // colors became a thing. The colors 232-255 represent a grayscale gradient
     // (dark to light), and finally the middle 216 colors (16-231) represent
-    // additional colors in 6 squares, each with 36 colors. See FIXME table
+    // additional colors in 6 squares, each with 36 colors. See the table
     // here: https://en.wikipedia.org/wiki/ANSI_escape_code
     uint32 color_256 = 2;
   }

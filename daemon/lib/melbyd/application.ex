@@ -41,8 +41,6 @@ defmodule Melbyd.Application do
       {MuonTrap.Daemon,
        [Application.get_env(:melbyd, :melbyr_path),
         ["serve", "#{Application.get_env(:melbyd, :melbyr_port)}"],
-       # FIXME: Make this more verbose output an environment variable option.
-       #[stderr_to_stdout: true, log_output: :debug]]},
        [stderr_to_stdout: false]]},
     ]
 
@@ -55,7 +53,6 @@ defmodule Melbyd.Application do
     Supervisor.start_link(children, opts)
   end
 
-  # FIXME: Add ASCII-art here.
   defp announce() do
     Logger.info("Starting application in #{Application.fetch_env!(:melbyd, :env)} environment")
   end

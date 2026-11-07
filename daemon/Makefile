@@ -1,7 +1,6 @@
 # See https://stackoverflow.com/a/73509979/437583 for getting the directory of
 # this Makefile.
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-# FIXME: Merge these with the env vars already exported in nix-shell.
 export MELBYR_PATH := $(ROOT_DIR)/lib/melbyd/renderer/melbyr
 export LUA_PATH := $(ROOT_DIR)/test/sample/?.lua
 export MELBY_DIR := $(ROOT_DIR)/test/sample

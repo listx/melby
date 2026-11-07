@@ -15,9 +15,6 @@ let
   };
   version = "0.11.0";
 in
-  # FIXME: This is very heavy as it compiles the entire project (which we don't
-  # need to do). However this appears to be the only way possible to compile the
-  # protoc-gen-elixir escript executable.
   packages.mixRelease {
     inherit pname src version mixFodDeps;
     buildPhase = ''

@@ -145,10 +145,6 @@ function KubeCurrent.message_to_string (message)
   return melbyd.render(widgets, {str=" "})
 end
 
--- FIXME: Allow a "substrs" argument here to pull in the already-rendered
--- cluster health info, so that it is inside the closing brace at the end (also
--- adjust asterisk accordingly to be there if we're loading either the
--- KubeCurrent OR Kube standard resource statuses)
 function KubeCurrent.view (standard_resource, health_resource_status, health_str)
   local widgets = {}
   local kubecurrent = standard_resource["kvs"]

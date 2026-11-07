@@ -12,12 +12,6 @@ let
     pkgs.stdenv.hostPlatform
     pkgs.systemd;
   packages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlangR26;
-  # FIXME: This appears to result in a SHA mismatch between Linux and Mac. We
-  # should probably use mix2nix to download mix dependencies reproducibly, as
-  # described in
-  # https://github.com/NixOS/nixpkgs/blame/2ea8b001f6ba09cc6eb9a30f4e117cbc3ec5afe2/doc/languages-frameworks/beam.section.md#L79.
-  #
-  # Hmm but this appears to be the same now since upgrading to 23.11.
   mixFodDeps = packages.fetchMixDeps {
     pname = "mix-deps-${pname}";
     inherit src version;
@@ -28,10 +22,6 @@ let
     beamPackages = pkgs.beamPackages;
   };
   pname = "melby-daemon";
-  # FIXME When this file is eventually upstreamed to Nixpkgs (if we want that),
-  # at that point we can start referring to Git tags/releases and use the
-  # version string from that instead (and download the tarball/zip, and proceed
-  # to build the package).
   version = "0-dev";
   src = builtins.path {
     name = "melby-daemon";
@@ -142,8 +132,6 @@ in
       melby.melby-nifs
       melby.melby-renderer
     ]
-    # FIXME: This part is a copy/paste of shell.nix at the root and should be
-    # deduplicated.
     # For file_system on Linux.
     ++ pkgs.lib.optional pkgs.stdenv.isLinux pkgs.inotify-tools
     # For file_system on macOS. See

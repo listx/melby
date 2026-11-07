@@ -56,6 +56,9 @@ values reflect the environment variables that =melbyc= sees when it is invoked
 by the user.
 
 ** Main configuration
+:PROPERTIES:
+:ID:       b3f3eb4b-55aa-4fc2-a9fc-c3d3cd6b31a6
+:END:
 
 We import the above into our main configuration, at =melby.lua=.
 
@@ -86,10 +89,6 @@ require "Git"
 
 #+header: :tangle daemon/test/sample/melby.lua
 #+begin_src lua
--- FIXME: Make LUA_PATH also include $HOME/.melby/?.lua.
--- FIXME: Make melbyc use the above path as a default if it's there, and only
--- overwrite it with the FILEPATH argument (move this FILEPATH argument to an
--- optional, not required, flag).
 local Git = require "Git"
 local KubeCurrent = require "KubeCurrent"
 local Kube = require "Kube"
@@ -102,11 +101,6 @@ Config["render_options"] = {
 
 -- This is required for both verification and reducing the inputs (env vars) to
 -- a known subset.
--- FIXME: Also, strip the given env vars coming from melbyc down to only these
--- env vars. This forces the user to be explicity up-front (at this level)
--- exactly which env vars they expect to use.
--- FIXME: Require that these env vars are specified as keys for each element in
--- Config.validation's env_vars
 Config.view_params_types = {
   env={
     HOME                      = {"required", "path"},
@@ -138,11 +132,6 @@ Config.view_params_types = {
 -- real paths that are coming from the actual melbyc invocation. For the
 -- "preview" (fake) environment we want to control, ideally, all the env vars in
 -- allowed_env_vars...!
---
--- FIXME: Set all env vars in allowed_env_vars to make it deterministic. Also
--- probably set the shell_pid as well to make the function truly pure.
--- FIXME: rename env_var_overrides to something else because we're overriding
--- _every_ env var that matters to us.
 Config.view_tests = {
   -- time_idx 0
   {env={
@@ -176,7 +165,6 @@ Config.view_tests = {
     PWD                       = "/repo/a",
     USER                      = "alice",
    },
-  -- FIXME: move shell_pid to an env_var to unify all inputs into env_vars.
   shell_pid                   = "54311",
   expected_substrings={"K8s...", "Git..."}},
 }
@@ -184,9 +172,6 @@ Config.view_tests = {
 function Config.view (env, shell_pid)
   local widgets_ps1_line1 = {}
   local widgets_ps1_line2 = {}
-  -- FIXME: We need a fake version of get_path_aliases as well, because we don't
-  -- want to actually read from disk, but let the user instead specify the
-  -- *contents* of such a file.
   local path_aliases = melbyd.get_path_aliases(env["MELBY_PATH_ALIASES_FILE"])
 
   local pwd = env["PWD"]
@@ -195,13 +180,6 @@ function Config.view (env, shell_pid)
   pwd_pretty_options["shorten_threshold"] = 30
   pwd_pretty_options["aliases"] = path_aliases
   pwd_pretty_options["env"] = env
-  -- FIXME: Make melbyd.get_path_pretty return a LIST of strings that should be
-  -- joined with the path separator ("/"). Each element can have fields such as
-  -- color and type (whether it's a regular folder or symlink) as well as the
-  -- owner and permissions on it. For the first element (possibly an alias), we
-  -- can have a field to denote whether it's an alias. All of these bits of
-  -- information can be colorized a different way to give semantic coloring to
-  -- the final colorized path.
   local pwd_pretty_str = melbyd.get_path_pretty(pwd, pwd_pretty_options)
 
   -- Get the current time. In non-test-code, we can just call melbyd.get_time("%d
@@ -262,23 +240,6 @@ function Config.view (env, shell_pid)
 
   pwd_pretty = {str=pwd_pretty_str, fg="cyan", styles={"bold"}}
   table.insert(widgets_ps1_line1, pwd_pretty)
-
-  -- FIXME: Run Kube.read() for every Kubernetes context found in the set of
-  -- MELBY_KUBE_CONTEXTS.
-  --
-  -- get_kube_contexts(env["MELBY_KUBE_CONTEXTS"])
-  -- example: "ctx1,ctx2,ctx3"
-  --
-  -- FIXME: Need to loop this around multiple context:namespace combos, probably
-  -- encoded in MELBY_KUBE_CONTEXTS
-  --
-  --local kube_standard_resource = Kube:read("kind-kind-prow-integration",
-  --"default", env["MELBY_DIR"])
-  --
-  --local kube_widgets = Kube.view(kube_standard_resource)
-  --for _, w in ipairs(kube_widgets) do
-  --  table.insert(widgets_ps1_line2, w)
-  --end
 
   local kubecurrent_standard_resource = KubeCurrent:read(env,
                                                          {"KUBECONFIG", "HOME"})
@@ -356,9 +317,9 @@ return {g = Git, kc = KubeCurrent, k = Kube}
 #+end_src
 
 ** Git resource
-
-FIXME: break this up into multiple chunks for smaller bits of explanation
-(prefer to maximize prose comments here instead of comments in the Lua code).
+:PROPERTIES:
+:ID:       2d2ce0af-d8b4-4c05-b474-331cc21cbaae
+:END:
 
 #+header: :tangle daemon/test/sample/Git.lua
 #+begin_src lua
@@ -400,9 +361,6 @@ function Git.readers (resource_opts)
   -- Each reader needs an associated parser. The parser function is just the
   -- string name of a Git.parser.* function name. So parser="diff" refers to
   -- Git.parser.diff().
-  --
-  -- FIXME: Move the invocation definition to a function, and put this function
-  -- next to each parser function.
   local readers = {
     {cd=pwd, invocation={"git", "diff", "--shortstat"},
      parser="diff"},
@@ -477,7 +435,7 @@ function Git.staleness_flaggers (resource_id)
     -- if HEAD moves, which is important when we (for example) modify the
     -- HEAD of submodules.
     if string.find(path, "/.git/") and string.find(path, "/index.lock$") then
-      -- FIXME note: Looks like
+      -- Note: Looks like
       -- https://github.com/rvirding/luerl/blob/5e61c1838d08430af67fb870995b05a41d64aeee/src/luerl.erl#L340
       -- converts an atom into a "binary" (string). This just drops the initial
       -- ":" and makes the rest a string as is.
@@ -680,9 +638,6 @@ function Git.notify (resource_id, old, new)
   -- messages for interesting state changes.
   --
   -- This is where we need to warn users about linting errors and such.
-  --
-  -- FIXME: If this is a "Rust" codebase, we could have a "Rust" model that
-  -- performs linter and formatter checks.
 
   -- If we stage or unstage something, show tentative "commit size".
   local old_staged_bytes = old.kvs.staged_bytes
@@ -1399,6 +1354,9 @@ return GitFake
 #+end_src
 
 ** Kubernetes (=kubectl=)
+:PROPERTIES:
+:ID:       0e28e5cd-2cdb-48e8-bf7a-044f4a81b5fd
+:END:
 
 This standard resource model is based on the Git one. Like Git, it uses an
 underlying CLI program (=kubectl=) to read information.
@@ -1439,9 +1397,7 @@ namespace, and a separate =Kube.lua= for reading cluster health for
 For =KubeCurrent.lua=, we use =KUBECONFIG= as our =resource_id= (for purposes of
 =resource_id_command=). Any time any of the files pointed by =KUBECONFIG=
 changes (filesystem watch), we mark the resource as stale and refresh our
-current context/namespace information. FIXME: Test this by changing the config
-file with vim on disk to point to a different namespace (and see it reflected in
-our prompt).
+current context/namespace information.
 
 For =Kube.lua=, we just read per-cluster information (pod availability, uptime,
 etc) for /a single context/. The =resource_id= is the context name (IMPORTANT:
@@ -1449,27 +1405,10 @@ users should use globally unique context names). Then the user will loop through
 each of the contexts found in =MELBY_KUBE_CONTEXTS= and run =Kube.read()= to get
 this per-cluster information.
 
-*** Things we have to implement
-**** IN-PROGRESS SRS: create time-based staleness flagger (easy)
-**** TODO SRS: create a command timeout for shell commands that take too long or error out
-We should let users configure each command with an optional timeout and/or error
-response detector, such that:
-
-  - if a command times out (still is running after waiting N seconds), we cancel
-    it and generate a message for SLG telling the user that a command timed out
-
-      - this should catch cases where kubectl or gcloud return nothing due to
-        either network connectivity issues (wifi missing) or missing
-        authentication (didn't run =gcloud auth print-access-token= yet)
-
-      - when the user sees the message about the command(s) misbehaving, they
-        can run something that will (e.g.) reset their auth credentials so that
-        the commands can work again
-
-  - if a command errors out (and we expect it to succeed), we mark a subset of the
-    entire data we read as "stale" ... ?
-
 *** Implementation for =KubeCurrent.lua= (get current context/namespace)
+:PROPERTIES:
+:ID:       07296f29-c9c7-4fff-b4c7-55e54070605f
+:END:
 
 #+header: :tangle daemon/test/sample/KubeCurrent.lua
 #+begin_src lua
@@ -1620,10 +1559,6 @@ function KubeCurrent.message_to_string (message)
   return melbyd.render(widgets, {str=" "})
 end
 
--- FIXME: Allow a "substrs" argument here to pull in the already-rendered
--- cluster health info, so that it is inside the closing brace at the end (also
--- adjust asterisk accordingly to be there if we're loading either the
--- KubeCurrent OR Kube standard resource statuses)
 function KubeCurrent.view (standard_resource, health_resource_status, health_str)
   local widgets = {}
   local kubecurrent = standard_resource["kvs"]
@@ -1657,6 +1592,9 @@ return KubeCurrent
 #+end_src
 
 **** Fake
+:PROPERTIES:
+:ID:       d47a0066-fe39-4a63-ac71-d36f2889f3c6
+:END:
 
 #+header: :tangle daemon/test/sample/KubeCurrentFake.lua
 #+begin_src lua
@@ -1700,11 +1638,6 @@ CURRENT   NAME          CLUSTER          AUTHINFO              NAMESPACE
 end
 
 function KubeCurrentFake.readers (resource_opts, time_idx)
-  -- FIXME: The reader is supposed to be auto-invoked whenever the file(s)
-  -- pointed by KUBECONFIG env var from the client changes (filesystem watch).
-  -- So we need to send fake filesystem events as part of the validation
-  -- strategy. Sending a filesystem event is as simple as sending the
-  -- correctly-formed tuple to the SRS process.
   return {
     current_context_and_namespace =
       current_context_and_namespace_fake(kubeconfig, time_idx)
@@ -1720,6 +1653,9 @@ return KubeCurrentFake
 #+end_src
 
 *** Fake =kubectl= for the test environment
+:PROPERTIES:
+:ID:       c4326591-cffc-46a8-b9e3-ef426c4462b4
+:END:
 
 We use a fake =kubectl= script and put it in our PATH for our development shell.
 This way, we can test how our =kubectl=-aware Lua configuration will behave
@@ -1811,8 +1747,6 @@ EOF
 		context="${1#*=}"
 		namespace="${2#*=}"
 		if [[ "${context}" == one ]]; then
-			# FIXME: Move these stdout contents to a file, and switch between
-			# them based on a separate "state" file, just like fake_kube_config.
 			cat <<-EOF
 			Pending
 			Pending
@@ -1838,6 +1772,9 @@ main "$@"
 #+end_src
 
 *** Implementation for =Kube.lua= (get per-cluster information)
+:PROPERTIES:
+:ID:       00718406-c25e-47b8-aa5d-6288d758a71f
+:END:
 
 #+header: :tangle daemon/test/sample/Kube.lua
 #+begin_src lua
@@ -1917,9 +1854,6 @@ function Kube.parser.get_pods (s)
     ret["pods_in_phase_" .. phase] = count + 1
   end
 
-  -- FIXME: Move this to the View section, because we shouldn't store redundant
-  -- data.
-  --
   -- Of the listed pods, how many are in a healthy "Running" phase? This is
   -- useful for service clusters where the pods are long-lived services that are
   -- expected to always be in a "Running" state (being available).
@@ -2017,7 +1951,6 @@ end
 -- This resource is generally meant for detecting cluster health (pod stats), so
 -- it's conceivable that all shells would like to know about this. So we just
 -- always return "true".
--- FIXME: Is there a better default for this?
 function Kube.should_keep_message (message, env_vars)
   return true
 end
@@ -2051,9 +1984,6 @@ function Kube.view (standard_resource)
   --    10T 1p 5r 1s 2f 0u
   --
   -- for 10 total pods, 1 pending, 5 running, 1 succeeded, 2 failed, 0 unknown.
-  --
-  -- FIXME: Display percentages instead of raw pod counts. We already get raw
-  -- pod counts in the messaging part.
   if standard_resource.status == "STANDARD_RESOURCE_STATUS_LOADING" and
     (next(kube) == nil) then
     table.insert(widgets, {str="(pods...)"})
@@ -2085,6 +2015,9 @@ This is the template for the =get_pods= reader. Format is just "<STATUS>".
 #+end_src
 
 **** Fake
+:PROPERTIES:
+:ID:       cbf7e465-d779-4be4-b1b2-73e9240ba77c
+:END:
 
 #+header: :tangle daemon/test/sample/KubeFake.lua
 #+begin_src lua
@@ -2095,7 +2028,7 @@ local KubeFake = {}
 -- the time_idx. But if we want to return certain values in a particular order,
 -- we can use this time_idx, where 0 means the first time this function is
 -- called, 1 is the next time, and so on. The time_idx will always wrap back to
--- 0 after reaching FIXME (max time_idx value).
+-- 0 after reaching the maximum time_idx value.
 function get_pods_fake(context, namespace, time_idx)
   local input = ""
   local output = {}
@@ -2221,13 +2154,12 @@ return KubeFake
 #+end_src
 
 ** On correctness
+:PROPERTIES:
+:ID:       a0d48ba3-3465-4566-86cb-78f13648c82e
+:END:
 
-FIXME: The sample above is actually part of a test case we use in Melby. You can
-be confident that the above example will always work.
-
-FIXME: Maybe create some "standard configuration library" of preconfigured Lua
-modules for users. For example, we could promote the above "Git" module (and
-maybe another Kubernetes one) into a standard folder that ships with Melby.
+The sample above is actually part of a test case we use in Melby. You can be
+confident that the above example will always work.
 
 Below is a sample shell script that calls =melbyc= as a real example. You can use
 something similar to set your own shell prompt --- as =melbyc= here just outputs

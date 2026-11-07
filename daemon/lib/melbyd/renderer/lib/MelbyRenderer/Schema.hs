@@ -46,7 +46,6 @@ data MColorizedGitShaResponse = MColorizedGitShaResponse
 data MRenderWidgetsRequest = MRenderWidgetsRequest
   { widgets :: [MWidget]
   , delimiter :: Maybe MWidget
-  -- FIXME: allow duplicate fields once we move to GHC 9 (waiting on mu-haskell)
   , render_options :: Maybe MRenderOptions
   } deriving (Eq, Show, Ord, Generic
              , ToSchema MelbyRendererSchema "RenderWidgetsRequest"
@@ -90,7 +89,6 @@ data MColor24Bit = MColor24Bit
   { red :: Word32
   , green :: Word32
   , blue :: Word32
-  -- FIXME: add alpha channel?
   } deriving (Eq, Ord, Show, Generic
              , ToSchema MelbyRendererSchema "Color24Bit"
              , FromSchema MelbyRendererSchema "Color24Bit")

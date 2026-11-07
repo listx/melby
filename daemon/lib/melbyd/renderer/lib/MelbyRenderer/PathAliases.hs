@@ -65,13 +65,8 @@ pPathAlias = do
   _ <- char '='
   path <- T.concat <$> lexeme (directoryPath <?> "directory path")
   -- We want to have the path as the key to the Map, because that's how we use
-  -- it back in Elixir (FIXME: add link).
+  -- it back in Elixir.
   pure (path, alias)
-  -- FIXME: Use withRecovery to recover from a parse error. See
-  -- https://stackoverflow.com/questions/59640023/how-to-report-multiple-errors-using-megaparsec.
-  --if isValid path
-    --then pure Just (path, alias)
-    --else pure Nothing
   where
   directoryPath = do
     dp <- some $ choice [pPath, pVariable]

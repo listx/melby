@@ -5,7 +5,7 @@ local KubeFake = {}
 -- the time_idx. But if we want to return certain values in a particular order,
 -- we can use this time_idx, where 0 means the first time this function is
 -- called, 1 is the next time, and so on. The time_idx will always wrap back to
--- 0 after reaching FIXME (max time_idx value).
+-- 0 after reaching the maximum time_idx value.
 function get_pods_fake(context, namespace, time_idx)
   local input = ""
   local output = {}

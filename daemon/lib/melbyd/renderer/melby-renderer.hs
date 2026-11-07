@@ -42,7 +42,7 @@ optionsP = Opts <$> subcommandP
 subcommandP :: Parser Subcommand
 subcommandP = hsubparser
   (  command "serve" (info (Serve <$> serveOptsP) (progDesc "get prompt information with Lua"))
-  <> command "ping" (info (pure Ping) (progDesc "FIXME ?"))
+  <> command "ping" (info (pure Ping) (progDesc "not implemented"))
   <> metavar "SUBCOMMAND"
   )
 

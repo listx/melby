@@ -14,8 +14,7 @@ pub struct ViewRequest {
         ::prost::alloc::string::String,
         ::prost::alloc::string::String,
     >,
-    /// Process ID number of the running (interactive) shell program. (FIXME: move
-    /// this to env var)
+    /// Process ID number of the running (interactive) shell program.
     #[prost(string, tag = "4")]
     pub shell_pid: ::prost::alloc::string::String,
 }

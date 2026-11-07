@@ -74,9 +74,6 @@ function Kube.parser.get_pods (s)
     ret["pods_in_phase_" .. phase] = count + 1
   end
 
-  -- FIXME: Move this to the View section, because we shouldn't store redundant
-  -- data.
-  --
   -- Of the listed pods, how many are in a healthy "Running" phase? This is
   -- useful for service clusters where the pods are long-lived services that are
   -- expected to always be in a "Running" state (being available).
@@ -174,7 +171,6 @@ end
 -- This resource is generally meant for detecting cluster health (pod stats), so
 -- it's conceivable that all shells would like to know about this. So we just
 -- always return "true".
--- FIXME: Is there a better default for this?
 function Kube.should_keep_message (message, env_vars)
   return true
 end
@@ -208,9 +204,6 @@ function Kube.view (standard_resource)
   --    10T 1p 5r 1s 2f 0u
   --
   -- for 10 total pods, 1 pending, 5 running, 1 succeeded, 2 failed, 0 unknown.
-  --
-  -- FIXME: Display percentages instead of raw pod counts. We already get raw
-  -- pod counts in the messaging part.
   if standard_resource.status == "STANDARD_RESOURCE_STATUS_LOADING" and
     (next(kube) == nil) then
     table.insert(widgets, {str="(pods...)"})

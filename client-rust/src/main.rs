@@ -61,11 +61,6 @@ async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
     let url = format!("http://127.0.0.1:{0}", cli.melbyd_port);
     let mut client = ViewClient::connect(url).await?;
 
-    // FIXME: Instead of slurping up everything, only slurp up
-    // an "allowlist" of known ENV vars we want to feed into the daemon. This
-    // allowlist could be defined in settings.yml or even as an additive list of
-    // flags. We could do the additive list of flags first and then move to
-    // settings.yml in the future if there are just too many flags.
     let mut env_vars: HashMap<String, String> = HashMap::new();
     for (k, v) in std::env::vars() {
         env_vars.insert(k, v);

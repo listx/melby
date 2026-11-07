@@ -36,9 +36,6 @@ function Git.readers (resource_opts)
   -- Each reader needs an associated parser. The parser function is just the
   -- string name of a Git.parser.* function name. So parser="diff" refers to
   -- Git.parser.diff().
-  --
-  -- FIXME: Move the invocation definition to a function, and put this function
-  -- next to each parser function.
   local readers = {
     {cd=pwd, invocation={"git", "diff", "--shortstat"},
      parser="diff"},
@@ -113,7 +110,7 @@ function Git.staleness_flaggers (resource_id)
     -- if HEAD moves, which is important when we (for example) modify the
     -- HEAD of submodules.
     if string.find(path, "/.git/") and string.find(path, "/index.lock$") then
-      -- FIXME note: Looks like
+      -- Note: Looks like
       -- https://github.com/rvirding/luerl/blob/5e61c1838d08430af67fb870995b05a41d64aeee/src/luerl.erl#L340
       -- converts an atom into a "binary" (string). This just drops the initial
       -- ":" and makes the rest a string as is.
@@ -316,9 +313,6 @@ function Git.notify (resource_id, old, new)
   -- messages for interesting state changes.
   --
   -- This is where we need to warn users about linting errors and such.
-  --
-  -- FIXME: If this is a "Rust" codebase, we could have a "Rust" model that
-  -- performs linter and formatter checks.
 
   -- If we stage or unstage something, show tentative "commit size".
   local old_staged_bytes = old.kvs.staged_bytes

@@ -38,11 +38,6 @@ CURRENT   NAME          CLUSTER          AUTHINFO              NAMESPACE
 end
 
 function KubeCurrentFake.readers (resource_opts, time_idx)
-  -- FIXME: The reader is supposed to be auto-invoked whenever the file(s)
-  -- pointed by KUBECONFIG env var from the client changes (filesystem watch).
-  -- So we need to send fake filesystem events as part of the validation
-  -- strategy. Sending a filesystem event is as simple as sending the
-  -- correctly-formed tuple to the SRS process.
   return {
     current_context_and_namespace =
       current_context_and_namespace_fake(kubeconfig, time_idx)

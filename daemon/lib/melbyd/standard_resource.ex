@@ -170,7 +170,6 @@ defmodule Melbyd.StandardResource do
         # that SRS can still react to).
         new_state
       else
-        # FIXME: Move all of this to a "setup_staleness_flaggers" function.
         [staleness_flaggers_luerl_array] = resource["staleness_flaggers"].([resource_id])
 
         staleness_flaggers_luerl_tables =
@@ -221,16 +220,9 @@ defmodule Melbyd.StandardResource do
             Logger.warning("got #{Kernel.length(errors)} errors reading fake readers")
             errors |> Enum.map(fn e -> Logger.warning(e) end)
             # Still return those kvs that were successfully parsed as expected.
-            # FIXME: Or should we not crash here?
             raise "failed validation"
         end
       else
-        # FIXME: Optionally run the readers concurrently for cases where we do
-        # want the concurrency (e.g., we're hitting N different IP targets over
-        # the network). E.g., for kubernetes contexts, most likely we should run
-        # them all in parallel because they are talking to different clusters
-        # with different IPs.
-        #
         # We should by default read serially because it is "safer". E.g., for
         # git we definitely do not want to run everything in parallel because
         # each git command could block on a global lockfile located in the .git
@@ -260,9 +252,6 @@ defmodule Melbyd.StandardResource do
       expected = fake_reader["output"] |> Melbyd.LuerlUtil.table_to_native_map()
 
       errors = if kvs_subset != expected do
-        # FIXME: Maybe use a map diffing library, like
-        # https://hexdocs.pm/map_diff/MapDiff.html to get a shorter "diff" of
-        # any key/value differences.
         ["resource type #{resource["type"]}: " <>
           "resource_opts #{inspect(resource_opts)}: " <>
           "time_idx #{time_idx}: " <>
@@ -361,7 +350,6 @@ defmodule Melbyd.StandardResource do
     Enum.reduce(maps, &Map.merge/2)
   end
 
-  # FIXME: put this inside the callbacks section for handle_call.
   @impl true
   def handle_call(
         :read,
@@ -539,8 +527,6 @@ defmodule Melbyd.StandardResource do
       ) do
     Logger.info("SRS id #{inspect(id)}, fs watcher #{inspect(watcher_pid)}: FileSystem monitor stopped")
 
-    # FIXME: Use {:stop, reason, new_state} here to stop the process instead of
-    # (ab)using ttl. See pages 174-175 of Elixir In Action.
     {:noreply, %{state | ttl: -1}}
   end
 

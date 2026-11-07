@@ -107,13 +107,6 @@ viewOptsP
 
 optsHandler :: Opts -> IO ()
 optsHandler (Opts subcommand' oMelbydPort') = do
-  -- FIXME: configure the domain and port to be configurable through TOML or
-  -- yaml in a shared location with the daemon. The daemon should configure its
-  -- port with it. The precedence of settings (where later mechanisms override
-  -- earlier ones) is: (1) the configuration file (in TOML) converted to a
-  -- native Haskell type (with sane defaults) with tomland
-  -- (https://kowainik.github.io/posts/2019-01-14-tomland), (2) command-line
-  -- options that are passed in at runtime.
   Right viewClient <- initGRpc (grpcClientConfigSimple
                                  "127.0.0.1" oMelbydPort' False) msgProtoBuf
   --home <- T.pack <$> getEnv "HOME"

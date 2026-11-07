@@ -576,8 +576,6 @@ pkgs.mkShell ({
     macOS-security
   ];
 
-  # FIXME: how to get the git version into the environment...???? The setting
-  # below for MELBY_PROJECT_ROOT only works for the dev env, not the release env
   shellHook = ''
     # Prefer to use melbyr and melbyc from the local development tree path.
     export PATH=$PWD/daemon/test:$PWD/daemon/lib/melbyd/renderer:$PWD/client:$PATH
@@ -639,6 +637,9 @@ pkgs.haskell.lib.buildStackProject {
 ** Packaging
 
 *** Releasing
+:PROPERTIES:
+:ID:       03f01b07-6887-4d68-8f16-612adf9edd60
+:END:
 
 We use Nix to package everything up. The main thing to note here is that we
 reuse the shell environment's sources (in =nix/sources.nix=) to make sure that
@@ -658,12 +659,6 @@ let
   hpg96 = pkgs.haskell.packages.ghc96;
   melby-client = hpg8107.callPackage ../client/melby-client.nix {};
   melby-client-rust = pkgs.callPackage ../client-rust/melby-client-rust.nix {};
-  # FIXME: We need to pass in a "version" attribute to all Haskell packages
-  # because the default buildStackProject helper does not provide a version.
-  # This means we need to start creating version strings, probably in the format
-  # "YY.MM.DD-<sha>" to make it incremental.
-  #melby-client-2 = (import melby-client-1) {};
-  #melby-client-3 = pkgs.haskell.lib.addBuildTool melby-client-2 fakeGit;
   melby-renderer = hpg8107.callPackage ../daemon/lib/melbyd/renderer/melby-renderer.nix {};
   melby-daemon = pkgs.callPackage ../daemon/melby-daemon.nix {};
   melby-nifs = pkgs.callPackage ../daemon/lib/melbyd/nifs/melby-nifs.nix {};
@@ -705,10 +700,6 @@ in
 Additional steps:
 
 Create a =~/.melby/systemd/env= file with the contents
-
-FIXME: Add in "prod" settings here for =MELBYR_PATH=, =MELBYR_PORT=, and so on so as
-to not conflict with the dev environment. Even better, add these settings in our
-Elixir code so that the user does not (normally) have to configure them.
 
 #+begin_example
 RELEASE_COOKIE=path/to/cookie
@@ -784,6 +775,9 @@ melby-daemon
 result*
 #+end_src
 * How to hack on this project
+:PROPERTIES:
+:ID:       e8018df8-fde2-49ff-8489-551b7cc1a01f
+:END:
 
 First realize that this project uses literate programming. Because of this, you
 must ensure that you can edit the Org files and make sure that those changes (to
@@ -837,15 +831,14 @@ the real =kubectl= would behave. The script hardcodes the path to =melbyc= so
 that it refers to the one that has been compiled inside the development
 environment.
 
-** Testing local changes
-
-FIXME: How to do testing? What about integration tests? How to invoke tests? =mix test=?
-
 ** Common scenarios
 
 *** Hacking on the Lua config
+:PROPERTIES:
+:ID:       72ae0f89-3701-4644-bf6a-14bac6278096
+:END:
 
-Make sure to use fakes, and to add validation tests. FIXME show examples.
+Make sure to use fakes, and to add validation tests.
 
 * melbyc
 
@@ -887,13 +880,15 @@ prompt (the user can do more than just rearrange these pieces --- they can
 customizes the pieces themselves). To this
 
 **** Proto
+:PROPERTIES:
+:ID:       852e9113-6295-4083-aac1-aa5a642de7ef
+:END:
 
 For concreteness, this is the actual protobuf file we use to define melbyc's
 behavior when it talks to the daemon.
 
 This is the protobuf definition that we need to generate the Haskell client
 stub. We also use it to generate the Elixir server stubs (used by the daemon).
-FIXME: add link to where it's used in Elixir.
 
 #+name: melbyproto_melby_client
 #+header: :tangle melby_client.proto
@@ -917,8 +912,7 @@ message ViewRequest {
   // Environment variables ((name, value) pairs) of interest.
   map<string, string> env_vars = 3;
 
-  // Process ID number of the running (interactive) shell program. (FIXME: move
-  // this to env var)
+  // Process ID number of the running (interactive) shell program.
   string shell_pid = 4;
 }
 
@@ -1001,8 +995,11 @@ We'll look at the business logic first, and then all of the other boilerplate
 code.
 
 ** Business logic
+:PROPERTIES:
+:ID:       79284ebb-5759-45b2-989b-d14b2be7538c
+:END:
 
-Recall in section FIXME that we said we wanted to pass in some Lua code. So
+Recall that we said we wanted to pass in some Lua code. So
 that's basically what we do here --- we pass in a gRPC connection and a filepath
 to the Lua script we want to send to melbyd. We do this in the =getView=
 function.
@@ -1174,13 +1171,6 @@ successful parse of command line arguments) to the business logic.
 #+begin_src haskell
 optsHandler :: Opts -> IO ()
 optsHandler (Opts subcommand' oMelbydPort') = do
-  -- FIXME: configure the domain and port to be configurable through TOML or
-  -- yaml in a shared location with the daemon. The daemon should configure its
-  -- port with it. The precedence of settings (where later mechanisms override
-  -- earlier ones) is: (1) the configuration file (in TOML) converted to a
-  -- native Haskell type (with sane defaults) with tomland
-  -- (https://kowainik.github.io/posts/2019-01-14-tomland), (2) command-line
-  -- options that are passed in at runtime.
   Right viewClient <- initGRpc (grpcClientConfigSimple
                                  "127.0.0.1" oMelbydPort' False) msgProtoBuf
   --home <- T.pack <$> getEnv "HOME"
@@ -1210,6 +1200,9 @@ main = do
 #+end_src
 
 *** gRPC schema
+:PROPERTIES:
+:ID:       b3c9e375-0b11-44bd-ae54-0cdc22b86f91
+:END:
 
 This is the code that helps melbyc understand how to encode and decode the raw
 bytes that are used for communication with melbyd (an Elixir application). This
@@ -1221,8 +1214,6 @@ enough to understand (thanks to how terse Haskell can be).
 
 We define this in a separate file so that it can be reused by other programs,
 namely the =melbyd-lens= Haskell service that runs as part of melbyd.
-
-FIXME: break this up into smaller chunks
 
 #+name: melbyc_lib_schema
 #+header: :tangle client/lib/MelbyClient/Schema.hs
@@ -1335,7 +1326,8 @@ versionOption = infoOption
   (long "version" <> short 'v' <> help "Show version")
 #+end_src
 
-The underlying plumbing that handles this is done in FIXME path:
+The underlying plumbing that handles this is done in the ~MelbyClient.GitVersion~
+module:
 
 #+name: melbyc_lib_gitVersion
 #+header: :tangle client/lib/MelbyClient/GitVersion.hs
@@ -1394,6 +1386,9 @@ getTimeInfo = show <$> getZonedTime
 ** Build system
 
 *** Makefile
+:PROPERTIES:
+:ID:       911b124e-8fee-43bd-9911-f7f9a68ee3d2
+:END:
 
 #+header: :tangle client/Makefile
 #+begin_src makefile
@@ -1431,7 +1426,7 @@ ghci:
 
 It's OK if =MELBY_PROJECT_ROOT= isn't actually the Melby project root directory,
 because Git will still figure out how to run =git describe=. We just use
-=MELBY_PROJECT_ROOT= here to be consistent with the Makefile (FIXME: link) for
+=MELBY_PROJECT_ROOT= here to be consistent with the Makefile for
 =melby-renderer=.
 
 *** Cabal
@@ -1850,11 +1845,6 @@ async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
     let url = format!("http://127.0.0.1:{0}", cli.melbyd_port);
     let mut client = ViewClient::connect(url).await?;
 
-    // FIXME: Instead of slurping up everything, only slurp up
-    // an "allowlist" of known ENV vars we want to feed into the daemon. This
-    // allowlist could be defined in settings.yml or even as an additive list of
-    // flags. We could do the additive list of flags first and then move to
-    // settings.yml in the future if there are just too many flags.
     let mut env_vars: HashMap<String, String> = HashMap::new();
     for (k, v) in std::env::vars() {
         env_vars.insert(k, v);
@@ -1978,6 +1968,9 @@ With that out of the way, let's look at the flow of a request:
 #+end_comment
 
 *** Standard Resource Server
+:PROPERTIES:
+:ID:       a6523578-acd8-40cc-b192-0011fd3802bb
+:END:
 
 This section describes the implementation of the Standard Resource Server, a
 generic =GenServer= that is designed to store arbitrary state from the output of
@@ -1994,7 +1987,7 @@ state. Then a diffing function will run to compare these states, and store a
 new message in the message inbox for this SRS if there is some interesting
 difference worth noting.
 
-In summary (FIXME: add diagram), we store 2 things:
+In summary, we store 2 things:
 
   1) the history of states (has at least the 2 most recent "readings"), and
 
@@ -2034,6 +2027,9 @@ enum StandardResourceStatus {
 #+end_src
 
 **** Implementation
+:PROPERTIES:
+:ID:       e23de83a-180c-4051-9a16-eecb4b3a7c31
+:END:
 
 #+header: :tangle daemon/lib/melbyd/standard_resource.ex
 #+begin_src elixir
@@ -2209,7 +2205,6 @@ defmodule Melbyd.StandardResource do
         # that SRS can still react to).
         new_state
       else
-        # FIXME: Move all of this to a "setup_staleness_flaggers" function.
         [staleness_flaggers_luerl_array] = resource["staleness_flaggers"].([resource_id])
 
         staleness_flaggers_luerl_tables =
@@ -2260,16 +2255,9 @@ defmodule Melbyd.StandardResource do
             Logger.warning("got #{Kernel.length(errors)} errors reading fake readers")
             errors |> Enum.map(fn e -> Logger.warning(e) end)
             # Still return those kvs that were successfully parsed as expected.
-            # FIXME: Or should we not crash here?
             raise "failed validation"
         end
       else
-        # FIXME: Optionally run the readers concurrently for cases where we do
-        # want the concurrency (e.g., we're hitting N different IP targets over
-        # the network). E.g., for kubernetes contexts, most likely we should run
-        # them all in parallel because they are talking to different clusters
-        # with different IPs.
-        #
         # We should by default read serially because it is "safer". E.g., for
         # git we definitely do not want to run everything in parallel because
         # each git command could block on a global lockfile located in the .git
@@ -2299,9 +2287,6 @@ defmodule Melbyd.StandardResource do
       expected = fake_reader["output"] |> Melbyd.LuerlUtil.table_to_native_map()
 
       errors = if kvs_subset != expected do
-        # FIXME: Maybe use a map diffing library, like
-        # https://hexdocs.pm/map_diff/MapDiff.html to get a shorter "diff" of
-        # any key/value differences.
         ["resource type #{resource["type"]}: " <>
           "resource_opts #{inspect(resource_opts)}: " <>
           "time_idx #{time_idx}: " <>
@@ -2400,7 +2385,6 @@ defmodule Melbyd.StandardResource do
     Enum.reduce(maps, &Map.merge/2)
   end
 
-  # FIXME: put this inside the callbacks section for handle_call.
   @impl true
   def handle_call(
         :read,
@@ -2705,7 +2689,10 @@ def handle_info(
 end
 #+end_src
 
-****** Boilerplate (FIXME: rename this heading and avoid "boilerplate" because it means nothing)
+****** Boilerplate
+:PROPERTIES:
+:ID:       7edeccf0-870f-4a2c-9e74-26618a2c33b6
+:END:
 
 This section captures universally-applicable filesystem events which are
 independent of what the user specifies in their Lua configuration.
@@ -2726,8 +2713,6 @@ def handle_info(
     ) do
   Logger.info("SRS id #{inspect(id)}, fs watcher #{inspect(watcher_pid)}: FileSystem monitor stopped")
 
-  # FIXME: Use {:stop, reason, new_state} here to stop the process instead of
-  # (ab)using ttl. See pages 174-175 of Elixir In Action.
   {:noreply, %{state | ttl: -1}}
 end
 #+end_src
@@ -3170,6 +3155,9 @@ end
 #+end_src
 
 *** Shell Logger GenServer (SLG)
+:PROPERTIES:
+:ID:       9795bf90-1367-4f60-b313-ef057b32f392
+:END:
 
 The purpose of the Shell Logger GenServer (SLG) is to subscribe to various
 PubSub topics. That is, this is the consumer and the SRS GenServers are the
@@ -3252,9 +3240,6 @@ defmodule Melbyd.ShellLogger do
     # If there are topics of interest that have not yet been subscribed to,
     # subscribe to them as well. But also unsubscribe from topics that we don't
     # care about any more.
-    #
-    # FIXME: In practice, because our Lua config is essentially immutable, we
-    # never unsubscribe from topics because the topics list never changes.
     topics = Enum.map(topic_handlers, fn {topic, _handler} -> topic end)
     topics_new = topics -- already_subscribed_topics
     Enum.map(topics_new, fn topic -> Phoenix.PubSub.subscribe(Melbyd.PubSub, topic) end)
@@ -3315,8 +3300,6 @@ This is modeled after =Melbyd.StandardResource.tick/2=.
 
 #+name: melbyd_sps_tick
 #+begin_src elixir
-# FIXME: This code is identical to the one in Melbyd.StandardResource.tick/2. Can
-# we make it DRY somehow?
 defp tick(ttl, notify_on_exit_pid) do
   case ttl do
     n when n in -1..0 ->
@@ -3400,11 +3383,11 @@ end
 #+end_src
 
 **** Graceful shutdown
+:PROPERTIES:
+:ID:       f99ef583-6d25-4de0-b212-da672c2223dc
+:END:
 
 This is identical to the graceful shutdown logic for SRS.
-
-FIXME: Can we make it DRY? Maybe use a macro, or some new utility functions? Or
-a behaviour or protocol...?
 
 #+name: melbyd_sps_handle_info-3
 #+begin_src elixir
@@ -3510,6 +3493,9 @@ end
 *** Current path (path shortening)
 
 **** Path
+:PROPERTIES:
+:ID:       46a84d53-0b37-4656-8a46-7e11456bc78f
+:END:
 
 #+header: :tangle daemon/lib/melbyd/path.ex
 #+begin_src elixir
@@ -3529,10 +3515,6 @@ defmodule Melbyd.Path do
       {path, aliases, env_vars})
 
     if status == :error || path_pretty == nil do
-      # FIXME: Optionally colorize path depth. Maybe take in something like
-      # keyword args...? Ideally user should be able to define a list of colors
-      # to use for each directory depth (using modulo for cyclicness), as well
-      # as the color of the slash and leading tilde (aliases).
       path_pretty =
         Melbyd.Nifs.path_shorten(
           path,
@@ -3682,8 +3664,6 @@ fn make_canonical_path(
 
     // Encode the shell's "~" character as a special case of our "name" idiom.
     // This way, even if no aliases match, we can replace "/home/foo" with "~".
-    // FIXME: This requires HOME to be set. Otherwise we'll panic when we
-    // unwrap() below.
     let home_value = env_vars.get(&"HOME".to_string()).unwrap();
     // Don't replace $HOME with "~" becausewe we already prepend every name
     // match with a "~". So defining the value here with a tilde would result in
@@ -4062,7 +4042,6 @@ defmodule Melbyd.Application do
     Supervisor.start_link(children, opts)
   end
 
-  # FIXME: Add ASCII-art here.
   defp announce() do
     Logger.info("Starting application in #{Application.fetch_env!(:melbyd, :env)} environment")
   end
@@ -4098,20 +4077,21 @@ https://hashrocket.com/blog/posts/silence-logger-messages-in-exunit).
 {MuonTrap.Daemon,
  [Application.get_env(:melbyd, :melbyr_path),
   ["serve", "#{Application.get_env(:melbyd, :melbyr_port)}"],
- # FIXME: Make this more verbose output an environment variable option.
- #[stderr_to_stdout: true, log_output: :debug]]},
  [stderr_to_stdout: false]]},
 #+end_src
 
 *** gRPC services
+:PROPERTIES:
+:ID:       ade93de4-a3f4-4d34-b5a0-6375457b4b72
+:END:
 
 The most important way of interaction between the client and melbyd is the
-=GetView= RPC method (FIXME: add link). This method takes in a Lua script, which
+=GetView= RPC method. This method takes in a Lua script, which
 will be responsible for both collecting the necessary data and arranging it to
 generate the view. So we let the client decide what to collect and display.
 
-We serve clients through gRPC services. If you look at the proto file (FIXME:
-add link), there is a single View service.
+We serve clients through gRPC services. If you look at the proto file, there is
+a single View service.
 
 The View service is shown below.
 
@@ -4147,6 +4127,9 @@ Notice that we define the top-level =Melbyd.Endpont= module, which contains the
 =View= service.
 
 **** View (melbyr interface)
+:PROPERTIES:
+:ID:       bfc9b5c9-64e2-4d3f-a38c-1167eea1828b
+:END:
 
 Below is =melby-client='s =ViewRequest= that we handle. As part of handling this,
 we will need to call out to the melbyr Haskell server over gRPC.
@@ -4195,7 +4178,6 @@ defmodule Melbyd.View do
   end
 
   # Perform some rudimentary validation.
-  # FIXME: Is this even worth it?
   def validate(config_path, _env_vars, shell_pid) do
     cond do
       !File.exists?(config_path) ->
@@ -4215,12 +4197,14 @@ end
 #+end_src
 
 **** Standard Resource Service
+:PROPERTIES:
+:ID:       a3de47b0-eb38-4e08-9ceb-3730abe70bf9
+:END:
 
 The Standard Resource Service (SRS) is a general-purpose Elixir GenServer with a
 notion of history of previous states. The two main selling points are:
 
-  1) it can be used to implement the Kubernetes controller pattern (FIXME:
-     insert link); and
+  1) it can be used to implement the Kubernetes controller pattern; and
 
   2) unlike typical Elixir GenServers, it can be configured at runtime with Lua.
 
@@ -4350,17 +4334,6 @@ import Cachex.Spec
 defmodule Melbyd.LuaConfigValidation do
   require Logger
 
-  # FIXME: Add Cachex lookup to see if this config was validated previously. We
-  # should add this lookup after we've implemented the validation functionality
-  # completely.
-  #
-  # FIXME: (For caching) We should require env vars (which we use) to be
-  # declared ahead of time, and hash the *names* of these env vars (not their
-  # contents) as required inputs (you can think of them as types) to a function
-  # (this Lua config). And then if the config does not declare this list of env
-  # vars, we can refuse to validate it. This way we capture the exact "function
-  # definition", so to speak, of the Lua config by precisely describing its
-  # definition.
   def validate(lua_file) do
     with st0 <- Luerl.init(),
          st1 <- Luerl.load_module(st0, ["melbyd"], Melbyd.LuaSdk),
@@ -4403,9 +4376,6 @@ defmodule Melbyd.LuaConfigValidation do
 
   # Return the blank state of the initial Lua VM state meant for validation
   # purposes only.
-  #
-  # FIXME: Add a fake for SLG also? And also delete it when we're done with
-  # validation?
   def preloaded_fake_lua_vm() do
     Luerl.init()
     |> Luerl.load_module(["melbyd"], Melbyd.LuaSdk)
@@ -4449,9 +4419,6 @@ defmodule Melbyd.LuaConfigValidation do
     with {_, st1} <- Luerl.dofile(preloaded_fake_lua_vm, String.to_charlist(lua_file)),
          view_params_types <- get_view_params_types(st1),
          :ok <- assert_expected_views(st1, view_params_types, vm_fingerprint) do
-      # FIXME: Maybe store some more useful metrics beyond just
-      # "view_params_types". E.g., the number of test cases executed, how long
-      # it took to run it (at what time), etc.
       {:commit, view_params_types}
     else
       # If there's any error, abort and return nil.
@@ -4586,8 +4553,6 @@ defmodule Melbyd.LuaConfigValidation do
   end
 
   def assert_type_path(path) do
-    # FIXME: use haskell parsec to do a full parse
-
     # Use a basic heuristic. Assert that the first character starts with a slash
     # "/", that the last character is not a slash, and that there are no runs of
     # consecutive slashes. No null bytes. Last character cannot  be "." (this
@@ -4605,8 +4570,6 @@ defmodule Melbyd.LuaConfigValidation do
   end
 
   def assert_type_paths(paths) do
-    # FIXME: use haskell parsec to do a full parse
-
     # Use a basic heuristic. Assert that the first character starts with a slash
     # "/", that the last character is not a slash, and that there are no runs of
     # consecutive slashes. No null bytes. Last character cannot  be "." (this
@@ -4628,33 +4591,6 @@ defmodule Melbyd.LuaConfigValidation do
     end
   end
 
-  # FIXME: Each of the SRS models have a "fake" field with faked readers in it
-  # (which return plausible, well-formatted data). We just have to use them
-  # somehow.
-  #
-  # We can make this fake tick runner just run the ["Config", "view"] function
-  # in the Lua state, wait 1 second, check the result and compare it to the
-  # expectation, and repeat. The expectations can come from the config file
-  # itself (add it under another key path). The behind the scenes the
-  # StandardResource should behave almost like in prod, but with the difference
-  # that it'll run the fake readers instead of the actual readers, as well as
-  # provision the SRS GenServer in a different namespace so as not to clash with
-  # the production resources.
-
-  # The config should tell us how many "ticks" and corresponding expectations to
-  # run. We could enforce a minimum of 3 rounds from our side (i.e., fail
-  # validation if the user has not configured at lesat 3 rounds of
-  # expectations).
-  #
-  # Each iteration should be:
-  #
-  #     1. Execute ["Config", "view"] function in the Lua VM state (time_idx is 1).
-  #
-  #     2. Expectation: check expected return value of the above versus what we
-  #     actually got (got vs want).
-  #
-  #     3. Increment time_idx by 1, and re-run step 1. Continue until time_idx
-  #     == 10 or some other number.
   def assert_expected_views(st0, view_params_types, vm_fingerprint) do
     # Set the vm_fingerprint inside the Lua VM, so that the fake Lua SDK
     # functions can use them to pass them on to Elixir.
@@ -4677,7 +4613,6 @@ defmodule Melbyd.LuaConfigValidation do
         # Check vals of fake env_vars in view_tests.
         env_vars_fake = view_test["env"] |> Melbyd.LuerlUtil.table_to_native_map()
 
-        # FIXME: dedupe this logic (copied from enforce_view_params_types)
         type_errors =
           Enum.reduce(view_params_types["env"], [], fn {name, type_array}, errors ->
             [req_or_opt, type] =
@@ -4942,7 +4877,6 @@ end
 def style_from_str(s) do
   case s do
     "bold" -> :TEXT_STYLE_BOLD
-    # FIXME: skip over unrecogized values
     _ -> :TEXT_STYLE_BOLD
   end
 end
@@ -5065,10 +4999,9 @@ end
 #+end_src
 
 ***** Time
-
-FIXME: Use Timex library here also to avoid making the user use the stupid
-=America/Los_Angeles= timezone and instead the shorter names that the "%Z"
-strftime uses, because then the user doesn't have to use =timedatectl= as well.
+:PROPERTIES:
+:ID:       0547179a-4c70-4663-a6a3-ac2726ff9504
+:END:
 
 Construct the time string from the time format string, and optional time zone
 and UNIX seconds. We take in these optional parameters so that the test code can
@@ -5125,9 +5058,9 @@ end
 #+end_src
 
 ***** Export to shell script
-
-FIXME: This should be another NIF because the logic here is purely functional
-(independent of the Lua VM state).
+:PROPERTIES:
+:ID:       a7316466-f489-44a4-b426-70799725b925
+:END:
 
 The use of =mapfile= is from https://stackoverflow.com/a/47862096/437583. We use
 it instead of running =cat= because it avoids spawning a separate OS process.
@@ -5166,11 +5099,6 @@ def export_shell_var(%{"name" => name, "val" => val, "type" => type}) do
       ret <> "\n)\n"
 
     _ ->
-      # FIXME: Technically this is broken if "v" has a string "END_HEREDOC" on
-      # its own line. There are ways around this but for now we don't care.
-      #
-      # It's doubly broken because "k" could have an invalid non-keyword
-      # character in it. But again we don't care for now.
       """
       #{name}=$(cat << 'END_HEREDOC'
       #{val}
@@ -5220,6 +5148,9 @@ end
 #+end_src
 
 ******* Fake
+:PROPERTIES:
+:ID:       7b9d1640-50d2-4095-b2bc-f373b0c5d992
+:END:
 
 This is like =read_standard_resource=, but instead of reading things the regular
 way, we inject a special "fake" key in the =resource_opts= so that the reader
@@ -5227,19 +5158,6 @@ knows that it is fake and understands it should execute the fake readers and
 also the =resource_id_func= instead of the =resource_id_command=. The good thing
 is that all of these bits should already be defined in the resource already by
 the user.
-
-FIXME: We must put all SRS and SLG resources in a separate =namespace= so as to
-not collide with actual production resources. E.g., we don't want to create an
-SRS or SLG GenServer instance whose =id= would collide with one for production.
-We need to create a unique token for a validation request and use that as part
-of the resource IDs so that multiple validation requests do not walk on each
-other. Hmm, actually, what we need is a concurrent non-blocking cache. We need
-to make it so that we hash the incoming code's contents to generate a
-deterministic key (md5sum), then use this key as the validation result, and
-cache this result. If there are any other requests coming into melbyd for the
-same config, they also will get hashed to the same key, and must wait for the
-first request's already-in-progress validation to succeed. We can use Cachex and
-its so-called "fallbacks" to get this concurrent non-blocking cache behavior.
 
 #+name: melbyd_luasdk_srs_fake
 #+begin_src elixir
@@ -5738,7 +5656,7 @@ defmodule Melbyd.LuaSdkLoader do
       lua_func_name =
         String.replace_prefix(Atom.to_string(elixir_func), "__handle_lua_call__", "")
 
-      # The arity is fixed at 2, because (FIXME: add link).
+      # The arity is fixed at 2.
       elixir_func_reference = Function.capture(module, elixir_func, 2)
       {lua_func_name, {:erl_func, elixir_func_reference}}
     end)
@@ -6034,7 +5952,6 @@ defmodule MelbydTest do
     get_lua_reader_state(pid) =~ want
   end
 
-  # FIXME: Change argument order to match assert_output_substrings.
   defp assert_output_string(want, shell_pid, lua_script, env_vars, ansi_escapes_allowed) do
     {:ok, pid} = init_lua_reader()
 
@@ -6096,8 +6013,6 @@ defmodule MelbydTest do
     Agent.stop(pid)
 
     # Check every substring, not just the last one.
-    # FIXME: Make this stricter by consuming the input in order (the substrings
-    # must be found in order).
     Enum.each(want_substrs, fn substr ->
       assert String.contains?(got, substr)
     end)
@@ -6180,7 +6095,6 @@ defmodule MelbydTest do
         notify_on_exit_pid: self()
       })
 
-    # FIXME: Move this 10_000 timeout to some global timeout (Application.get_env).
     assert_receive :shutting_down, 10_000
   end
 
@@ -6665,10 +6579,6 @@ message TextProperty {
   Color fg = 1;
   Color bg = 2;
   repeated TextStyle styles = 3;
-  // FIXME: It is possible to have underlines in a different color than the
-  // current foreground color. This field captures that possibility. BUT the
-  // ansi-terminal library does not appear to support this. So don't bother.
-  // Color line_color = 4;
 }
 
 message Color {
@@ -6678,7 +6588,7 @@ message Color {
     // colors (0 through 15) are the traditional 16 colors used before 256
     // colors became a thing. The colors 232-255 represent a grayscale gradient
     // (dark to light), and finally the middle 216 colors (16-231) represent
-    // additional colors in 6 squares, each with 36 colors. See FIXME table
+    // additional colors in 6 squares, each with 36 colors. See the table
     // here: https://en.wikipedia.org/wiki/ANSI_escape_code
     uint32 color_256 = 2;
   }
@@ -6919,13 +6829,6 @@ textPropToAnsiCode tp
     Nothing -> Nothing
     Just mcolor -> colorToSGRCode mcolor Background
   colorToSGRCode mcolor fgOrBg = case color_oneof mcolor of
-    -- FIXME: Get the default terminal background color and use it to blend the
-    -- foreground color here against it to get a Colour (instead of
-    -- AlphaColour).
-
-    -- (MColorOneOf24Bit mcolor24bit) -> Just
-    --                                . SetRGBColor Foreground
-    --                                . withOpacity (fromIntegral $ alpha mcolor24bit)
     (MColorOneOf24Bit mcolor24bit) -> Just . SetRGBColor fgOrBg
       $ sRGB24 (fromIntegral $ red mcolor24bit)
                (fromIntegral $ green mcolor24bit)
@@ -7101,11 +7004,8 @@ colorizeGitSha24bit shaStr len
   -- XOR the first and second halves of the input bytes (20 bytes) to generate
   -- 10 more bytes. Now we have 30 bytes in total in bytesFinal.
   bytes1 = B.take 10 bytes
-  -- FIXME: after ByteString 0.11.1.0, use B.takeEnd
   bytes2 = B.drop (B.length bytes - 10) bytes
   bytesFinal = B.concat
-    -- FIXME: after ByteString 0.11.1.0, use B.packZipWith
-    --[B.packZipWith (\a b -> xor a b) bytes1 bytes2, B.reverse bytes]
     [(B.pack $ B.zipWith (\a b -> xor a b) bytes1 bytes2), B.reverse bytes]
   -- Using the 30 bytes in bytesFinal, generate 10 colors (of 3 bytes, or 24 bits, each).
   colorCodes = gen10Colors [] bytesFinal
@@ -7233,13 +7133,8 @@ pPathAlias = do
   _ <- char '='
   path <- T.concat <$> lexeme (directoryPath <?> "directory path")
   -- We want to have the path as the key to the Map, because that's how we use
-  -- it back in Elixir (FIXME: add link).
+  -- it back in Elixir.
   pure (path, alias)
-  -- FIXME: Use withRecovery to recover from a parse error. See
-  -- https://stackoverflow.com/questions/59640023/how-to-report-multiple-errors-using-megaparsec.
-  --if isValid path
-    --then pure Just (path, alias)
-    --else pure Nothing
   where
   directoryPath = do
     dp <- some $ choice [pPath, pVariable]
@@ -7438,7 +7333,7 @@ optionsP = Opts <$> subcommandP
 subcommandP :: Parser Subcommand
 subcommandP = hsubparser
   (  command "serve" (info (Serve <$> serveOptsP) (progDesc "get prompt information with Lua"))
-  <> command "ping" (info (pure Ping) (progDesc "FIXME ?"))
+  <> command "ping" (info (pure Ping) (progDesc "not implemented"))
   <> metavar "SUBCOMMAND"
   )
 
@@ -7493,8 +7388,9 @@ main = do
 #+end_src
 
 **** gRPC schema
-
-FIXME: break this up into smaller chunks
+:PROPERTIES:
+:ID:       92ee3578-498a-441e-8335-b859bc907d99
+:END:
 
 #+name: melbyr_lib_schema
 #+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/Schema.hs
@@ -7589,7 +7485,6 @@ data MRenderColorDepth
 data MRenderWidgetsRequest = MRenderWidgetsRequest
   { widgets :: [MWidget]
   , delimiter :: Maybe MWidget
-  -- FIXME: allow duplicate fields once we move to GHC 9 (waiting on mu-haskell)
   , render_options :: Maybe MRenderOptions
   } deriving (Eq, Show, Ord, Generic
              , ToSchema MelbyRendererSchema "RenderWidgetsRequest"
@@ -7633,7 +7528,6 @@ data MColor24Bit = MColor24Bit
   { red :: Word32
   , green :: Word32
   , blue :: Word32
-  -- FIXME: add alpha channel?
   } deriving (Eq, Ord, Show, Generic
              , ToSchema MelbyRendererSchema "Color24Bit"
              , FromSchema MelbyRendererSchema "Color24Bit")
@@ -7689,8 +7583,6 @@ import Control.Monad.Logger
 import Control.Monad.Logger.Prefix
 import qualified Data.Text as T
 
--- FIXME: Make this debug output an environment variable option (only turn it on
--- if lookupEnv says MELBYR_VERBOSE is true).
 logDebug :: MonadLogger m => T.Text -> m ()
 logDebug t = prefixLogs "melbyr" $ logDebugN t
 #+end_src
@@ -7732,6 +7624,9 @@ import MelbyRenderer.Widgets (renderWidgets)
 #+end_src
 
 ***** Git versioning
+:PROPERTIES:
+:ID:       fecf74ac-b70d-486f-b239-d60cce73f42d
+:END:
 
 #+name: melbyr_gitVersion
 #+begin_src haskell
@@ -7739,8 +7634,6 @@ versionOption = infoOption
   (concat [showVersion version, "-g", $(gitVersion)])
   (long "version" <> short 'v' <> help "Show version")
 #+end_src
-
-FIXME: should we move this to a common "melby" haskell package?
 
 #+name: melbyr_lib_gitVersion
 #+header: :tangle daemon/lib/melbyd/renderer/lib/MelbyRenderer/GitVersion.hs
@@ -7778,8 +7671,11 @@ getTimeInfo = show <$> getZonedTime
 *** Build system
 
 **** Makefile
+:PROPERTIES:
+:ID:       56d459b3-aead-4986-958b-9bd90c67bd2d
+:END:
 
-This follows the Makefile for =melbyc= (FIXME: add link).
+This follows the Makefile for =melbyc=.
 
 #+header: :tangle daemon/lib/melbyd/renderer/Makefile
 #+begin_src makefile
@@ -8057,6 +7953,9 @@ Type=simple
 *** Elixir
 
 **** Makefile
+:PROPERTIES:
+:ID:       c5e1e3c9-faa3-4910-b9af-a1b5d03f10c2
+:END:
 
 #+caption: daemon/Makefile
 #+header: :tangle daemon/Makefile
@@ -8064,7 +7963,6 @@ Type=simple
 # See https://stackoverflow.com/a/73509979/437583 for getting the directory of
 # this Makefile.
 ROOT_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-# FIXME: Merge these with the env vars already exported in nix-shell.
 export MELBYR_PATH := $(ROOT_DIR)/lib/melbyd/renderer/melbyr
 export LUA_PATH := $(ROOT_DIR)/test/sample/?.lua
 export MELBY_DIR := $(ROOT_DIR)/test/sample
@@ -8217,6 +8115,9 @@ end
 #+end_src
 
 **** protoc-gen-elixir.nix
+:PROPERTIES:
+:ID:       c9790759-edd9-41c9-82b7-1a2ff17c0b4e
+:END:
 
 Sadly the protoc-gen-elixir plugin is not yet packaged in Nixpkgs, so we have to
 package it ourselves by writing our own derivation. This allows us to have a
@@ -8241,9 +8142,6 @@ let
   };
   version = "0.11.0";
 in
-  # FIXME: This is very heavy as it compiles the entire project (which we don't
-  # need to do). However this appears to be the only way possible to compile the
-  # protoc-gen-elixir escript executable.
   packages.mixRelease {
     inherit pname src version mixFodDeps;
     buildPhase = ''
@@ -8258,6 +8156,9 @@ in
 #+end_src
 
 **** Mix release
+:PROPERTIES:
+:ID:       ab469927-5592-4cc6-b743-2d3584cda8e5
+:END:
 
 We package up =melbyd= as a standalone "package".
 
@@ -8278,12 +8179,6 @@ let
     pkgs.stdenv.hostPlatform
     pkgs.systemd;
   packages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlangR26;
-  # FIXME: This appears to result in a SHA mismatch between Linux and Mac. We
-  # should probably use mix2nix to download mix dependencies reproducibly, as
-  # described in
-  # https://github.com/NixOS/nixpkgs/blame/2ea8b001f6ba09cc6eb9a30f4e117cbc3ec5afe2/doc/languages-frameworks/beam.section.md#L79.
-  #
-  # Hmm but this appears to be the same now since upgrading to 23.11.
   mixFodDeps = packages.fetchMixDeps {
     pname = "mix-deps-${pname}";
     inherit src version;
@@ -8294,10 +8189,6 @@ let
     beamPackages = pkgs.beamPackages;
   };
   pname = "melby-daemon";
-  # FIXME When this file is eventually upstreamed to Nixpkgs (if we want that),
-  # at that point we can start referring to Git tags/releases and use the
-  # version string from that instead (and download the tarball/zip, and proceed
-  # to build the package).
   version = "0-dev";
   src = builtins.path {
     name = "melby-daemon";
@@ -8408,8 +8299,6 @@ in
       melby.melby-nifs
       melby.melby-renderer
     ]
-    # FIXME: This part is a copy/paste of shell.nix at the root and should be
-    # deduplicated.
     # For file_system on Linux.
     ++ pkgs.lib.optional pkgs.stdenv.isLinux pkgs.inotify-tools
     # For file_system on macOS. See
@@ -8695,8 +8584,9 @@ Cargo.lock
 #+end_src
 
 *** Haskell (melbyr)
-
-See (FIXME: add link) for the build system for melbyr.
+:PROPERTIES:
+:ID:       70dfc13c-8847-4a99-850c-f18ebdbcda8c
+:END:
 
 **** Set up GHCi environment
 
