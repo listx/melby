@@ -1,5 +1,0 @@
-* -diff
-**/*.json diff
-**/*.org diff
-**/.gitattributes diff
-**/.gitignore diff

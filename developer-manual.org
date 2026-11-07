@@ -273,31 +273,6 @@ shell:
 The code used to generate the diagrams used in this doc is [[id:658989c2-1695-4240-b28a-3b0781cb1cac][here]]. We don't
 discuss that code in this doc because it would make this doc even more verbose.
 
-*** Ignore woven HTML from =git diff=
-
-Typically we only need to look at the rendered HTML output in a web browser as
-the raw HTML diff output is extremely difficult to parse as a human. So by
-default we ask Git to exclude it from =git diff= by treating them as binary
-data.
-
-#+caption: =.gitattributes=
-#+header: :tangle .gitattributes
-#+begin_src gitattributes
-,* -diff
-,**/*.json diff
-,**/*.org diff
-,**/.gitattributes diff
-,**/.gitignore diff
-#+end_src
-
-In order to still show the HTML textual diff, we can run =git diff --text=.
-
-**** =git add -p=
-
-Note that the above setting to treat HTML files as binary data prevents them
-from being considered for =git add -p=. In order to add them, use =git add -u=
-instead.
-
 ** Tangling (generating the source code)
 
 Tangling is simply the act of collecting the =#+begin_src ... #+end_src= blocks
