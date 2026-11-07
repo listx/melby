@@ -390,8 +390,15 @@ defmodule Melbyd.LuaConfigValidation do
     end
   end
 
-  def get_vm_fingerprint({a, b, c, d, e, f, g, h, i, _j, _k, l, m}) do
-    {a, b, c, d, e, f, g, h, i, l, m}
+  # The Lua VM state is a "luerl" record (see luerl.hrl in Luerl). We leave out
+  # its random state (index 9) and unique tag (index 10), which can differ even
+  # when the loaded Lua code is the same. We drop them by position (instead of
+  # matching on the whole record) so that we keep working when Luerl adds new
+  # fields at the end, as Luerl 1.3 did with the "private" field.
+  def get_vm_fingerprint(st) when elem(st, 0) == :luerl do
+    st
+    |> Tuple.delete_at(10)
+    |> Tuple.delete_at(9)
     |> Kernel.inspect(
       limit: :infinity,
       printable_limit: :infinity,

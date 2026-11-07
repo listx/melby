@@ -179,6 +179,15 @@ defmodule MelbydTest do
     end
   end
 
+  # melbyd validates the Lua config before using it (see
+  # Melbyd.LuaConfigValidation), by running it against fake resources.
+  test "validate the sample config" do
+    {:ok, mix_root} = File.cwd()
+
+    assert {:ok, %{"env" => _}} =
+             Melbyd.LuaConfigValidation.validate(mix_root <> "/test/sample/melby.lua")
+  end
+
   # This tag lets us do "mix test --only basic" to only run this test.
   @tag basic: true
   test "basic smoke test (no git repo)", %{test: test_name} do
