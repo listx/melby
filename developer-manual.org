@@ -4945,6 +4945,14 @@ defmodule MelbydTest do
     |> String.pad_trailing(pid_length, "0")
   end
 
+  # The age of the commits made by run_git_script/2, in the same format as
+  # get_relative_age in the Lua SDK.
+  defp commit_age() do
+    {:ok, commit_time, _} = DateTime.from_iso8601("2005-04-07T15:13:13-07:00")
+    years = div(DateTime.diff(DateTime.utc_now(), commit_time), 86400 * 365)
+    "#{years}Y"
+  end
+
   defp run_git_script(path, shell_script) do
     preamble = """
     set -euo pipefail
@@ -5214,6 +5222,10 @@ defmodule MelbydTest do
 
     lua_script = mix_root <> "/test/sample/melby.lua"
 
+    # The commits in this test all have the same fixed date (see
+    # run_git_script/2), so their age keeps growing as time goes by.
+    age = commit_age()
+
     # This initial response should not have Git information because it's too
     # quick (the Git watcher would have returned an initial empty loading
     # state). So check for the "[ Git... ]" string.
@@ -5228,7 +5240,7 @@ defmodule MelbydTest do
         "<N>  foo@laptop #{path_local_short}\nEND_HEREDOC",
         "\n)\nMELBY_PS1_LINE2=$(cat << 'END_HEREDOC'\n[",
         "⎈ one:default 8T 5p 2r 0s 0f 1u]",
-        " [ 3b83e1cd  master 19Y a]\nEND_HEREDOC\n)\ndeclare -a MELBY_SHELL_MESSAGES",
+        " [ 3b83e1cd  master #{age} a]\nEND_HEREDOC\n)\ndeclare -a MELBY_SHELL_MESSAGES",
         "\nMELBY_SHELL_MESSAGES=(\n\n)\n",
       ],
       shell_pid,
@@ -5245,7 +5257,7 @@ defmodule MelbydTest do
     """)
 
     assert_output_substrings(
-      ["[ 3b83e1cd  master 19Y a U1+1]"],
+      ["[ 3b83e1cd  master #{age} a U1+1]"],
       shell_pid,
       lua_script,
       env_vars,
@@ -5257,7 +5269,7 @@ defmodule MelbydTest do
     """)
 
     assert_output_substrings(
-      ["[ 3b83e1cd  master 19Y a S1+1]", "Staged size is now XS (4 bytes)."],
+      ["[ 3b83e1cd  master #{age} a S1+1]", "Staged size is now XS (4 bytes)."],
       shell_pid,
       lua_script,
       env_vars,
@@ -5269,7 +5281,7 @@ defmodule MelbydTest do
     """)
 
     assert_output_string(
-      "[ f679b84c  master 19Y a ▲1]",
+      "[ f679b84c  master #{age} a ▲1]",
       shell_pid,
       lua_script,
       env_vars,
@@ -5287,7 +5299,7 @@ defmodule MelbydTest do
     """)
 
     assert_output_string(
-      "[ f679b84c  master 19Y a ▲1 ▼1]",
+      "[ f679b84c  master #{age} a ▲1 ▼1]",
       shell_pid,
       lua_script,
       env_vars,
@@ -5299,7 +5311,7 @@ defmodule MelbydTest do
     """)
 
     assert_output_string(
-      "[ f679b84c  master 19Y a ▲1 ▼1 N1]",
+      "[ f679b84c  master #{age} a ▲1 ▼1 N1]",
       shell_pid,
       lua_script,
       env_vars,
@@ -5312,7 +5324,7 @@ defmodule MelbydTest do
     """)
 
     assert_output_string(
-      "[ f679b84c  master 19Y a ▲1 ▼1 N1 T1]",
+      "[ f679b84c  master #{age} a ▲1 ▼1 N1 T1]",
       shell_pid,
       lua_script,
       env_vars,
@@ -5328,7 +5340,7 @@ defmodule MelbydTest do
     """)
 
     assert_output_string(
-      "[ 2e4f8685  master 19Y a ▲2 ▼1 N1 T1 A1]",
+      "[ 2e4f8685  master #{age} a ▲2 ▼1 N1 T1 A1]",
       shell_pid,
       lua_script,
       env_vars,
@@ -5364,7 +5376,7 @@ defmodule MelbydTest do
     """)
 
     assert_output_string(
-      "master 19Y a ▲2 N1 T1 M{not_init=1}]",
+      "master #{age} a ▲2 N1 T1 M{not_init=1}]",
       shell_pid,
       lua_script,
       env_vars,
@@ -5411,7 +5423,7 @@ defmodule MelbydTest do
     # The "C•1+1-1" is because the local repo's sm2 is still checked out at an
     # older version, whereas upstream has moved on to a newer commit.
     assert_output_string(
-      "master 19Y a ▲2 U1+1-1 N1 T1 M{not_init=1 need_sync=1}]",
+      "master #{age} a ▲2 U1+1-1 N1 T1 M{not_init=1 need_sync=1}]",
       shell_pid,
       lua_script,
       env_vars,
@@ -5450,7 +5462,7 @@ defmodule MelbydTest do
     """)
 
     assert_output_string(
-      "master 19Y a ▲3 ▼1 N1 T1 M{not_init=1 conflict=1}",
+      "master #{age} a ▲3 ▼1 N1 T1 M{not_init=1 conflict=1}",
       shell_pid,
       lua_script,
       env_vars,
