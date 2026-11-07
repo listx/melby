@@ -40,7 +40,7 @@ other sections as needed.
 :ID:       5c13b3ed-27fb-41c2-9661-b4a4ef3c9eb1
 :END:
 
-** TODO delete the melbyc haskell client
+** DONE delete the melbyc haskell client
 
 Make the rust version the new melbyc (default client).
 
@@ -175,20 +175,19 @@ copy/paste of ~shell.nix~ at the root and should be deduplicated.
 
 *** TODO configure the domain and port in a file shared with the daemon
 
-From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyc_option_handling_dispatcher][~melbyc_option_handling_dispatcher~]]: Configure the domain and port to be
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyc--option-handling-1][~melbyc--option-handling-1~]]: Configure the domain and port to be
 configurable through TOML or yaml in a shared location with the daemon. The
 daemon should configure its port with it. The precedence of settings (where
 later mechanisms override earlier ones) is:
 
-  1) the configuration file (in TOML) converted to a native Haskell type (with
-     sane defaults) with tomland
-     (https://kowainik.github.io/posts/2019-01-14-tomland), and
+  1) the configuration file (in TOML) converted to a native type (with sane
+     defaults), and
 
   2) command-line options that are passed in at runtime.
 
 *** TODO only send an allowlist of env vars to the daemon
 
-From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::client-rust--business-logic][~client-rust--business-logic~]]: Instead of slurping up everything, only slurp
+From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyc--business-logic][~melbyc--business-logic~]]: Instead of slurping up everything, only slurp
 up an "allowlist" of known ENV vars we want to feed into the daemon. This
 allowlist could be defined in settings.yml or even as an additive list of flags.
 We could do the additive list of flags first and then move to settings.yml in
@@ -493,11 +492,6 @@ From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyr_option_handling_parsers][
 From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyr_schema_widgets][~melbyr_schema_widgets~]]: Allow duplicate fields (such as ~render_options~
 in ~MRenderWidgetsRequest~) once we move to GHC 9 (waiting on mu-haskell).
 
-*** TODO share the Git versioning code with melbyc
-
-From [[id:fecf74ac-b70d-486f-b239-d60cce73f42d][Git versioning]] (for melbyr): Should we move this to a common "melby" haskell
-package?
-
 ** Lua configuration
 :PROPERTIES:
 :ID:       683609c6-dad5-4543-93ca-ae68c155ed15
@@ -665,16 +659,9 @@ validation tests).
 
 From the [[id:852e9113-6295-4083-aac1-aa5a642de7ef][melbyc proto]]: Add link to where it's used in Elixir.
 
-*** TODO link to the section about passing in Lua code
+*** TODO break up the melbyr gRPC schema into smaller chunks
 
-From the [[id:79284ebb-5759-45b2-989b-d14b2be7538c][melbyc business logic]]: "Recall that we said we wanted to pass in some Lua
-code" referred to a section that was never filled in ("Recall in section
-FIXME").
-
-*** TODO break up the gRPC schemas into smaller chunks
-
-From the gRPC schemas of [[id:b3c9e375-0b11-44bd-ae54-0cdc22b86f91][melbyc]] and [[id:92ee3578-498a-441e-8335-b859bc907d99][melbyr]]: Break [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyc_lib_schema][~melbyc_lib_schema~]] and
-[[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyr_lib_schema][~melbyr_lib_schema~]] up into smaller chunks.
+From the [[id:92ee3578-498a-441e-8335-b859bc907d99][melbyr gRPC schema]]: Break [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyr_lib_schema][~melbyr_lib_schema~]] up into smaller chunks.
 
 *** TODO break up the Git resource into smaller chunks
 
@@ -700,12 +687,6 @@ pattern.
 
 From [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::daemon/lib/melbyd/renderer/lib/MelbyRenderer/PathAliases.hs][~PathAliases.hs~]]: Add a link to where we use the path aliases (as a Map
 keyed by path) back in Elixir.
-
-*** TODO link the melbyc and melbyr Makefiles to each other
-
-The [[id:911b124e-8fee-43bd-9911-f7f9a68ee3d2][melbyc Makefile]] section mentions the Makefile for ~melby-renderer~, and the
-[[id:56d459b3-aead-4986-958b-9bd90c67bd2d][melbyr Makefile]] section says it follows the Makefile for ~melbyc~. Add links
-for both.
 
 *** TODO link to the build system for melbyr
 

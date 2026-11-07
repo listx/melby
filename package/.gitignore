@@ -1,6 +1,5 @@
 # These links can get created if we build individual targets.
 melby-client
-melby-client-rust
 melby-nifs
 melby-renderer
 melby-daemon

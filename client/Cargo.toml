@@ -1,6 +1,6 @@
 [package]
-name = "melbyc-rust"
-description = "melby client, written in Rust"
+name = "melbyc"
+description = "melby client"
 version = "0.1.0"
 edition = "2021"
 
@@ -15,7 +15,7 @@ config = { version = "0.14", features = ["yaml"]}
 tonic-build = "0.11"
 
 [[bin]]
-name = "melbyc-rust"
+name = "melbyc"
 path = "src/main.rs"
 
 [profile.release]

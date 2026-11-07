@@ -6,12 +6,11 @@ let
   # 18.28, uses 8.10.7).
   hpg8107 = pkgs.haskell.packages.ghc8107;
   hpg96 = pkgs.haskell.packages.ghc96;
-  melby-client = hpg8107.callPackage ../client/melby-client.nix {};
-  melby-client-rust = pkgs.callPackage ../client-rust/melby-client-rust.nix {};
+  melby-client = pkgs.callPackage ../client/melby-client.nix {};
   melby-renderer = hpg8107.callPackage ../daemon/lib/melbyd/renderer/melby-renderer.nix {};
   melby-daemon = pkgs.callPackage ../daemon/melby-daemon.nix {};
   melby-nifs = pkgs.callPackage ../daemon/lib/melbyd/nifs/melby-nifs.nix {};
 in
   {
-    inherit melby-client melby-client-rust melby-renderer melby-daemon melby-nifs;
+    inherit melby-client melby-renderer melby-daemon melby-nifs;
   }

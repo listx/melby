@@ -10,7 +10,7 @@ export MELBY_PATH_ALIASES_FILE="${SCRIPT_ROOT}/sample/path-aliases"
 export MELBY_WANT_KUBECTL_ERROR
 MELBY_DIR="${SCRIPT_ROOT}/sample"
 LUA_PATH="${SCRIPT_ROOT}/sample/?.lua"
-MELBYC_PATH="${SCRIPT_ROOT}/../../client/melbyc"
+MELBYC_PATH="${SCRIPT_ROOT}/../../client/target/debug/melbyc"
 
 # 50052 is the port used for the development environment (run-dev).
 MELBYD_PORT="${MELBYD_PORT:-50052}"
@@ -27,8 +27,8 @@ get_view()
 {
 	"${MELBYC_PATH}" \
         --melbyd-port "${MELBYD_PORT}" \
-        view "${SCRIPT_ROOT}/sample/melby.lua" \
-        --shell-pid "${3:-0}"
+        --config "${SCRIPT_ROOT}/sample/melby.lua" \
+        view --shell-pid "${3:-0}"
 }
 
 main()

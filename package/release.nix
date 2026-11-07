@@ -7,7 +7,6 @@ in
     name = "melby";
     paths = with melby; [
       melby-client
-      melby-client-rust
       melby-renderer
       melby-daemon
     ];

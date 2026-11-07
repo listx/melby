@@ -141,7 +141,7 @@ pkgs.mkShell ({
 
   shellHook = ''
     # Prefer to use melbyr and melbyc from the local development tree path.
-    export PATH=$PWD/daemon/test:$PWD/daemon/lib/melbyd/renderer:$PWD/client:$PATH
+    export PATH=$PWD/daemon/test:$PWD/daemon/lib/melbyd/renderer:$PWD/client/target/debug:$PATH
     export KUBECONFIG=$PWD/daemon/test/fake_kube_config
     export MELBY_DIR=$PWD/daemon/test/sample
     export MELBY_PROJECT_ROOT=$PWD

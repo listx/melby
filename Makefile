@@ -19,10 +19,6 @@ $(archive_file): $(obj_files)
 	lilac archive $^ --out-file $@
 
 do-tangle: tangle-sources tangle-generated
-	# Duplicate some files. This way we avoid symlinking, because symlinks can
-	# break when we section off parts of the codebase into separate sandboxes
-	# for building things, such as when building Haskell packages.
-	cp -f LICENSE client/LICENSE
 .PHONY: do-tangle
 
 tangle:
