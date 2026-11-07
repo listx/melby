@@ -54,6 +54,96 @@ to track JJ repos differently (might need to set up jj-specific resources).
 
 ** TODO set up github actions to build and push to cachix
 
+** TODO cache the Lua VM between view requests
+
+Every view request builds a Lua VM from scratch twice. First
+[[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyd_lua_config_validation][~melbyd_lua_config_validation~]] creates one and runs the config, just to compute
+the VM fingerprint (an ~inspect~ and SHA-1 of the whole VM state) for the
+validation cache lookup. Then [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::lua_api.ex][~Melbyd.LuaInterop.run/3~]] creates another one and
+runs the config again before calling ~Config.view~. This is wasted CPU on every
+prompt.
+
+Luerl VM states are immutable values, so we can keep the state from after
+~dofile~ and call ~Config.view~ on it for every request. Each request still
+starts from the same pristine state, as it does today.
+
+  - Measure first. Log how long VM init, ~dofile~, the fingerprint and
+    ~Config.view~ each take, to get a baseline.
+
+  - Add a cache keyed by the config path, holding the loaded VM state, its
+    fingerprint and the validated ~view_params_types~. Store it in
+    ~:persistent_term~, because a Luerl state is a large term that ETS or a
+    GenServer would copy on every read. Writes are expensive, but they only
+    happen when the config changes.
+
+  - Invalidate the cache with file stamps (mtime and size) of every Lua file the
+    config loaded, not just ~melby.lua~, because the config pulls in other
+    files with ~require~ (such as ~Git.lua~). Collect them from
+    ~package.loaded~ after ~dofile~, and ~stat~ them on each request.
+
+  - Only compute the fingerprint and run validation on a cache miss.
+
+  - Share one VM per config, not per directory. The directory only reaches the
+    config as an env var passed to ~Config.view~, so every shell using the same
+    ~melby.lua~ can use the same VM. (Per-directory data like Git state already
+    lives in one Standard Resource Server per resource, deduplicated by its
+    gproc name.)
+
+  - Avoid a cache stampede: when several shells miss at the same time (such as
+    tmux restoring many panes at once, or every open shell prompting after a
+    config edit), build the VM only once. Keep hits lock-free (read
+    ~:persistent_term~, check the file stamps, call ~Config.view~), but send
+    misses through a small ~Melbyd.LuaVmCache~ GenServer. The first miss for a
+    config starts one build task, later misses join a list of waiters, and when
+    the build is done the GenServer writes the cache and replies to every waiter
+    with ~GenServer.reply/2~. Don't use ~Cachex.fetch~ for this even though it
+    also deduplicates misses, because Cachex stores values in ETS and would copy
+    the whole VM state on every hit.
+
+  - Use stale-while-revalidate when a config edit invalidates the cache: keep
+    serving the old VM while the new one is built and validated, and only swap
+    it in once it passes validation. Then shells never wait on a rebuild after
+    an edit, and a broken config never replaces a working one (log its
+    validation error instead). The cost is that the first prompt after an edit
+    may still use the old config.
+
+  - Test cache hits, misses when a required file changes, that concurrent misses
+    build the VM only once, that requests keep getting the old VM during a
+    rebuild, and that a config that fails validation doesn't replace the old
+    VM.
+
+** TODO make melbyd respond to view requests within 500ms
+
+Nothing bounds how long a view request takes. The first request after a config
+change runs the whole validation, ~Config.view~ can run commands with
+~System.cmd~ (like the Git resource's ~resource_id_command~), and the
+~GenServer.call~ requests to resources use the default 5 second timeout. The
+[[id:db4f2717-87ac-47b7-9299-11004e8dfa63::rust-client-main.rs][client]] has no timeout either, so a slow daemon blocks the shell prompt.
+
+  - In the [[id:bfc9b5c9-64e2-4d3f-a38c-1167eea1828b][View service]], run ~Melbyd.View.generate/1~ with
+    ~Task.Supervisor.async_nolink~ and wait for it with ~Task.yield/2~ (about
+    450ms, to leave room for gRPC and the client).
+
+  - On a timeout, reply with a new ~VIEW_STATUS_PENDING~ status (added to
+    [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyproto_melby_client][~melby_client.proto~]]) and placeholder output. Don't kill the task: let it
+    finish so that it fills the caches for the next request. Otherwise the first
+    validation after a config change would never finish. This relies on the
+    single-flight VM build from the TODO above: without it, every prompt that
+    arrives during a slow build would start yet another build. With
+    stale-while-revalidate, this mostly happens only on a cold start, when there
+    is no old VM to serve.
+
+  - Decide what the placeholder is. One option is an optional
+    ~Config.placeholder_view(env)~ in the Lua config, run on the cached VM from
+    the TODO above, falling back to an empty view (so the shell keeps its old
+    prompt) when there is no cached VM yet.
+
+  - Give melbyc its own timeout (about 1 second) as a backstop for when the
+    daemon hangs.
+
+  - Test that a slow ~Config.view~ gets a ~VIEW_STATUS_PENDING~ reply in time,
+    and that the next request gets the real view.
+
 * Backlog
 :PROPERTIES:
 :ID:       702bb2cb-999d-4ae2-b195-4b859f7f13a4
