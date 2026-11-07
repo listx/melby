@@ -3704,12 +3704,10 @@ defmodule Melbyd.LuaConfigValidation do
       end)
 
     if errors == [] do
-      # Reduce the env_vars map to only include the env_vars listed in view_params_types.
-      env_vars_reduced =
-        Enum.reduce(env_vars, %{}, fn {k, _}, env_vars_reduced ->
-          val = Map.fetch!(env_vars, k)
-          Map.put(env_vars_reduced, k, val)
-        end)
+      # Reduce the env_vars map to only include the env_vars listed in
+      # view_params_types, so that the config can't depend on env vars that it
+      # didn't declare (and that its view tests therefore don't cover).
+      env_vars_reduced = Map.take(env_vars, Map.keys(view_params_types["env"]))
 
       {:ok, env_vars_reduced}
     else
@@ -5666,6 +5664,21 @@ defmodule MelbydTest do
 
     assert {:ok, %{"env" => _}} =
              Melbyd.LuaConfigValidation.validate(mix_root <> "/test/sample/melby.lua")
+  end
+
+  test "only pass the declared env vars to the Lua config" do
+    view_params_types = %{
+      "env" => %{
+        "PWD" => [{1, "required"}, {2, "path"}],
+        "USER" => [{1, "optional"}, {2, "string"}]
+      }
+    }
+
+    assert {:ok, %{"PWD" => "/a"}} ==
+             Melbyd.LuaConfigValidation.enforce_view_params_types(
+               view_params_types,
+               %{"PWD" => "/a", "SECRET" => "hunter2"}
+             )
   end
 
   # Write a small Lua config (config.lua) into the given directory, which

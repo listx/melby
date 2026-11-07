@@ -188,6 +188,21 @@ defmodule MelbydTest do
              Melbyd.LuaConfigValidation.validate(mix_root <> "/test/sample/melby.lua")
   end
 
+  test "only pass the declared env vars to the Lua config" do
+    view_params_types = %{
+      "env" => %{
+        "PWD" => [{1, "required"}, {2, "path"}],
+        "USER" => [{1, "optional"}, {2, "string"}]
+      }
+    }
+
+    assert {:ok, %{"PWD" => "/a"}} ==
+             Melbyd.LuaConfigValidation.enforce_view_params_types(
+               view_params_types,
+               %{"PWD" => "/a", "SECRET" => "hunter2"}
+             )
+  end
+
   # Write a small Lua config (config.lua) into the given directory, which
   # requires a module (Part.lua) from the same directory. The config's only view
   # test expects the output to contain "hello", so the config fails validation

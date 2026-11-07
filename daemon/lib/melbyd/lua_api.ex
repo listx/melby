@@ -179,12 +179,10 @@ defmodule Melbyd.LuaConfigValidation do
       end)
 
     if errors == [] do
-      # Reduce the env_vars map to only include the env_vars listed in view_params_types.
-      env_vars_reduced =
-        Enum.reduce(env_vars, %{}, fn {k, _}, env_vars_reduced ->
-          val = Map.fetch!(env_vars, k)
-          Map.put(env_vars_reduced, k, val)
-        end)
+      # Reduce the env_vars map to only include the env_vars listed in
+      # view_params_types, so that the config can't depend on env vars that it
+      # didn't declare (and that its view tests therefore don't cover).
+      env_vars_reduced = Map.take(env_vars, Map.keys(view_params_types["env"]))
 
       {:ok, env_vars_reduced}
     else
