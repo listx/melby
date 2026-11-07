@@ -40,7 +40,6 @@ do-tangle: tangle-sources tangle-generated
 
 tangle:
 	make -C $(PROJ_ROOT) -j$(PROCS) do-tangle
-	@$(PROJ_ROOT)/audit.sh
 .PHONY: tangle
 
 tangle-generated:
