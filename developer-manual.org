@@ -768,8 +768,6 @@ $ chmod 600 cookie
 
 *** Makefile
 
-FIXME: reduce repetition by using a build rule (akin to =run_emacs=)
-
 #+caption: package/Makefile
 #+header: :tangle package/Makefile
 #+begin_src makefile
