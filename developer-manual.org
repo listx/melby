@@ -6853,7 +6853,8 @@ in
     # (CoreFoundation and CoreServices) come with the default SDK of the stdenv.
     ++ pkgs.lib.optional pkgs.stdenv.isLinux pkgs.inotify-tools;
     nativeBuildInputs = [ pkgs.makeWrapper ];
-    LANG = "en_US.UTF-8";
+    # Note that mixRelease already sets LANG to C.UTF-8 (so that Elixir does
+    # not complain about using "latin1" encoding).
     LOCALE_ARCHIVE = pkgs.lib.optional pkgs.stdenv.isLinux
       "${pkgs.glibcLocales}/lib/locale/locale-archive";
 
