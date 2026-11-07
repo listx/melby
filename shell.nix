@@ -111,7 +111,6 @@ pkgs.mkShell ({
     protoc-gen-elixir
 
     # Tangling and weaving for Literate Programming.
-    pkgs.emacs29-nox
     lilacPkg
     tex
 
