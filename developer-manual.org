@@ -311,7 +311,7 @@ environments.
 
 **** Elixir
 
-We use Elixir 1.13.4+.
+We use Elixir 1.18 on Erlang/OTP 28.
 
 **** Rust
 
@@ -444,8 +444,8 @@ pkgs.mkShell ({
     pkgs.rust-analyzer
 
     # Elixir
-    pkgs.beam.packages.erlangR26.elixir
-    pkgs.beam.packages.erlangR26.erlang # erl, escript
+    pkgs.beam.packages.erlang_28.elixir
+    pkgs.beam.packages.erlang_28.erlang # erl, escript
     pkgs.mix2nix
 
     # gRPC and Protocol Buffers
@@ -468,14 +468,8 @@ pkgs.mkShell ({
   ]
   # For file_system on Linux.
   ++ pkgs.lib.optional pkgs.stdenv.isLinux pkgs.inotify-tools
-  # For file_system on macOS. See
-  # https://elixirforum.com/t/could-not-compile-file-system-watcher-for-mac/17432/10
-  # for a discussion about getting a file system watcher working on Mac.
-  ++ pkgs.lib.optionals pkgs.stdenv.isDarwin (with pkgs.darwin.apple_sdk.frameworks; [
-    CoreFoundation
-    CoreServices
-    Security
-  ])
+  # On macOS, the frameworks that file_system needs (CoreFoundation and
+  # CoreServices) come with the default SDK of the stdenv.
   ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
     # This allows mix2nix to be able to download hex packages using HTTPS, in a
     # `nix-shell --pure` environment. See
@@ -595,9 +589,9 @@ build-melby-nifs:
 shell:
 	nix-shell --pure
 
-# Update nix/ folder to pin dependencies to nixos-24.05.
+# Update nix/ folder to pin dependencies to nixos-26.05.
 update-nix:
-	niv update nixpkgs --branch nixos-24.05
+	niv update nixpkgs --branch nixos-26.05
 
 .PHONY: build
 .PHONY: build-melby-client
@@ -817,14 +811,15 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tonic = "0.11"
-tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
-prost = "0.12"
-clap = { version = "4.5.4", features = ["derive"]}
-config = { version = "0.14", features = ["yaml"]}
+tonic = "0.14"
+tonic-prost = "0.14"
+tokio = { version = "1.54", features = ["macros", "rt-multi-thread"] }
+prost = "0.14"
+clap = { version = "4.6", features = ["derive"]}
+config = { version = "0.15", features = ["yaml"]}
 
 [build-dependencies]
-tonic-build = "0.11"
+tonic-prost-build = "0.14"
 
 [[bin]]
 name = "melbyc"
@@ -869,14 +864,13 @@ name that Cargo recognizes automatically.
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    tonic_build::compile_protos("proto/melby_client.proto")?;
-    tonic_build::configure()
-    .build_server(false)
-    .out_dir("src/grpc_generated")  // you can change the generated code's location
-    .compile(
-        &["proto/melby_client.proto"],
-        &["proto"], // specify the root location to search proto dependencies
-    ).unwrap();
+    tonic_prost_build::configure()
+        .build_server(false)
+        .out_dir("src/grpc_generated") // you can change the generated code's location
+        .compile_protos(
+            &["proto/melby_client.proto"],
+            &["proto"], // specify the root location to search proto dependencies
+        )?;
 
     Ok(())
 }
@@ -3017,6 +3011,8 @@ defmodule Melbyd.Cache.PathShorten do
   @moduledoc """
   path-shorten Cache
   """
+  import Cachex.Spec
+
   @cache_id :path_pretty_cache
 
   def child_spec(_init_arg) do
@@ -3028,7 +3024,8 @@ defmodule Melbyd.Cache.PathShorten do
          [
            @cache_id,
            [
-             limit: 256
+             # Evict the least recently written entries beyond 256 entries.
+             hooks: [hook(module: Cachex.Limit.Evented, args: {256, []})]
            ]
          ]}
     }
@@ -3381,7 +3378,7 @@ defmodule Melbyd.LuaInterop do
 
   def run(lua_file, func_path, func_args) do
     with {:ok, _, st} <- run_file(lua_file),
-         {res, _st} <- Luerl.call_function(st, func_path, func_args) do
+         {:ok, res, _st} <- Luerl.call_function_dec(st, func_path, func_args) do
       # Now that we have the Lua state with all custom callback functions loaded
       # inside it (as well as calls to our Elixir Melbyd SDK), we can piece
       # together what the user wants.
@@ -3400,7 +3397,7 @@ defmodule Melbyd.LuaInterop do
          # only way to load these functions is to run Luerl.dofile/1 here. If we
          # use Luerl.loadfile/1 instead, the custom Lua functions are not loaded
          # into the state.
-         {res, st2} <- Luerl.dofile(st1, String.to_charlist(lua_file)) do
+         {:ok, res, st2} <- Luerl.dofile(st1, String.to_charlist(lua_file)) do
       {:ok, res, st2}
     else
       reason -> {:error, "#{inspect(reason)}"}
@@ -3452,29 +3449,32 @@ defmodule Melbyd.LuaConfigValidation do
          # Overwrite "read_standard_resource" with the fake version. Note that
          # this __handle_lua_call__... function is defined by the def_lua_func
          # macro for the "read_standard_resource_fake" function. We have to use
-         # Luerl.set_table1/3 (with the tuple form of {:erl_func, func_ref}) and
-         # not Luerl.set_table/3 (which we can use with just the func_ref alone
-         # as the 3rd argument --- this passes compilation), because we already
-         # perform encoding back for Luerl inside all __handle_lua_call__...
-         # functions. Otherwise we would be encoding twice.
-         st2 <-
-           Luerl.set_table1(
+         # Luerl.set_table_keys/3 (with the tuple form of {:erl_func, func_ref})
+         # and not Luerl.set_table_keys_dec/3 (which we can use with just the
+         # func_ref alone as the 3rd argument --- this passes compilation),
+         # because we already perform encoding back for Luerl inside all
+         # __handle_lua_call__... functions. Otherwise we would be encoding
+         # twice.
+         {:ok, st2} <-
+           Luerl.set_table_keys(
              st1,
              ["melbyd", "read_standard_resource"],
              {:erl_func, &Melbyd.LuaSdk.__handle_lua_call__read_standard_resource_fake/2}
            ),
          # Overwrite the "get_path_aliases" function to use the contents of the
          # variable directly (instead of doing I/O to read the given path).
-         st3 <-
-           Luerl.set_table1(
+         {:ok, st3} <-
+           Luerl.set_table_keys(
              st2,
              ["melbyd", "get_path_aliases"],
              {:erl_func, &Melbyd.LuaSdk.__handle_lua_call__get_path_aliases_fake/2}
            ),
-         {_, st4} <- Luerl.dofile(st3, String.to_charlist(lua_file)),
+         {:ok, _, st4} <- Luerl.dofile(st3, String.to_charlist(lua_file)),
          vm_fingerprint <- get_vm_fingerprint(st4),
          {res, view_params_types} <-
-           Cachex.fetch(:lua_config_validation_cache, {lua_file, vm_fingerprint}) do
+           Cachex.fetch(:lua_config_validation_cache, {lua_file, vm_fingerprint}, fn key ->
+             validate_key(key, preloaded_fake_lua_vm())
+           end) do
       case res do
         :ok -> {:ok, view_params_types}
         :commit -> {:ok, view_params_types}
@@ -3486,6 +3486,12 @@ defmodule Melbyd.LuaConfigValidation do
     end
   end
 
+  # Like Luerl.set_table_keys/3, but return just the new state.
+  defp set_table_keys!(st, keys, val) do
+    {:ok, st} = Luerl.set_table_keys(st, keys, val)
+    st
+  end
+
   # Return the blank state of the initial Lua VM state meant for validation
   # purposes only.
   def preloaded_fake_lua_vm() do
@@ -3494,18 +3500,18 @@ defmodule Melbyd.LuaConfigValidation do
     # Overwrite "read_standard_resource" with the fake version. Note that this
     # __handle_lua_call__... function is defined by the def_lua_func macro for
     # the "read_standard_resource_fake" function. We have to use
-    # Luerl.set_table1/3 (with the tuple form of {:erl_func, func_ref}) and not
-    # Luerl.set_table/3 (which we can use with just the func_ref alone as the
-    # 3rd argument --- this passes compilation), because we already perform
-    # encoding back for Luerl inside all __handle_lua_call__... functions.
-    # Otherwise we would be encoding twice.
-    |> Luerl.set_table1(
+    # Luerl.set_table_keys/3 (with the tuple form of {:erl_func, func_ref}) and
+    # not Luerl.set_table_keys_dec/3 (which we can use with just the func_ref
+    # alone as the 3rd argument --- this passes compilation), because we
+    # already perform encoding back for Luerl inside all __handle_lua_call__...
+    # functions. Otherwise we would be encoding twice.
+    |> set_table_keys!(
       ["melbyd", "read_standard_resource"],
       {:erl_func, &Melbyd.LuaSdk.__handle_lua_call__read_standard_resource_fake/2}
     )
     # Overwrite the "get_path_aliases" function to use the contents of the
     # variable directly (instead of doing I/O to read the given path).
-    |> Luerl.set_table1(
+    |> set_table_keys!(
       ["melbyd", "get_path_aliases"],
       {:erl_func, &Melbyd.LuaSdk.__handle_lua_call__get_path_aliases_fake/2}
     )
@@ -3528,7 +3534,7 @@ defmodule Melbyd.LuaConfigValidation do
     # fakes that were generated as part of validing this particular
     # vm_fingerprint, because otherwise we would be deleting other resources
     # that might be in the middle of validating a different Lua config.
-    with {_, st1} <- Luerl.dofile(preloaded_fake_lua_vm, String.to_charlist(lua_file)),
+    with {:ok, _, st1} <- Luerl.dofile(preloaded_fake_lua_vm, String.to_charlist(lua_file)),
          view_params_types <- get_view_params_types(st1),
          :ok <- assert_expected_views(st1, view_params_types, vm_fingerprint) do
       {:commit, view_params_types}
@@ -3542,7 +3548,8 @@ defmodule Melbyd.LuaConfigValidation do
 
   # This checks the types of the actual env_vars from the real environment.
   def get_view_params_types(st0) do
-    {view_params_types_tuples, _st} = Luerl.get_table(st0, ["Config", "view_params_types"])
+    {:ok, view_params_types_tuples, _st} =
+      Luerl.get_table_keys_dec(st0, ["Config", "view_params_types"])
 
     view_params_types =
       view_params_types_tuples
@@ -3706,11 +3713,11 @@ defmodule Melbyd.LuaConfigValidation do
   def assert_expected_views(st0, view_params_types, vm_fingerprint) do
     # Set the vm_fingerprint inside the Lua VM, so that the fake Lua SDK
     # functions can use them to pass them on to Elixir.
-    st1 = Luerl.set_table1(st0, ["melbyd", "vm_fingerprint"], vm_fingerprint)
+    st1 = set_table_keys!(st0, ["melbyd", "vm_fingerprint"], vm_fingerprint)
 
     # 'expectations' is a list of list of substrings we need to match after
     # calling ["Config", "view"].
-    {view_tests_tuples, _st} = Luerl.get_table(st1, ["Config", "view_tests"])
+    {:ok, view_tests_tuples, _st} = Luerl.get_table_keys_dec(st1, ["Config", "view_tests"])
 
     view_tests =
       view_tests_tuples
@@ -3772,8 +3779,8 @@ defmodule Melbyd.LuaConfigValidation do
   defp assert_expected_view(st0, view_test, env_vars_fake) do
     substrings = view_test["expected_substrings"] |> Melbyd.LuerlUtil.array_to_native_list()
 
-    {[got], _st} = Luerl.call_function(st0, ["Config", "view"],
-                                       [env_vars_fake, "000"])
+    {:ok, [got], _st} = Luerl.call_function_dec(st0, ["Config", "view"],
+                                                [env_vars_fake, "000"])
 
     errors =
       Enum.reduce(substrings, [], fn substring, errors ->
@@ -3816,8 +3823,8 @@ defmodule Melbyd.LuaConfigValidation do
          [
            @cache_id,
            [
-             limit: 16,
-             fallback: fallback(default: &validate_key/2, state: preloaded_fake_lua_vm())
+             # Evict the least recently written entries beyond 16 entries.
+             hooks: [hook(module: Cachex.Limit.Evented, args: {16, []})]
            ]
          ]}
     }
@@ -3900,14 +3907,14 @@ expects, and let it do the actual rendering.
 #+name: melbyd_luasdk_render
 #+begin_src elixir
 def_lua_func render([widgets_list_ref, delimiter_ref], st0) do
-  delimiter_tuples = Luerl.decode(st0, delimiter_ref)
+  delimiter_tuples = Luerl.Old.decode(st0, delimiter_ref)
   delimiter = widget_from_tuples(delimiter_tuples)
 
   # Retrieve render_options from the Config table in the Lua state.
   format = get_render_format(st0)
 
   widgets =
-    Luerl.decode(st0, widgets_list_ref)
+    Luerl.Old.decode(st0, widgets_list_ref)
     |> Enum.map(fn {_idx, widget_tuples} ->
       widget_from_tuples(widget_tuples)
     end)
@@ -3916,7 +3923,7 @@ def_lua_func render([widgets_list_ref, delimiter_ref], st0) do
 end
 
 def get_render_format(st0) do
-  {render_options_tuples, _st1} = Luerl.get_table(st0, ["Config", "render_options"])
+  {:ok, render_options_tuples, _st1} = Luerl.get_table_keys_dec(st0, ["Config", "render_options"])
 
   case Map.new(render_options_tuples)["format"] do
     "RENDER_FORMAT_UNIX_TERMINAL" -> :unix_terminal
@@ -3976,7 +3983,7 @@ end
 #+name: melbyd_luasdk_get_path_pretty
 #+begin_src elixir
 def_lua_func get_path_pretty([path, options_ref], st0) do
-  options = Luerl.decode(st0, options_ref)
+  options = Luerl.Old.decode(st0, options_ref)
   options_map = Map.new(options)
 
   aliases = options_map["aliases"] |> Melbyd.LuerlUtil.table_to_native_map()
@@ -4137,7 +4144,7 @@ it instead of running =cat= because it avoids spawning a separate OS process.
 #+name: melbyd_luasdk_to_shell_script
 #+begin_src elixir
 def_lua_func to_shell_script([exports_ref], st0) do
-  exports_list = Luerl.decode(st0, exports_ref) |> Melbyd.LuerlUtil.array_to_native_list()
+  exports_list = Luerl.Old.decode(st0, exports_ref) |> Melbyd.LuerlUtil.array_to_native_list()
   exports = exports_list |> Enum.map(&Melbyd.LuerlUtil.table_to_native_map/1)
 
   Logger.debug("exports is #{inspect(exports)}")
@@ -4191,7 +4198,7 @@ functions in the =Melbyd.LuaSdk= module (exposed through the =melbyd= Lua table)
 #+begin_src elixir
 def_lua_func read_standard_resource([resource_ref, resource_opts_ref], st0) do
   resource = resource_ref_to_native_map(resource_ref, st0)
-  resource_opts = Luerl.decode(st0, resource_opts_ref) |> Melbyd.LuerlUtil.table_to_native_map()
+  resource_opts = Luerl.Old.decode(st0, resource_opts_ref) |> Melbyd.LuerlUtil.table_to_native_map()
 
   resource_opts = Map.put(resource_opts, "fake", false)
 
@@ -4207,7 +4214,7 @@ def_lua_func read_standard_resource([resource_ref, resource_opts_ref], st0) do
 end
 
 def resource_ref_to_native_map(resource_ref, st0) do
-  resource_luerl = Luerl.decode(st0, resource_ref)
+  resource_luerl = Luerl.Old.decode(st0, resource_ref)
   resource = Melbyd.LuerlUtil.table_to_native_map(resource_luerl)
   parser = Melbyd.LuerlUtil.table_to_native_map(resource["parser"])
   fake = Melbyd.LuerlUtil.table_to_native_map(resource["fake"])
@@ -4232,13 +4239,13 @@ the user.
 #+begin_src elixir
 def_lua_func read_standard_resource_fake([resource_ref, resource_opts_ref], st0) do
   resource = resource_ref_to_native_map(resource_ref, st0)
-  resource_opts = Luerl.decode(st0, resource_opts_ref) |> Melbyd.LuerlUtil.table_to_native_map()
+  resource_opts = Luerl.Old.decode(st0, resource_opts_ref) |> Melbyd.LuerlUtil.table_to_native_map()
 
   # Stamp this as being fake for all downstream code.
   resource_opts = Map.put(resource_opts, "fake", true)
 
   # Save vm_fingerprint so that it's accessible easily from the Elixir side.
-  {vm_fingerprint, _} = Luerl.get_table1(st0, ["melbyd", "vm_fingerprint"])
+  {:ok, vm_fingerprint, _} = Luerl.get_table_keys(st0, ["melbyd", "vm_fingerprint"])
   resource_opts = Map.put(resource_opts, "vm_fingerprint", vm_fingerprint)
 
   res = Melbyd.StandardResource.read(resource, resource_opts)
@@ -4374,7 +4381,7 @@ match.
 #+name: melbyd_luasdk_srs_helpers-7
 #+begin_src elixir
 def_lua_func get_columnar_fields_zipped([s, keys_ref], st0) do
-  keys = Luerl.decode(st0, keys_ref) |> Melbyd.LuerlUtil.array_to_native_list()
+  keys = Luerl.Old.decode(st0, keys_ref) |> Melbyd.LuerlUtil.array_to_native_list()
   trimmed_line = String.trim(s)
   vals = String.split(trimmed_line)
   kvs = Enum.zip(keys, vals)
@@ -4392,8 +4399,8 @@ key/types.
 #+name: melbyd_luasdk_srs_helpers-8
 #+begin_src elixir
 def_lua_func cast_values([t_ref, keytypes_ref], st0) do
-  t = Luerl.decode(st0, t_ref) |> Melbyd.LuerlUtil.table_to_native_map()
-  keytypes = Luerl.decode(st0, keytypes_ref) |> Melbyd.LuerlUtil.table_to_native_map()
+  t = Luerl.Old.decode(st0, t_ref) |> Melbyd.LuerlUtil.table_to_native_map()
+  keytypes = Luerl.Old.decode(st0, keytypes_ref) |> Melbyd.LuerlUtil.table_to_native_map()
 
   ret =
     Enum.reduce(t, %{}, fn {key, val}, acc ->
@@ -4567,7 +4574,7 @@ end
 #+name: melbyd_luasdk_pubsub
 #+begin_src elixir
 def_lua_func broadcast([topic, message_ref], st0) do
-  message = Luerl.decode(st0, message_ref) |> Melbyd.LuerlUtil.table_to_native_map_atomic_keys()
+  message = Luerl.Old.decode(st0, message_ref) |> Melbyd.LuerlUtil.table_to_native_map_atomic_keys()
 
   payload = Melbyd.LuerlUtil.table_to_native_map_atomic_keys(message.payload)
   payload = Map.put(payload, :time, Calendar.strftime(Timex.local(), "%H:%M:%S"))
@@ -4589,8 +4596,8 @@ The Lua config should know what topics to subscribe to.
 #+begin_src elixir
 def_lua_func get_shell_messages([shell_pid, resources_ref, env_vars_ref], st0) do
   resource_luerl_tables =
-    Luerl.decode(st0, resources_ref) |> Melbyd.LuerlUtil.array_to_native_list()
-  env_vars = Luerl.decode(st0, env_vars_ref) |> Melbyd.LuerlUtil.table_to_native_map()
+    Luerl.Old.decode(st0, resources_ref) |> Melbyd.LuerlUtil.array_to_native_list()
+  env_vars = Luerl.Old.decode(st0, env_vars_ref) |> Melbyd.LuerlUtil.table_to_native_map()
 
   # Topic handlers is a map where the key is the resource type (e.g.,
   # "srs_Git"), and the handler is the Lua function named "should_keep_message"
@@ -4618,7 +4625,7 @@ def_lua_func log([msg], st0) do
     # If msg is not a primitive (e.g., a string), then decode it first. This way
     # we can handle Lua tables.
     x when is_tuple(x) ->
-      y = Luerl.decode(st0, x)
+      y = Luerl.Old.decode(st0, x)
       Logger.debug("(Melbyd Lua SDK debug (string)): #{inspect(y, limit: :infinity, binaries: :as_strings)}")
       Logger.debug("(Melbyd Lua SDK debug (binary)): #{inspect(y, limit: :infinity, binaries: :as_binaries)}")
     x ->
@@ -4759,6 +4766,15 @@ end
 #+end_src
 
 **** Luerl util
+
+Note that we decode Lua values with ~Luerl.Old.decode/2~ and not
+~Luerl.decode/2~. Since Luerl 1.3, ~Luerl.decode/2~ turns a Lua function into an
+Elixir function that takes the (encoded) arguments /and/ the Lua state, and
+returns encoded results along with the new state. We call the decoded Lua
+functions from Lua tables (such as the readers of a standard resource) all over
+the place with just the (decoded) arguments, and ~Luerl.Old.decode/2~ still
+creates functions that work this way: they capture the Lua state at the time of
+decoding, and take care of encoding the arguments and decoding the results.
 
 #+name: melbyd_luerl_util
 #+begin_src elixir
@@ -6592,7 +6608,7 @@ defmodule Melbyd.MixProject do
     [
       app: :melbyd,
       version: "0.1.0",
-      elixir: "~> 1.11",
+      elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases()
@@ -6620,18 +6636,19 @@ defmodule Melbyd.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:cachex, "~> 3.6"},
-      {:file_system, "~> 1.0"},
-      {:gproc, "~> 1.0.0"},
-      {:grpc, "~> 0.8.0"},
-      {:luerl, "~> 1.0"},
-      {:phoenix_pubsub, "~> 2.0"},
-      {:protobuf, "~> 0.12.0"},
-      {:rustler, "~> 0.33.0"},
-      {:temp, "~> 0.4"},
-      {:timex, "~> 3.7"},
-      {:tz, "~> 0.26.5"},
-      {:wait_for_it, "~> 2.1"}
+      {:cachex, "~> 4.1"},
+      {:file_system, "~> 1.1"},
+      {:gproc, "~> 1.3"},
+      {:grpc, "~> 1.0"},
+      {:grpc_server, "~> 1.0"},
+      {:luerl, "~> 1.5"},
+      {:phoenix_pubsub, "~> 2.4"},
+      {:protobuf, "~> 0.17.1"},
+      {:rustler, "~> 0.38.0"},
+      {:temp, "~> 0.4.9"},
+      {:timex, "~> 4.0"},
+      {:tz, "~> 0.28.4"},
+      {:wait_for_it, "~> 2.6"}
     ]
   end
 end
@@ -6675,19 +6692,19 @@ working =nix-shell= where we can generate Elixir code from =*.proto= files.
 { sources ? import ./nix/sources.nix
 , pkgs ? import sources.nixpkgs {} }:
 let
-  packages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlangR26;
+  packages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlang_28;
   mixFodDeps = packages.fetchMixDeps {
     pname = "mix-deps-${pname}";
     inherit src version;
-    sha256 = "sha256-9ZHYtxgdvYO8rjVU10OtkJuWNMjpU/4dCX01DO7pu14=";
+    sha256 = "sha256-T1uL3xXXmCkobJJhS3p6xMrJUyiim3AMwaG87/Ix7A8=";
   };
   pname = "protoc-gen-elixir";
   src = pkgs.fetchgit {
     url = "https://github.com/elixir-protobuf/protobuf";
     rev = "v${version}";
-    sha256 = "sha256-J9HEISTDda3E2D20Okw3rhpe29W3qATr0rrfUoQ+81I=";
+    sha256 = "sha256-XSTB4MATvLf1sj5O1QEc62Jm3PUR9Wt4tKY03xW4yvI=";
   };
-  version = "0.11.0";
+  version = "0.17.1";
 in
   packages.mixRelease {
     inherit pname src version mixFodDeps;
@@ -6725,7 +6742,7 @@ let
   systemdAvailable = pkgs.lib.meta.availableOn
     pkgs.stdenv.hostPlatform
     pkgs.systemd;
-  packages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlangR26;
+  packages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlang_28;
   mixFodDeps = packages.fetchMixDeps {
     pname = "mix-deps-${pname}";
     inherit src version;
@@ -6756,9 +6773,12 @@ let
     ./install/launchctl.sh
     ./lib
     ./lib/generated
-    ./lib/generated/melby_client.pb.ex
-    ./lib/generated/melby_daemon.pb.ex
-    ./lib/generated/melby.pb.ex
+    ./lib/generated/melby
+    ./lib/generated/melby/melby.pb.ex
+    ./lib/generated/melby_client
+    ./lib/generated/melby_client/melby_client.pb.ex
+    ./lib/generated/melby_daemon
+    ./lib/generated/melby_daemon/melby_daemon.pb.ex
     ./lib/melbyd
     ./lib/melbyd/router.ex
 
@@ -6830,17 +6850,9 @@ in
       pkgs.rust-analyzer
       melby.melby-nifs
     ]
-    # For file_system on Linux.
-    ++ pkgs.lib.optional pkgs.stdenv.isLinux pkgs.inotify-tools
-    # For file_system on macOS. See
-    # https://elixirforum.com/t/could-not-compile-file-system-watcher-for-mac/17432/10
-    # for a discussion about getting a file system watcher working on Mac.
-    ++ pkgs.lib.optionals pkgs.stdenv.isDarwin
-        (with pkgs.darwin.apple_sdk.frameworks; [
-          CoreFoundation
-          CoreServices
-          Security
-        ]);
+    # For file_system on Linux. On macOS, the frameworks that file_system needs
+    # (CoreFoundation and CoreServices) come with the default SDK of the stdenv.
+    ++ pkgs.lib.optional pkgs.stdenv.isLinux pkgs.inotify-tools;
     nativeBuildInputs = [ pkgs.makeWrapper ];
     LANG = "en_US.UTF-8";
     LOCALE_ARCHIVE = pkgs.lib.optional pkgs.stdenv.isLinux
@@ -7029,7 +7041,10 @@ defmodule Melbyd.Nifs do
     otp_app: :melbyd,
     crate: :melbyd_nifs,
     path: "lib/melbyd/nifs",
-    skip_compilation?: true
+    skip_compilation?: true,
+    # We build the NIF library ourselves (see the Makefile and
+    # melby-daemon.nix), with Cargo's default "lib" prefix.
+    load_from: {:melbyd, "priv/native/libmelbyd_nifs"}
 
   # When your NIFs are loaded, they will override these functions.
   def path_shorten(_path, _aliases, _env_vars, _shorten_threshold),
@@ -7056,17 +7071,9 @@ pub mod path_aliases;
 pub mod path_shorten;
 pub mod render;
 
+// Every function marked with #[rustler::nif] gets registered automatically.
 #[cfg(feature = "elixir_support")]
-rustler::init!(
-    "Elixir.Melbyd.Nifs",
-    [
-        path_shorten::path_shorten,
-        color::parse_color,
-        render::render_widgets,
-        git_sha::colorize_git_sha,
-        path_aliases::parse_path_aliases,
-    ]
-);
+rustler::init!("Elixir.Melbyd.Nifs");
 #+end_src
 
 **** Boilerplate
@@ -7095,11 +7102,11 @@ path = "src/lib.rs"
 crate-type = ["cdylib", "lib"]
 
 [dependencies]
-csscolorparser = "0.6.2"
+csscolorparser = "0.9"
 envsubst = "0.2.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-rustler = { version = "0.31.0", optional = true }
+rustler = { version = "0.38", optional = true }
 
 [features]
 default = ["elixir_support"]

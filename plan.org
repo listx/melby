@@ -46,7 +46,7 @@ Make the rust version the new melbyc (default client).
 
 ** DONE migrate away melbyr from Haskell to NIFs
 
-** TODO upgrade dependencies
+** DONE upgrade dependencies
 
 Need to update pinned Nixpkgs version (update with niv), and also upgrade all of
 the various dependencies/languages/runtimes we use, like Elixir, Luerl, Haskell
@@ -73,6 +73,14 @@ to track JJ repos differently (might need to set up jj-specific resources).
 :PROPERTIES:
 :ID:       702bb2cb-999d-4ae2-b195-4b859f7f13a4
 :END:
+
+** TODO stop using Luerl.Old.decode/2
+
+Luerl 1.3 changed ~Luerl.decode/2~ so that decoded Lua functions take the Lua
+state as an explicit argument (see [[id:db4f2717-87ac-47b7-9299-11004e8dfa63::melbyd_luerl_util][Luerl util]]). We kept the old behavior by
+switching to ~Luerl.Old.decode/2~, but the old API could go away in a future
+Luerl release. Port the callers (mostly in the Standard Resource Server) to pass
+the Lua state around explicitly instead.
 
 ** DONE triage FIXMEs in the manuals
 :PROPERTIES:

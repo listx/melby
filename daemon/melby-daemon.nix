@@ -11,7 +11,7 @@ let
   systemdAvailable = pkgs.lib.meta.availableOn
     pkgs.stdenv.hostPlatform
     pkgs.systemd;
-  packages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlangR26;
+  packages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlang_28;
   mixFodDeps = packages.fetchMixDeps {
     pname = "mix-deps-${pname}";
     inherit src version;
@@ -42,9 +42,12 @@ let
     ./install/launchctl.sh
     ./lib
     ./lib/generated
-    ./lib/generated/melby_client.pb.ex
-    ./lib/generated/melby_daemon.pb.ex
-    ./lib/generated/melby.pb.ex
+    ./lib/generated/melby
+    ./lib/generated/melby/melby.pb.ex
+    ./lib/generated/melby_client
+    ./lib/generated/melby_client/melby_client.pb.ex
+    ./lib/generated/melby_daemon
+    ./lib/generated/melby_daemon/melby_daemon.pb.ex
     ./lib/melbyd
     ./lib/melbyd/router.ex
 
@@ -116,17 +119,9 @@ in
       pkgs.rust-analyzer
       melby.melby-nifs
     ]
-    # For file_system on Linux.
-    ++ pkgs.lib.optional pkgs.stdenv.isLinux pkgs.inotify-tools
-    # For file_system on macOS. See
-    # https://elixirforum.com/t/could-not-compile-file-system-watcher-for-mac/17432/10
-    # for a discussion about getting a file system watcher working on Mac.
-    ++ pkgs.lib.optionals pkgs.stdenv.isDarwin
-        (with pkgs.darwin.apple_sdk.frameworks; [
-          CoreFoundation
-          CoreServices
-          Security
-        ]);
+    # For file_system on Linux. On macOS, the frameworks that file_system needs
+    # (CoreFoundation and CoreServices) come with the default SDK of the stdenv.
+    ++ pkgs.lib.optional pkgs.stdenv.isLinux pkgs.inotify-tools;
     nativeBuildInputs = [ pkgs.makeWrapper ];
     LANG = "en_US.UTF-8";
     LOCALE_ARCHIVE = pkgs.lib.optional pkgs.stdenv.isLinux

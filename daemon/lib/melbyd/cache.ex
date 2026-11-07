@@ -2,6 +2,8 @@ defmodule Melbyd.Cache.PathShorten do
   @moduledoc """
   path-shorten Cache
   """
+  import Cachex.Spec
+
   @cache_id :path_pretty_cache
 
   def child_spec(_init_arg) do
@@ -13,7 +15,8 @@ defmodule Melbyd.Cache.PathShorten do
          [
            @cache_id,
            [
-             limit: 256
+             # Evict the least recently written entries beyond 256 entries.
+             hooks: [hook(module: Cachex.Limit.Evented, args: {256, []})]
            ]
          ]}
     }

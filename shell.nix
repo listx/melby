@@ -54,8 +54,8 @@ pkgs.mkShell ({
     pkgs.rust-analyzer
 
     # Elixir
-    pkgs.beam.packages.erlangR26.elixir
-    pkgs.beam.packages.erlangR26.erlang # erl, escript
+    pkgs.beam.packages.erlang_28.elixir
+    pkgs.beam.packages.erlang_28.erlang # erl, escript
     pkgs.mix2nix
 
     # gRPC and Protocol Buffers
@@ -78,14 +78,8 @@ pkgs.mkShell ({
   ]
   # For file_system on Linux.
   ++ pkgs.lib.optional pkgs.stdenv.isLinux pkgs.inotify-tools
-  # For file_system on macOS. See
-  # https://elixirforum.com/t/could-not-compile-file-system-watcher-for-mac/17432/10
-  # for a discussion about getting a file system watcher working on Mac.
-  ++ pkgs.lib.optionals pkgs.stdenv.isDarwin (with pkgs.darwin.apple_sdk.frameworks; [
-    CoreFoundation
-    CoreServices
-    Security
-  ])
+  # On macOS, the frameworks that file_system needs (CoreFoundation and
+  # CoreServices) come with the default SDK of the stdenv.
   ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
     # This allows mix2nix to be able to download hex packages using HTTPS, in a
     # `nix-shell --pure` environment. See

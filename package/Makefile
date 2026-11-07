@@ -19,9 +19,9 @@ build-melby-nifs:
 shell:
 	nix-shell --pure
 
-# Update nix/ folder to pin dependencies to nixos-24.05.
+# Update nix/ folder to pin dependencies to nixos-26.05.
 update-nix:
-	niv update nixpkgs --branch nixos-24.05
+	niv update nixpkgs --branch nixos-26.05
 
 .PHONY: build
 .PHONY: build-melby-client

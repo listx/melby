@@ -3,7 +3,10 @@ defmodule Melbyd.Nifs do
     otp_app: :melbyd,
     crate: :melbyd_nifs,
     path: "lib/melbyd/nifs",
-    skip_compilation?: true
+    skip_compilation?: true,
+    # We build the NIF library ourselves (see the Makefile and
+    # melby-daemon.nix), with Cargo's default "lib" prefix.
+    load_from: {:melbyd, "priv/native/libmelbyd_nifs"}
 
   # When your NIFs are loaded, they will override these functions.
   def path_shorten(_path, _aliases, _env_vars, _shorten_threshold),
