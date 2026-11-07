@@ -10,6 +10,7 @@ defmodule MelbyClient.ViewStatus do
   field :VIEW_STATUS_UNSPECIFIED, 0
   field :VIEW_STATUS_ERROR, 1
   field :VIEW_STATUS_OK, 2
+  field :VIEW_STATUS_PENDING, 3
 end
 
 defmodule MelbyClient.ViewRequest.EnvVarsEntry do

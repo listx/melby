@@ -750,6 +750,9 @@ enum ViewStatus {
   VIEW_STATUS_UNSPECIFIED = 0;
   VIEW_STATUS_ERROR = 1;
   VIEW_STATUS_OK = 2;
+  // melbyd could not generate the view in time. The view is a placeholder
+  // (possibly empty), and the real view will be ready for a later request.
+  VIEW_STATUS_PENDING = 3;
 }
 #+end_src
 
@@ -893,7 +896,9 @@ Basic imports.
 use std::collections::HashMap;
 use std::error::Error;
 use std::path::PathBuf;
+use std::time::Duration;
 use clap::{Parser, Subcommand};
+use tonic::transport::Endpoint;
 #+end_src
 
 Import generated gRPC code. These are built by =build.rs=.
@@ -972,11 +977,25 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 View the output of running the Lua configuration inside melbyd.
 
+melbyd [[id:bfc9b5c9-64e2-4d3f-a38c-1167eea1828b][replies within 500ms]], even if it has to reply with a placeholder. But melbyd
+could still hang (or be stuck in a long garbage collection), and the shell
+prompt must never hang along with it. So we also give up on our own after
+=VIEW_TIMEOUT=, both when connecting and when waiting for the response. We then
+exit with an error without printing a view, so the shell keeps its previous
+prompt.
+
 #+name: melbyc--business-logic
 #+begin_src rust
+const VIEW_TIMEOUT: Duration = Duration::from_millis(1000);
+
 async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
     let url = format!("http://127.0.0.1:{0}", cli.melbyd_port);
-    let mut client = ViewClient::connect(url).await?;
+    let channel = Endpoint::from_shared(url)?
+        .connect_timeout(VIEW_TIMEOUT)
+        .timeout(VIEW_TIMEOUT)
+        .connect()
+        .await?;
+    let mut client = ViewClient::new(channel);
 
     let mut env_vars: HashMap<String, String> = HashMap::new();
     for (k, v) in std::env::vars() {
@@ -3218,7 +3237,7 @@ defmodule Melbyd.View.Service do
   @spec get_view(MelbyClient.ViewRequest.t(), GRPC.Server.Stream.t()) ::
           MelbyClient.ViewResponse.t()
   def get_view(req, _stream) do
-    Melbyd.View.generate(req)
+    Melbyd.View.generate_within(req)
   end
 end
 #+end_src
@@ -3235,6 +3254,37 @@ Below is =melby-client='s =ViewRequest= that we handle. We get the user's Lua
 config, already loaded and validated, from the [[id:7646b12b-aa3f-45a0-be59-79ec4d0347e3][Lua VM cache]], and call its
 ~Config.view~ function.
 
+The client is a shell prompt, so we must never keep it waiting for long. We
+guarantee a reply within 500ms with ~generate_within/2~, which runs ~generate/1~
+in a task and waits for it for at most =@deadline_ms=. Usually ~generate/1~
+finishes in a few milliseconds, but it can take longer:
+
+  - the first request for a config (such as right after melbyd starts) has to
+    build its Lua VM, which includes running every ~Config.view_tests~ entry;
+
+  - ~Config.view~ can run shell commands (such as the Git resource's
+    ~resource_id_command~); and
+
+  - ~Config.view~ can wait on other GenServers, such as a Standard Resource
+    Server that is busy.
+
+If the deadline passes, we reply with =VIEW_STATUS_PENDING= and a placeholder
+view instead. We don't kill the task, but let it finish in the background, so
+that its work (building the Lua VM, starting resources) is done by the time the
+next request comes in. If we killed it instead, a build that always takes longer
+than the deadline would never finish, and every request would get a
+placeholder. Because the [[id:7646b12b-aa3f-45a0-be59-79ec4d0347e3][Lua VM cache]] builds each config only once, the
+requests that time out while a build is running don't each start another build.
+
+The placeholder comes from the optional ~Config.placeholder_view~ function in the
+user's Lua config, which takes the same arguments as ~Config.view~. We can only
+call it if the Lua VM cache already has a VM for the config (which is the case
+unless this is the first request for it), and only give it =@placeholder_ms= to
+run, so it must be fast (it shouldn't read any resources, for example). If
+there's no VM yet, or the config has no ~Config.placeholder_view~, or it fails or
+takes too long, the placeholder is empty, which makes the shell keep its
+previous prompt.
+
 #+header: :tangle daemon/lib/melbyd/view.ex
 #+begin_src elixir
 defmodule Melbyd.View do
@@ -3243,6 +3293,80 @@ defmodule Melbyd.View do
   """
 
   require Logger
+
+  # How long to wait for generate/1 in generate_within/2. Together with
+  # @placeholder_ms, this leaves some time (out of the 500ms that we promise to
+  # clients) for gRPC to send the response.
+  @deadline_ms 450
+
+  # How long to give Config.placeholder_view to run.
+  @placeholder_ms 25
+
+  @doc """
+  Like generate/1, but give up waiting for it after deadline_ms milliseconds,
+  and reply with a placeholder view (and the VIEW_STATUS_PENDING status)
+  instead. Keep generating the view in the background even after we give up.
+  """
+  def generate_within(req, deadline_ms \\ @deadline_ms) do
+    task = Task.Supervisor.async_nolink(Melbyd.TaskSupervisor, fn -> generate(req) end)
+
+    # Task.ignore/1 makes the task keep running without us, but still gives us
+    # the result if the task finished in the meantime.
+    case Task.yield(task, deadline_ms) || Task.ignore(task) do
+      {:ok, response} ->
+        response
+
+      {:exit, reason} ->
+        %MelbyClient.ViewResponse{
+          status: :VIEW_STATUS_ERROR,
+          error: "failed to generate view: #{inspect(reason)}"
+        }
+
+      nil ->
+        Logger.info("view for #{inspect(req.config_path)} took longer than #{deadline_ms}ms")
+
+        %MelbyClient.ViewResponse{
+          status: :VIEW_STATUS_PENDING,
+          view: placeholder_view(req)
+        }
+    end
+  end
+
+  # Return the output of Config.placeholder_view, or the empty string if we
+  # can't get it (quickly).
+  defp placeholder_view(req) do
+    task =
+      Task.Supervisor.async_nolink(Melbyd.TaskSupervisor, fn ->
+        with {:ok, %{vm: vm, view_params_types: view_params_types}} <-
+               Melbyd.LuaVmCache.peek(req.config_path),
+             {:ok, f} when f != nil <- Luerl.get_table_keys_dec(vm, ["Config", "placeholder_view"]) |> ok_value(),
+             {:ok, env_vars_reduced} <-
+               Melbyd.LuaConfigValidation.enforce_view_params_types(view_params_types, req.env_vars),
+             {:ok, [view]} when is_binary(view) <-
+               Melbyd.LuaInterop.call(vm, ["Config", "placeholder_view"], [env_vars_reduced, req.shell_pid]) do
+          view
+        else
+          # There's no VM yet, or the config doesn't define a placeholder.
+          :miss ->
+            ""
+
+          {:ok, nil} ->
+            ""
+
+          err ->
+            Logger.warning("Config.placeholder_view failed: #{inspect(err)}")
+            ""
+        end
+      end)
+
+    case Task.yield(task, @placeholder_ms) || Task.shutdown(task, :brutal_kill) do
+      {:ok, view} -> view
+      _ -> ""
+    end
+  end
+
+  defp ok_value({:ok, val, _st}), do: {:ok, val}
+  defp ok_value(err), do: err
 
   def generate(req) do
     config_path = req.config_path
@@ -3931,7 +4055,9 @@ does it wait for the GenServer, which replies once the VM is built.
 We wait on the GenServer without a timeout, because the build can take a while
 (validation runs every ~Config.view_tests~ entry) and the GenServer always
 replies, even when the build crashes. Callers that need a deadline should run
-~get/1~ in a task.
+~get/1~ in a task, like [[id:bfc9b5c9-64e2-4d3f-a38c-1167eea1828b][~Melbyd.View.generate_within/2~]] does. Callers that want
+whatever is cached right now, without ever waiting for a build, can use
+~peek/1~.
 
 #+name: melbyd_lua_vm_cache_get
 #+begin_src elixir
@@ -3954,6 +4080,17 @@ def get(lua_file) do
       end
 
       {:ok, entry}
+  end
+end
+
+@doc """
+Return the cache entry for the Lua config at the given path (even if it is
+stale), or :miss if there is none. Unlike get/1, never wait for a build.
+"""
+def peek(lua_file) do
+  case :persistent_term.get({__MODULE__, Path.expand(lua_file)}, nil) do
+    nil -> :miss
+    entry -> {:ok, entry}
   end
 end
 
@@ -5640,6 +5777,95 @@ defmodule MelbydTest do
              frequency: 50,
              timeout: 5_000
            )
+  end
+
+  # Write a Lua config into the given directory whose Config.view takes about
+  # view_seconds when the SLOW env var is set, and whose top-level code (which
+  # runs every time we load the config) takes about load_seconds.
+  defp write_slow_lua_config(dir, load_seconds, view_seconds) do
+    File.write!(Path.join(dir, "config.lua"), """
+    local function busy_wait(seconds)
+      local start = os.clock()
+      while os.clock() - start < seconds do end
+    end
+
+    busy_wait(#{load_seconds})
+
+    Config = {}
+    Config.view_params_types = {
+      env = {
+        PWD = {"required", "path"},
+        SLOW = {"optional", "string"},
+      },
+      shell_pid = {"required", "uint"}
+    }
+    Config.view_tests = {
+      {
+        env = {PWD = "/a/b"},
+        expected_substrings = {"view"}
+      }
+    }
+    function Config.view(env, shell_pid)
+      if env["SLOW"] then
+        busy_wait(#{view_seconds})
+      end
+      return "view of " .. env["PWD"]
+    end
+    function Config.placeholder_view(env, shell_pid)
+      return "placeholder of " .. env["PWD"]
+    end
+    """)
+
+    Path.join(dir, "config.lua")
+  end
+
+  defp view_request(lua_file, env_vars) do
+    %MelbyClient.ViewRequest{config_path: lua_file, env_vars: env_vars, shell_pid: "1"}
+  end
+
+  # Return the response and how long it took in milliseconds.
+  defp timed_generate_within(req) do
+    {us, response} = :timer.tc(fn -> Melbyd.View.generate_within(req) end)
+    {response, div(us, 1000)}
+  end
+
+  @tag view_deadline: true
+  test "view deadline: reply in time while the Lua VM is still building" do
+    # Loading the config takes 0.3 seconds, and building the VM loads it 3 times
+    # (twice for validation, and once for real).
+    lua_file = write_slow_lua_config(mk_tmp_dir("view_deadline"), 0.3, 0)
+    req = view_request(lua_file, %{"PWD" => "/x"})
+
+    # There's no VM yet, so the placeholder is empty.
+    {response, ms} = timed_generate_within(req)
+    assert %MelbyClient.ViewResponse{status: :VIEW_STATUS_PENDING, view: ""} = response
+    assert ms < 500
+
+    # The build keeps running in the background, so a later request gets the
+    # real view. The requests that time out in the meantime don't start
+    # another build.
+    assert WaitForIt.wait(Melbyd.View.generate_within(req).status == :VIEW_STATUS_OK,
+             frequency: 100,
+             timeout: 10_000
+           )
+
+    {response, ms} = timed_generate_within(req)
+    assert %MelbyClient.ViewResponse{status: :VIEW_STATUS_OK, view: "view of /x"} = response
+    assert ms < 500
+    assert Melbyd.LuaVmCache.build_count(lua_file) == 1
+  end
+
+  @tag view_deadline: true
+  test "view deadline: reply with Config.placeholder_view when Config.view is slow" do
+    lua_file = write_slow_lua_config(mk_tmp_dir("view_deadline"), 0, 0.7)
+    {:ok, _} = Melbyd.LuaVmCache.get(lua_file)
+
+    {response, ms} = timed_generate_within(view_request(lua_file, %{"PWD" => "/x", "SLOW" => "1"}))
+    assert %MelbyClient.ViewResponse{status: :VIEW_STATUS_PENDING, view: "placeholder of /x"} = response
+    assert ms < 500
+
+    {response, _} = timed_generate_within(view_request(lua_file, %{"PWD" => "/x"}))
+    assert %MelbyClient.ViewResponse{status: :VIEW_STATUS_OK, view: "view of /x"} = response
   end
 
   @tag lua_vm_cache: true

@@ -296,6 +296,24 @@ function Config.view (env, shell_pid)
   return script
 end
 
+-- Optional. If Config.view takes too long, melbyd replies with the output of
+-- this function instead (it takes the same arguments as Config.view). It must
+-- be fast, so don't read any resources here. We set the same variables as
+-- Config.view, so that the shell doesn't show stale values (such as the shell
+-- messages that it already showed).
+function Config.placeholder_view (env, shell_pid)
+  local loading = {str="...", fg="yellow", styles={"bold"}}
+
+  local export = {}
+  table.insert(export, {name="MELBY_PS1_LINE1",
+                        val=melbyd.render({loading}, {str=" "}),
+                        type="string"})
+  table.insert(export, {name="MELBY_PS1_LINE2", val="", type="string"})
+  table.insert(export, {name="MELBY_SHELL_MESSAGES", val={}, type="array"})
+
+  return melbyd.to_shell_script(export)
+end
+
 -- This line is to force evaluation of these loaded modules by Luerl, such that
 -- they show up in the loaded vm state.
 return {g = Git, kc = KubeCurrent, k = Kube}

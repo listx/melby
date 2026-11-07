@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::path::PathBuf;
+use std::time::Duration;
 use clap::{Parser, Subcommand};
+use tonic::transport::Endpoint;
 
 pub mod grpc_generated;
 use grpc_generated::melby_client::view_client::ViewClient;
@@ -57,9 +59,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+const VIEW_TIMEOUT: Duration = Duration::from_millis(1000);
+
 async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
     let url = format!("http://127.0.0.1:{0}", cli.melbyd_port);
-    let mut client = ViewClient::connect(url).await?;
+    let channel = Endpoint::from_shared(url)?
+        .connect_timeout(VIEW_TIMEOUT)
+        .timeout(VIEW_TIMEOUT)
+        .connect()
+        .await?;
+    let mut client = ViewClient::new(channel);
 
     let mut env_vars: HashMap<String, String> = HashMap::new();
     for (k, v) in std::env::vars() {

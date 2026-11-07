@@ -112,7 +112,7 @@ starts from the same pristine state, as it does today.
     rebuild, and that a config that fails validation doesn't replace the old
     VM.
 
-** TODO make melbyd respond to view requests within 500ms
+** DONE make melbyd respond to view requests within 500ms
 
 Nothing bounds how long a view request takes. The first request after a config
 change runs the whole validation, ~Config.view~ can run commands with

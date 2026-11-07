@@ -299,6 +299,95 @@ defmodule MelbydTest do
            )
   end
 
+  # Write a Lua config into the given directory whose Config.view takes about
+  # view_seconds when the SLOW env var is set, and whose top-level code (which
+  # runs every time we load the config) takes about load_seconds.
+  defp write_slow_lua_config(dir, load_seconds, view_seconds) do
+    File.write!(Path.join(dir, "config.lua"), """
+    local function busy_wait(seconds)
+      local start = os.clock()
+      while os.clock() - start < seconds do end
+    end
+
+    busy_wait(#{load_seconds})
+
+    Config = {}
+    Config.view_params_types = {
+      env = {
+        PWD = {"required", "path"},
+        SLOW = {"optional", "string"},
+      },
+      shell_pid = {"required", "uint"}
+    }
+    Config.view_tests = {
+      {
+        env = {PWD = "/a/b"},
+        expected_substrings = {"view"}
+      }
+    }
+    function Config.view(env, shell_pid)
+      if env["SLOW"] then
+        busy_wait(#{view_seconds})
+      end
+      return "view of " .. env["PWD"]
+    end
+    function Config.placeholder_view(env, shell_pid)
+      return "placeholder of " .. env["PWD"]
+    end
+    """)
+
+    Path.join(dir, "config.lua")
+  end
+
+  defp view_request(lua_file, env_vars) do
+    %MelbyClient.ViewRequest{config_path: lua_file, env_vars: env_vars, shell_pid: "1"}
+  end
+
+  # Return the response and how long it took in milliseconds.
+  defp timed_generate_within(req) do
+    {us, response} = :timer.tc(fn -> Melbyd.View.generate_within(req) end)
+    {response, div(us, 1000)}
+  end
+
+  @tag view_deadline: true
+  test "view deadline: reply in time while the Lua VM is still building" do
+    # Loading the config takes 0.3 seconds, and building the VM loads it 3 times
+    # (twice for validation, and once for real).
+    lua_file = write_slow_lua_config(mk_tmp_dir("view_deadline"), 0.3, 0)
+    req = view_request(lua_file, %{"PWD" => "/x"})
+
+    # There's no VM yet, so the placeholder is empty.
+    {response, ms} = timed_generate_within(req)
+    assert %MelbyClient.ViewResponse{status: :VIEW_STATUS_PENDING, view: ""} = response
+    assert ms < 500
+
+    # The build keeps running in the background, so a later request gets the
+    # real view. The requests that time out in the meantime don't start
+    # another build.
+    assert WaitForIt.wait(Melbyd.View.generate_within(req).status == :VIEW_STATUS_OK,
+             frequency: 100,
+             timeout: 10_000
+           )
+
+    {response, ms} = timed_generate_within(req)
+    assert %MelbyClient.ViewResponse{status: :VIEW_STATUS_OK, view: "view of /x"} = response
+    assert ms < 500
+    assert Melbyd.LuaVmCache.build_count(lua_file) == 1
+  end
+
+  @tag view_deadline: true
+  test "view deadline: reply with Config.placeholder_view when Config.view is slow" do
+    lua_file = write_slow_lua_config(mk_tmp_dir("view_deadline"), 0, 0.7)
+    {:ok, _} = Melbyd.LuaVmCache.get(lua_file)
+
+    {response, ms} = timed_generate_within(view_request(lua_file, %{"PWD" => "/x", "SLOW" => "1"}))
+    assert %MelbyClient.ViewResponse{status: :VIEW_STATUS_PENDING, view: "placeholder of /x"} = response
+    assert ms < 500
+
+    {response, _} = timed_generate_within(view_request(lua_file, %{"PWD" => "/x"}))
+    assert %MelbyClient.ViewResponse{status: :VIEW_STATUS_OK, view: "view of /x"} = response
+  end
+
   @tag lua_vm_cache: true
   test "Lua VM cache: report an error for a config that never passed validation" do
     lua_file = write_lua_config(mk_tmp_dir("lua_vm_cache"), "goodbye")

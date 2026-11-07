@@ -5,6 +5,80 @@ defmodule Melbyd.View do
 
   require Logger
 
+  # How long to wait for generate/1 in generate_within/2. Together with
+  # @placeholder_ms, this leaves some time (out of the 500ms that we promise to
+  # clients) for gRPC to send the response.
+  @deadline_ms 450
+
+  # How long to give Config.placeholder_view to run.
+  @placeholder_ms 25
+
+  @doc """
+  Like generate/1, but give up waiting for it after deadline_ms milliseconds,
+  and reply with a placeholder view (and the VIEW_STATUS_PENDING status)
+  instead. Keep generating the view in the background even after we give up.
+  """
+  def generate_within(req, deadline_ms \\ @deadline_ms) do
+    task = Task.Supervisor.async_nolink(Melbyd.TaskSupervisor, fn -> generate(req) end)
+
+    # Task.ignore/1 makes the task keep running without us, but still gives us
+    # the result if the task finished in the meantime.
+    case Task.yield(task, deadline_ms) || Task.ignore(task) do
+      {:ok, response} ->
+        response
+
+      {:exit, reason} ->
+        %MelbyClient.ViewResponse{
+          status: :VIEW_STATUS_ERROR,
+          error: "failed to generate view: #{inspect(reason)}"
+        }
+
+      nil ->
+        Logger.info("view for #{inspect(req.config_path)} took longer than #{deadline_ms}ms")
+
+        %MelbyClient.ViewResponse{
+          status: :VIEW_STATUS_PENDING,
+          view: placeholder_view(req)
+        }
+    end
+  end
+
+  # Return the output of Config.placeholder_view, or the empty string if we
+  # can't get it (quickly).
+  defp placeholder_view(req) do
+    task =
+      Task.Supervisor.async_nolink(Melbyd.TaskSupervisor, fn ->
+        with {:ok, %{vm: vm, view_params_types: view_params_types}} <-
+               Melbyd.LuaVmCache.peek(req.config_path),
+             {:ok, f} when f != nil <- Luerl.get_table_keys_dec(vm, ["Config", "placeholder_view"]) |> ok_value(),
+             {:ok, env_vars_reduced} <-
+               Melbyd.LuaConfigValidation.enforce_view_params_types(view_params_types, req.env_vars),
+             {:ok, [view]} when is_binary(view) <-
+               Melbyd.LuaInterop.call(vm, ["Config", "placeholder_view"], [env_vars_reduced, req.shell_pid]) do
+          view
+        else
+          # There's no VM yet, or the config doesn't define a placeholder.
+          :miss ->
+            ""
+
+          {:ok, nil} ->
+            ""
+
+          err ->
+            Logger.warning("Config.placeholder_view failed: #{inspect(err)}")
+            ""
+        end
+      end)
+
+    case Task.yield(task, @placeholder_ms) || Task.shutdown(task, :brutal_kill) do
+      {:ok, view} -> view
+      _ -> ""
+    end
+  end
+
+  defp ok_value({:ok, val, _st}), do: {:ok, val}
+  defp ok_value(err), do: err
+
   def generate(req) do
     config_path = req.config_path
     env_vars = req.env_vars

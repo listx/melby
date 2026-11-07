@@ -29,6 +29,17 @@ defmodule Melbyd.LuaVmCache do
   end
 
   @doc """
+  Return the cache entry for the Lua config at the given path (even if it is
+  stale), or :miss if there is none. Unlike get/1, never wait for a build.
+  """
+  def peek(lua_file) do
+    case :persistent_term.get({__MODULE__, Path.expand(lua_file)}, nil) do
+      nil -> :miss
+      entry -> {:ok, entry}
+    end
+  end
+
+  @doc """
   Return how many times we have built a VM for the given config. Useful for
   debugging (and testing) the cache.
   """

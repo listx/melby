@@ -38,6 +38,9 @@ pub enum ViewStatus {
     Unspecified = 0,
     Error = 1,
     Ok = 2,
+    /// melbyd could not generate the view in time. The view is a placeholder
+    /// (possibly empty), and the real view will be ready for a later request.
+    Pending = 3,
 }
 impl ViewStatus {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -49,6 +52,7 @@ impl ViewStatus {
             Self::Unspecified => "VIEW_STATUS_UNSPECIFIED",
             Self::Error => "VIEW_STATUS_ERROR",
             Self::Ok => "VIEW_STATUS_OK",
+            Self::Pending => "VIEW_STATUS_PENDING",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -57,6 +61,7 @@ impl ViewStatus {
             "VIEW_STATUS_UNSPECIFIED" => Some(Self::Unspecified),
             "VIEW_STATUS_ERROR" => Some(Self::Error),
             "VIEW_STATUS_OK" => Some(Self::Ok),
+            "VIEW_STATUS_PENDING" => Some(Self::Pending),
             _ => None,
         }
     }

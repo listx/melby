@@ -36,4 +36,7 @@ enum ViewStatus {
   VIEW_STATUS_UNSPECIFIED = 0;
   VIEW_STATUS_ERROR = 1;
   VIEW_STATUS_OK = 2;
+  // melbyd could not generate the view in time. The view is a placeholder
+  // (possibly empty), and the real view will be ready for a later request.
+  VIEW_STATUS_PENDING = 3;
 }

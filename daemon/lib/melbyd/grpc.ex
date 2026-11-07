@@ -19,6 +19,6 @@ defmodule Melbyd.View.Service do
   @spec get_view(MelbyClient.ViewRequest.t(), GRPC.Server.Stream.t()) ::
           MelbyClient.ViewResponse.t()
   def get_view(req, _stream) do
-    Melbyd.View.generate(req)
+    Melbyd.View.generate_within(req)
   end
 end
