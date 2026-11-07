@@ -277,61 +277,6 @@ shell:
 	nix-shell --pure
 #+end_src
 
-*** Emacs customizations
-
-Because Lilac does not come with built-in support for syntax highlighting for
-all of the different programming languages we use, we have to import them here
-manually. That way, when we run =(lilac-publish)= we'll get all of the syntax
-highlighting that we need.
-
-#+name: melby.el
-#+header: :tangle melby.el
-#+begin_src emacs-lisp
-;; Built-in packages (distributed with Emacs).
-(require 'tex-mode)
-(require 'elisp-mode)
-
-(defun melby-load (path)
-    (add-to-list 'load-path (concat
-                             (getenv "PROJ_ROOT")
-                             (concat "/deps/elisp/"
-                                     path))))
-
-;; Third-party packages (checked in as Git submodules)
-(melby-load "dash.el")
-(require 'dash) ; required by magit
-
-(melby-load "compat.el")
-(require 'compat) ; required by magit
-
-(melby-load "haskell-mode")
-(require 'haskell-mode)
-(require 'haskell-cabal)
-
-(melby-load "magit/lisp")
-(require 'magit-section) ; required by nix-mode
-
-(melby-load "nix-mode")
-(require 'nix-mode)
-
-(melby-load "rust-mode")
-(require 'rust-mode)
-
-(melby-load "emacs-elixir")
-(require 'elixir-mode)
-
-(melby-load "lua-mode")
-(require 'lua-mode)
-
-(melby-load "protobuf/editors")
-(require 'protobuf-mode)
-
-(melby-load "yaml-mode")
-(require 'yaml-mode)
-
-(setq org-latex-compiler "lualatex")
-#+end_src
-
 *** Diagrams
 
 The code used to generate the diagrams used in this doc is [[id:658989c2-1695-4240-b28a-3b0781cb1cac][here]]. We don't
