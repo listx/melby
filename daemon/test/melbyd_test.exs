@@ -145,39 +145,38 @@ defmodule MelbydTest do
        ) do
     {:ok, pid} = init_lua_reader()
 
-    # Wait for the last substring to appear.
-    WaitForIt.wait(
-      expect(List.last(want_substrs), pid, shell_pid, lua_script, env_vars, ansi_escapes_allowed),
-      frequency: 1000,
-      timeout: 5_000
-    )
-    # Alternate: wait for all substrings to appear. But actually, this is broken
-    # because we run the lua script too many times (once for each substring); so
-    # then our backend will purge any already-broadcasted shell message. The
-    # right approach is to wait up to 5 seconds, and during that time do fetches
-    # 1x per second, and for each fetch we should check how many of the
-    # substrings have matched, and NOT re-check those already-matched substrings
-    # in the next iteration. That is, we should match as much as possible each
-    # time we run the lua script and fetch (this way different parts of the
-    # output string can match what we want overall).
+    # Run the Lua script (to simulate invoking melbyc) once per second, for up
+    # to 5 seconds, until we've seen every substring. We cross off the
+    # substrings that we've seen so far after each run, instead of waiting for
+    # all of them to show up in the same output, because shell messages only
+    # show up once (each run purges the messages that it showed).
+    #
+    # Note that waiting for just one of the substrings is not enough. For
+    # example, the substrings for an empty list of shell messages show up right
+    # away, long before a resource like Git has finished loading.
+    missing =
+      await_substrings(want_substrs, 5, pid, shell_pid, lua_script, env_vars, ansi_escapes_allowed)
 
-    #WaitForIt.wait(
-    #  Enum.map(
-    #    want_substrs,
-    #    fn s -> expect(s, pid, shell_pid, lua_script, env_vars, ansi_escapes_allowed)
-    #    end) |> Enum.all?(),
-    #  frequency: 1000,
-    #  timeout: 5_000
-    #)
-
-    # Run the Lua script to simulate invoking melbyc.
     got = get_lua_reader_state(pid)
     Agent.stop(pid)
 
-    # Check every substring, not just the last one.
-    Enum.each(want_substrs, fn substr ->
-      assert String.contains?(got, substr)
-    end)
+    assert missing == [],
+           "never saw #{inspect(missing)} in the output; the last output was #{inspect(got)}"
+  end
+
+  # Return the substrings that we have not seen in the output after the given
+  # number of tries.
+  defp await_substrings(want_substrs, tries, pid, shell_pid, lua_script, env_vars, ansi_escapes_allowed) do
+    update_lua_reader_state(pid, shell_pid, lua_script, env_vars, ansi_escapes_allowed)
+    got = get_lua_reader_state(pid)
+    missing = Enum.reject(want_substrs, &String.contains?(got, &1))
+
+    if missing == [] or tries <= 1 do
+      missing
+    else
+      Process.sleep(1000)
+      await_substrings(missing, tries - 1, pid, shell_pid, lua_script, env_vars, ansi_escapes_allowed)
+    end
   end
 
   # This tag lets us do "mix test --only basic" to only run this test.
