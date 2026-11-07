@@ -40,6 +40,35 @@ other sections as needed.
 :ID:       5c13b3ed-27fb-41c2-9661-b4a4ef3c9eb1
 :END:
 
+** TODO delete the melbyc haskell client
+
+Make the rust version the new melbyc (default client).
+
+** TODO migrate away melbyr from Haskell to NIFs
+
+** TODO upgrade dependencies
+
+Need to update pinned Nixpkgs version (update with niv), and also upgrade all of
+the various dependencies/languages/runtimes we use, like Elixir, Luerl, Haskell
+(GHC), Rust for NIFs, etc.
+
+** TODO fix extreme slowdown when there's a merge conflict in Git repos that have JJ set up
+
+JJ represents Git conflicts in a weird way (if you look at a conflicted jj
+commit in tig, it'll show a completely different tree than what is normally the
+git working tree). This is probably what's causing a big slowdown when conflicts
+happen inside git repos.
+
+We need to fix this. The slowness probably stems from the fact that we have a FS
+event listener set up to track what's in the git tree. And the conflict results
+in a huge spike of new paths (set up by jj) that are different than what was
+there before.
+
+Simple fix is to just ignore JJ repos, but this seems silly. Better fix might be
+to track JJ repos differently (might need to set up jj-specific resources).
+
+** TODO set up github actions to build and push to cachix
+
 * Backlog
 :PROPERTIES:
 :ID:       702bb2cb-999d-4ae2-b195-4b859f7f13a4
