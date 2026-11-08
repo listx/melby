@@ -598,6 +598,7 @@ defmodule Melbyd.LuaSdk do
 
     case Map.new(render_options_tuples)["format"] do
       "RENDER_FORMAT_UNIX_TERMINAL" -> :unix_terminal
+      "RENDER_FORMAT_ZSH_PROMPT" -> :zsh_prompt
       _ -> :unspecified
     end
   end

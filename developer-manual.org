@@ -4603,6 +4603,7 @@ def get_render_format(st0) do
 
   case Map.new(render_options_tuples)["format"] do
     "RENDER_FORMAT_UNIX_TERMINAL" -> :unix_terminal
+    "RENDER_FORMAT_ZSH_PROMPT" -> :zsh_prompt
     _ -> :unspecified
   end
 end
@@ -6519,8 +6520,13 @@ rendered = melbyd.render(widgets, {str="**"})
 #+end_src
 
 This uses 2 asterisks as a delimiter. The output format comes from the
-~render_options~ in the Lua configuration, and the only supported format is
-~"RENDER_FORMAT_UNIX_TERMINAL"~.
+~render_options~ in the Lua configuration. It can be either of these:
+
+  - ~"RENDER_FORMAT_UNIX_TERMINAL"~: plain ANSI escape sequences, for printing
+    to a terminal directly; or
+
+  - ~"RENDER_FORMAT_ZSH_PROMPT"~: the same, but ready to put into a Zsh prompt
+    such as =PS1= as is. See [[melbyd_nifs_render_zsh]] for why Zsh needs this.
 
 ***** Widget field reference
 
@@ -6589,6 +6595,7 @@ pub struct Widget {
 pub enum RenderFormat {
     Unspecified,
     UnixTerminal,
+    ZshPrompt,
 }
 #+end_src
 
@@ -6629,7 +6636,57 @@ fn render_widget(widget: &Widget, format: RenderFormat) -> String {
         RenderFormat::UnixTerminal => {
             format!("{}{}{}", sgr(&text_prop_codes(widget)), widget.str, sgr(&[0]))
         }
+        RenderFormat::ZshPrompt => {
+            zsh_prompt_escape(&render_widget(widget, RenderFormat::UnixTerminal))
+        }
     }
+}
+#+end_src
+
+The =ZshPrompt= format is for strings that go into a Zsh prompt (such as =PS1=).
+Zsh needs to know how many columns the prompt takes up on the screen, so that
+when it redraws the prompt (for example, with =zle reset-prompt=), it can move
+the cursor back up to where the prompt started. Zsh counts every character in
+the prompt, unless it is between =%{= and =%}=. So we wrap each escape sequence
+in those, and leave the text that is actually visible unwrapped. If we wrapped
+the whole line instead, Zsh would think it takes up no columns at all, and in a
+terminal narrow enough to wrap the line onto more than one row, each redraw
+would leave the extra rows behind.
+
+We work on the string that the =UnixTerminal= format gives us, instead of on the
+widget's colors and styles, because a widget's text can contain escape sequences
+of its own (such as the ones from the [[id:52216101-f1d1-4441-9630-96c680c19db9][colorized Git SHA]]). We also replace each =%=
+with =%%=, because Zsh would otherwise treat it as the start of a prompt escape
+sequence.
+
+#+name: melbyd_nifs_render_zsh
+#+begin_src rust
+fn zsh_prompt_escape(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut chars = s.chars().peekable();
+    while let Some(c) = chars.next() {
+        match c {
+            '%' => out.push_str("%%"),
+            '\x1b' => {
+                out.push_str("%{\x1b");
+                // A "Control Sequence Introducer" (CSI) sequence, such as an
+                // SGR sequence, starts with "\x1b[" and ends with a byte in the
+                // range 0x40 to 0x7e (such as the "m" in "\x1b[0m").
+                if chars.peek() == Some(&'[') {
+                    out.extend(chars.next());
+                    for c in chars.by_ref() {
+                        out.push(c);
+                        if ('\x40'..='\x7e').contains(&c) {
+                            break;
+                        }
+                    }
+                }
+                out.push_str("%}");
+            }
+            _ => out.push(c),
+        }
+    }
+    out
 }
 #+end_src
 
@@ -6755,6 +6812,38 @@ mod test {
     }
 
     #[test]
+    fn test_render_zsh_prompt() {
+        let widget = Widget {
+            str: "50%".to_string(),
+            fg: Some(Color::Palette(196)),
+            styles: vec![TextStyle::Bold],
+            ..Default::default()
+        };
+        assert_eq!(
+            _render_widgets(&[widget, w("b")], &w(" "), RenderFormat::ZshPrompt),
+            "%{\x1b[38;5;196;1m%}50%%%{\x1b[0m%}\
+             %{\x1b[m%} %{\x1b[0m%}\
+             %{\x1b[m%}b%{\x1b[0m%}"
+        );
+    }
+
+    #[test]
+    fn test_zsh_prompt_escape() {
+        assert_eq!(zsh_prompt_escape(""), "");
+        assert_eq!(zsh_prompt_escape("a%b"), "a%%b");
+        // Escape sequences already inside a widget's text (such as a colorized
+        // Git SHA) get wrapped too.
+        assert_eq!(
+            zsh_prompt_escape("\x1b[1m\x1b[48;2;1;2;3m 9ce7\x1b[0m"),
+            "%{\x1b[1m%}%{\x1b[48;2;1;2;3m%} 9ce7%{\x1b[0m%}"
+        );
+        // Multi-byte characters are left alone.
+        assert_eq!(zsh_prompt_escape("\x1b[m日"), "%{\x1b[m%}日");
+        // An escape that isn't a CSI sequence only wraps the escape character.
+        assert_eq!(zsh_prompt_escape("\x1bc"), "%{\x1b%}c");
+    }
+
+    #[test]
     fn test_render_unspecified_format() {
         assert_eq!(
             _render_widgets(&[w("a")], &w(" "), RenderFormat::Unspecified),
@@ -6769,6 +6858,7 @@ mod test {
 #+begin_src rust
 <<melbyd_nifs_render_types>>
 <<melbyd_nifs_render_widgets>>
+<<melbyd_nifs_render_zsh>>
 <<melbyd_nifs_render_sgr>>
 <<melbyd_nifs_render_tests>>
 #+end_src

@@ -40,6 +40,7 @@ pub struct Widget {
 pub enum RenderFormat {
     Unspecified,
     UnixTerminal,
+    ZshPrompt,
 }
 
 #[cfg_attr(feature = "elixir_support", rustler::nif)]
@@ -73,7 +74,38 @@ fn render_widget(widget: &Widget, format: RenderFormat) -> String {
         RenderFormat::UnixTerminal => {
             format!("{}{}{}", sgr(&text_prop_codes(widget)), widget.str, sgr(&[0]))
         }
+        RenderFormat::ZshPrompt => {
+            zsh_prompt_escape(&render_widget(widget, RenderFormat::UnixTerminal))
+        }
     }
+}
+
+fn zsh_prompt_escape(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut chars = s.chars().peekable();
+    while let Some(c) = chars.next() {
+        match c {
+            '%' => out.push_str("%%"),
+            '\x1b' => {
+                out.push_str("%{\x1b");
+                // A "Control Sequence Introducer" (CSI) sequence, such as an
+                // SGR sequence, starts with "\x1b[" and ends with a byte in the
+                // range 0x40 to 0x7e (such as the "m" in "\x1b[0m").
+                if chars.peek() == Some(&'[') {
+                    out.extend(chars.next());
+                    for c in chars.by_ref() {
+                        out.push(c);
+                        if ('\x40'..='\x7e').contains(&c) {
+                            break;
+                        }
+                    }
+                }
+                out.push_str("%}");
+            }
+            _ => out.push(c),
+        }
+    }
+    out
 }
 
 #[derive(Clone, Copy)]
@@ -186,6 +218,38 @@ mod test {
         assert_eq!(rendered(vec![w("a"), b.clone(), w("c")]), "ab|c");
         b.drop_delim_right = true;
         assert_eq!(rendered(vec![w("a"), b, w("c")]), "abc");
+    }
+
+    #[test]
+    fn test_render_zsh_prompt() {
+        let widget = Widget {
+            str: "50%".to_string(),
+            fg: Some(Color::Palette(196)),
+            styles: vec![TextStyle::Bold],
+            ..Default::default()
+        };
+        assert_eq!(
+            _render_widgets(&[widget, w("b")], &w(" "), RenderFormat::ZshPrompt),
+            "%{\x1b[38;5;196;1m%}50%%%{\x1b[0m%}\
+             %{\x1b[m%} %{\x1b[0m%}\
+             %{\x1b[m%}b%{\x1b[0m%}"
+        );
+    }
+
+    #[test]
+    fn test_zsh_prompt_escape() {
+        assert_eq!(zsh_prompt_escape(""), "");
+        assert_eq!(zsh_prompt_escape("a%b"), "a%%b");
+        // Escape sequences already inside a widget's text (such as a colorized
+        // Git SHA) get wrapped too.
+        assert_eq!(
+            zsh_prompt_escape("\x1b[1m\x1b[48;2;1;2;3m 9ce7\x1b[0m"),
+            "%{\x1b[1m%}%{\x1b[48;2;1;2;3m%} 9ce7%{\x1b[0m%}"
+        );
+        // Multi-byte characters are left alone.
+        assert_eq!(zsh_prompt_escape("\x1b[m日"), "%{\x1b[m%}日");
+        // An escape that isn't a CSI sequence only wraps the escape character.
+        assert_eq!(zsh_prompt_escape("\x1bc"), "%{\x1b%}c");
     }
 
     #[test]
