@@ -4567,6 +4567,7 @@ defmodule Melbyd.LuaSdk do
   <<melbyd_luasdk_render>>
   <<melbyd_luasdk_get_path_pretty>>
   <<melbyd_luasdk_get_colorized_sha>>
+  <<melbyd_luasdk_zsh_prompt_escape>>
   <<melbyd_luasdk_get_time>>
   <<melbyd_luasdk_to_shell_script>>
 
@@ -4619,7 +4620,6 @@ def get_render_format(st0) do
 
   case Map.new(render_options_tuples)["format"] do
     "RENDER_FORMAT_UNIX_TERMINAL" -> :unix_terminal
-    "RENDER_FORMAT_ZSH_PROMPT" -> :zsh_prompt
     _ -> :unspecified
   end
 end
@@ -4764,6 +4764,22 @@ def_lua_func get_colorized_sha([sha, sha_length, pad_left, pad_right], st0) do
     Melbyd.Nifs.colorize_git_sha(sha, trunc(sha_length), trunc(pad_left), trunc(pad_right))
 
   {:ok, colorized, st0}
+end
+#+end_src
+
+***** Zsh prompt escaping
+
+Prepare a rendered string to go into a Zsh prompt. See [[melbyd_nifs_render_zsh]]
+for why, and [[id:70bc0217-2dc8-4841-a4b2-a0ae6e9e019c][Widgets]] for when to use it.
+
+We ignore any extra arguments, because Lua passes all the return values of a
+function call that is the last argument, and =render()= returns more than one.
+So =melbyd.zsh_prompt_escape(melbyd.render(...))= gives us extra =nil= values.
+
+#+name: melbyd_luasdk_zsh_prompt_escape
+#+begin_src elixir
+def_lua_func zsh_prompt_escape([s | _], st0) do
+  {:ok, Melbyd.Nifs.zsh_prompt_escape(s), st0}
 end
 #+end_src
 
@@ -5824,8 +5840,8 @@ defmodule MelbydTest do
     assert {:ok, _} = Melbyd.LuaConfigValidation.validate(lua_file)
 
     # Change the config in a way that changes its vm_fingerprint.
-    File.write!(lua_file, String.replace(sample, "RENDER_FORMAT_UNIX_TERMINAL",
-                                         "RENDER_FORMAT_ZSH_PROMPT"))
+    File.write!(lua_file, String.replace(sample, "Config = {}",
+                                         "Config = {revalidated = true}"))
     assert {:ok, _} = Melbyd.LuaConfigValidation.validate(lua_file)
   end
 
@@ -6553,13 +6569,21 @@ rendered = melbyd.render(widgets, {str="**"})
 #+end_src
 
 This uses 2 asterisks as a delimiter. The output format comes from the
-~render_options~ in the Lua configuration. It can be either of these:
+~render_options~ in the Lua configuration, and the only supported format is
+~"RENDER_FORMAT_UNIX_TERMINAL"~.
 
-  - ~"RENDER_FORMAT_UNIX_TERMINAL"~: plain ANSI escape sequences, for printing
-    to a terminal directly; or
+To use a rendered string in a Zsh prompt (such as =PS1=), pass it through
+~melbyd.zsh_prompt_escape()~ first (see [[melbyd_nifs_render_zsh]] for why Zsh
+needs this):
 
-  - ~"RENDER_FORMAT_ZSH_PROMPT"~: the same, but ready to put into a Zsh prompt
-    such as =PS1= as is. See [[melbyd_nifs_render_zsh]] for why Zsh needs this.
+#+begin_src lua
+ps1_line = melbyd.zsh_prompt_escape(melbyd.render(widgets, {str=" "}))
+#+end_src
+
+Only do this for the final string that goes into the prompt. A config can render
+some widgets into a string, and then use that string in another widget that it
+renders again, or render messages that the shell prints with =echo= instead of
+putting them in the prompt. Neither of those should be escaped.
 
 ***** Widget field reference
 
@@ -6628,7 +6652,6 @@ pub struct Widget {
 pub enum RenderFormat {
     Unspecified,
     UnixTerminal,
-    ZshPrompt,
 }
 #+end_src
 
@@ -6669,15 +6692,12 @@ fn render_widget(widget: &Widget, format: RenderFormat) -> String {
         RenderFormat::UnixTerminal => {
             format!("{}{}{}", sgr(&text_prop_codes(widget)), widget.str, sgr(&[0]))
         }
-        RenderFormat::ZshPrompt => {
-            zsh_prompt_escape(&render_widget(widget, RenderFormat::UnixTerminal))
-        }
     }
 }
 #+end_src
 
-The =ZshPrompt= format is for strings that go into a Zsh prompt (such as =PS1=).
-Zsh needs to know how many columns the prompt takes up on the screen, so that
+~zsh_prompt_escape()~ prepares a rendered string to go into a Zsh prompt (such
+as =PS1=). Zsh needs to know how many columns the prompt takes up on the screen, so that
 when it redraws the prompt (for example, with =zle reset-prompt=), it can move
 the cursor back up to where the prompt started. Zsh counts every character in
 the prompt, unless it is between =%{= and =%}=. So we wrap each escape sequence
@@ -6686,15 +6706,25 @@ the whole line instead, Zsh would think it takes up no columns at all, and in a
 terminal narrow enough to wrap the line onto more than one row, each redraw
 would leave the extra rows behind.
 
-We work on the string that the =UnixTerminal= format gives us, instead of on the
-widget's colors and styles, because a widget's text can contain escape sequences
-of its own (such as the ones from the [[id:52216101-f1d1-4441-9630-96c680c19db9][colorized Git SHA]]). We also replace each =%=
-with =%%=, because Zsh would otherwise treat it as the start of a prompt escape
-sequence.
+We work on the rendered string, instead of on the widgets' colors and styles,
+because a widget's text can contain escape sequences of its own (such as the
+ones from the [[id:52216101-f1d1-4441-9630-96c680c19db9][colorized Git SHA]], or from another rendered string). We also replace
+each =%= with =%%=, because Zsh would otherwise treat it as the start of a prompt
+escape sequence.
+
+This is a separate function instead of a render format, because only the final
+string that goes into the prompt should be escaped, and escaping is not
+idempotent: escaping a string twice turns the =%{= and =%}= from the first time
+into visible text.
 
 #+name: melbyd_nifs_render_zsh
 #+begin_src rust
-fn zsh_prompt_escape(s: &str) -> String {
+#[cfg_attr(feature = "elixir_support", rustler::nif)]
+pub fn zsh_prompt_escape(s: &str) -> String {
+    _zsh_prompt_escape(s)
+}
+
+fn _zsh_prompt_escape(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     let mut chars = s.chars().peekable();
     while let Some(c) = chars.next() {
@@ -6845,35 +6875,38 @@ mod test {
     }
 
     #[test]
-    fn test_render_zsh_prompt() {
-        let widget = Widget {
+    fn test_zsh_prompt_escape_nested_render() {
+        // A config can render some widgets into a string, and then use that
+        // string in another widget that it renders again (like the Kube health
+        // in the sample config). Escaping only the final string must wrap the
+        // escape sequences from both renders.
+        let inner = Widget {
             str: "50%".to_string(),
             fg: Some(Color::Palette(196)),
-            styles: vec![TextStyle::Bold],
             ..Default::default()
         };
+        let inner_str = _render_widgets(&[inner], &w(" "), RenderFormat::UnixTerminal);
+        let outer = _render_widgets(&[w(&inner_str)], &w(" "), RenderFormat::UnixTerminal);
         assert_eq!(
-            _render_widgets(&[widget, w("b")], &w(" "), RenderFormat::ZshPrompt),
-            "%{\x1b[38;5;196;1m%}50%%%{\x1b[0m%}\
-             %{\x1b[m%} %{\x1b[0m%}\
-             %{\x1b[m%}b%{\x1b[0m%}"
+            _zsh_prompt_escape(&outer),
+            "%{\x1b[m%}%{\x1b[38;5;196m%}50%%%{\x1b[0m%}%{\x1b[0m%}"
         );
     }
 
     #[test]
     fn test_zsh_prompt_escape() {
-        assert_eq!(zsh_prompt_escape(""), "");
-        assert_eq!(zsh_prompt_escape("a%b"), "a%%b");
+        assert_eq!(_zsh_prompt_escape(""), "");
+        assert_eq!(_zsh_prompt_escape("a%b"), "a%%b");
         // Escape sequences already inside a widget's text (such as a colorized
         // Git SHA) get wrapped too.
         assert_eq!(
-            zsh_prompt_escape("\x1b[1m\x1b[48;2;1;2;3m 9ce7\x1b[0m"),
+            _zsh_prompt_escape("\x1b[1m\x1b[48;2;1;2;3m 9ce7\x1b[0m"),
             "%{\x1b[1m%}%{\x1b[48;2;1;2;3m%} 9ce7%{\x1b[0m%}"
         );
         // Multi-byte characters are left alone.
-        assert_eq!(zsh_prompt_escape("\x1b[m日"), "%{\x1b[m%}日");
+        assert_eq!(_zsh_prompt_escape("\x1b[m日"), "%{\x1b[m%}日");
         // An escape that isn't a CSI sequence only wraps the escape character.
-        assert_eq!(zsh_prompt_escape("\x1bc"), "%{\x1b%}c");
+        assert_eq!(_zsh_prompt_escape("\x1bc"), "%{\x1b%}c");
     }
 
     #[test]
@@ -8112,6 +8145,8 @@ defmodule Melbyd.Nifs do
 
   def colorize_git_sha(_sha, _sha_length, _pad_left, _pad_right),
     do: :erlang.nif_error(:nif_not_loaded)
+
+  def zsh_prompt_escape(_s), do: :erlang.nif_error(:nif_not_loaded)
 
   def parse_path_aliases(_path_aliases_raw), do: :erlang.nif_error(:nif_not_loaded)
 end

@@ -598,7 +598,6 @@ defmodule Melbyd.LuaSdk do
 
     case Map.new(render_options_tuples)["format"] do
       "RENDER_FORMAT_UNIX_TERMINAL" -> :unix_terminal
-      "RENDER_FORMAT_ZSH_PROMPT" -> :zsh_prompt
       _ -> :unspecified
     end
   end
@@ -731,6 +730,10 @@ defmodule Melbyd.LuaSdk do
       Melbyd.Nifs.colorize_git_sha(sha, trunc(sha_length), trunc(pad_left), trunc(pad_right))
 
     {:ok, colorized, st0}
+  end
+
+  def_lua_func zsh_prompt_escape([s | _], st0) do
+    {:ok, Melbyd.Nifs.zsh_prompt_escape(s), st0}
   end
 
   def_lua_func get_time([format, unix_seconds, time_zone], st0) do

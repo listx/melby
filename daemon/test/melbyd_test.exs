@@ -200,8 +200,8 @@ defmodule MelbydTest do
     assert {:ok, _} = Melbyd.LuaConfigValidation.validate(lua_file)
 
     # Change the config in a way that changes its vm_fingerprint.
-    File.write!(lua_file, String.replace(sample, "RENDER_FORMAT_UNIX_TERMINAL",
-                                         "RENDER_FORMAT_ZSH_PROMPT"))
+    File.write!(lua_file, String.replace(sample, "Config = {}",
+                                         "Config = {revalidated = true}"))
     assert {:ok, _} = Melbyd.LuaConfigValidation.validate(lua_file)
   end
 

@@ -40,7 +40,6 @@ pub struct Widget {
 pub enum RenderFormat {
     Unspecified,
     UnixTerminal,
-    ZshPrompt,
 }
 
 #[cfg_attr(feature = "elixir_support", rustler::nif)]
@@ -74,13 +73,15 @@ fn render_widget(widget: &Widget, format: RenderFormat) -> String {
         RenderFormat::UnixTerminal => {
             format!("{}{}{}", sgr(&text_prop_codes(widget)), widget.str, sgr(&[0]))
         }
-        RenderFormat::ZshPrompt => {
-            zsh_prompt_escape(&render_widget(widget, RenderFormat::UnixTerminal))
-        }
     }
 }
 
-fn zsh_prompt_escape(s: &str) -> String {
+#[cfg_attr(feature = "elixir_support", rustler::nif)]
+pub fn zsh_prompt_escape(s: &str) -> String {
+    _zsh_prompt_escape(s)
+}
+
+fn _zsh_prompt_escape(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     let mut chars = s.chars().peekable();
     while let Some(c) = chars.next() {
@@ -221,35 +222,38 @@ mod test {
     }
 
     #[test]
-    fn test_render_zsh_prompt() {
-        let widget = Widget {
+    fn test_zsh_prompt_escape_nested_render() {
+        // A config can render some widgets into a string, and then use that
+        // string in another widget that it renders again (like the Kube health
+        // in the sample config). Escaping only the final string must wrap the
+        // escape sequences from both renders.
+        let inner = Widget {
             str: "50%".to_string(),
             fg: Some(Color::Palette(196)),
-            styles: vec![TextStyle::Bold],
             ..Default::default()
         };
+        let inner_str = _render_widgets(&[inner], &w(" "), RenderFormat::UnixTerminal);
+        let outer = _render_widgets(&[w(&inner_str)], &w(" "), RenderFormat::UnixTerminal);
         assert_eq!(
-            _render_widgets(&[widget, w("b")], &w(" "), RenderFormat::ZshPrompt),
-            "%{\x1b[38;5;196;1m%}50%%%{\x1b[0m%}\
-             %{\x1b[m%} %{\x1b[0m%}\
-             %{\x1b[m%}b%{\x1b[0m%}"
+            _zsh_prompt_escape(&outer),
+            "%{\x1b[m%}%{\x1b[38;5;196m%}50%%%{\x1b[0m%}%{\x1b[0m%}"
         );
     }
 
     #[test]
     fn test_zsh_prompt_escape() {
-        assert_eq!(zsh_prompt_escape(""), "");
-        assert_eq!(zsh_prompt_escape("a%b"), "a%%b");
+        assert_eq!(_zsh_prompt_escape(""), "");
+        assert_eq!(_zsh_prompt_escape("a%b"), "a%%b");
         // Escape sequences already inside a widget's text (such as a colorized
         // Git SHA) get wrapped too.
         assert_eq!(
-            zsh_prompt_escape("\x1b[1m\x1b[48;2;1;2;3m 9ce7\x1b[0m"),
+            _zsh_prompt_escape("\x1b[1m\x1b[48;2;1;2;3m 9ce7\x1b[0m"),
             "%{\x1b[1m%}%{\x1b[48;2;1;2;3m%} 9ce7%{\x1b[0m%}"
         );
         // Multi-byte characters are left alone.
-        assert_eq!(zsh_prompt_escape("\x1b[m日"), "%{\x1b[m%}日");
+        assert_eq!(_zsh_prompt_escape("\x1b[m日"), "%{\x1b[m%}日");
         // An escape that isn't a CSI sequence only wraps the escape character.
-        assert_eq!(zsh_prompt_escape("\x1bc"), "%{\x1b%}c");
+        assert_eq!(_zsh_prompt_escape("\x1bc"), "%{\x1b%}c");
     }
 
     #[test]

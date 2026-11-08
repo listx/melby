@@ -19,5 +19,7 @@ defmodule Melbyd.Nifs do
   def colorize_git_sha(_sha, _sha_length, _pad_left, _pad_right),
     do: :erlang.nif_error(:nif_not_loaded)
 
+  def zsh_prompt_escape(_s), do: :erlang.nif_error(:nif_not_loaded)
+
   def parse_path_aliases(_path_aliases_raw), do: :erlang.nif_error(:nif_not_loaded)
 end
