@@ -113,15 +113,20 @@ async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+const GIT_REV: &str = match option_env!("MELBY_GIT_REV") {
+    Some(rev) => rev,
+    None => "unknown",
+};
+
 async fn version(cli: &Cli) -> Result<(), Box<dyn Error>> {
     let exe = std::env::current_exe()?;
-    println!("melbyc {} {}", env!("CARGO_PKG_VERSION"), exe.display());
+    println!("melbyc {} {} {}", env!("CARGO_PKG_VERSION"), GIT_REV, exe.display());
 
     let channel = connect(cli).await?;
     let mut client = VersionClient::new(channel);
     let response = client.get_version(tonic::Request::new(VersionRequest {})).await?;
     let v = response.get_ref();
-    println!("melbyd {} {}", v.version, v.root_dir);
+    println!("melbyd {} {} {}", v.version, v.git_rev, v.root_dir);
 
     Ok(())
 }

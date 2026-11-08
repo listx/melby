@@ -490,14 +490,31 @@ reuse the shell environment's sources (in =nix/sources.nix=) to make sure that
 the development environment's dependencies exactly match what we'll end up
 shipping.
 
+We also bake the Git commit that we build from into =melbyc= and =melbyd=, so
+that =melbyc version= can show it. The packages themselves only see a filtered
+copy of their own directory without =.git=, so we look up the commit here
+instead, with ~builtins.fetchGit~. If there are uncommitted changes, it gives us
+the commit with a =-dirty= suffix (such as =9ce7bd1-dirty=). If we are not
+building from a Git repository at all, we use =unknown=.
+
+Because the commit is part of the build inputs, every new commit rebuilds
+=melbyc= and =melbyd=, even if it only changes documentation. Their dependencies
+(Hex packages, crates and the Rust NIFs) are separate derivations that don't
+see the commit, so those stay cached.
+
 #+caption: package/build.nix
 #+header: :tangle package/build.nix
 #+begin_src nix
 let
   sources = import ./nix/sources.nix;
   pkgs = import sources.nixpkgs {};
-  melby-client = pkgs.callPackage ../client/melby-client.nix {};
-  melby-daemon = pkgs.callPackage ../daemon/melby-daemon.nix {};
+  git = builtins.fetchGit ../.;
+  gitRev =
+    if builtins.pathExists ../.git
+    then git.dirtyShortRev or git.shortRev
+    else "unknown";
+  melby-client = pkgs.callPackage ../client/melby-client.nix { inherit gitRev; };
+  melby-daemon = pkgs.callPackage ../daemon/melby-daemon.nix { inherit gitRev; };
   melby-nifs = pkgs.callPackage ../daemon/lib/melbyd/nifs/melby-nifs.nix {};
 in
   {
@@ -769,13 +786,18 @@ message VersionResponse {
   // Root directory of the running melbyd release. For a release built with
   // Nix, this is its path in the Nix store.
   string root_dir = 2;
+
+  // Git commit that melbyd was built from, such as "9ce7bd1" or
+  // "9ce7bd1-dirty", or "unknown".
+  string git_rev = 3;
 }
 #+end_src
 
 The =Version= service only exists so that =melbyc version= can tell which build
 of melbyd is running. The version number in =mix.exs= rarely changes, so we also
-send the release's root directory, which for a Nix build differs between any two
-builds with different sources.
+send the Git commit that melbyd was [[id:03f01b07-6887-4d68-8f16-612adf9edd60][built from]], and the release's root
+directory, which for a Nix build differs between any two builds with different
+sources.
 
 The client builds in a sandbox that only sees its own directory, so we also
 tangle a copy of the proto into it.
@@ -1064,21 +1086,31 @@ async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
 #+end_src
 
 Print which builds of melbyc and melbyd are running. Besides the version
-numbers, we print where each one is installed, because for a Nix build that path
-changes whenever the sources do. We print the client's line first, so that it
-still shows up if melbyd is down.
+numbers, we print the Git commit that each one was built from, and where each
+one is installed, because for a Nix build that path changes whenever the sources
+do. We print the client's line first, so that it still shows up if melbyd is
+down.
+
+The [[id:03f01b07-6887-4d68-8f16-612adf9edd60][Nix build]] gives us the commit in the =MELBY_GIT_REV= environment variable
+at compile time. Other builds (such as =cargo build= in a development checkout)
+don't set it, so we fall back to =unknown=.
 
 #+name: melbyc--version
 #+begin_src rust
+const GIT_REV: &str = match option_env!("MELBY_GIT_REV") {
+    Some(rev) => rev,
+    None => "unknown",
+};
+
 async fn version(cli: &Cli) -> Result<(), Box<dyn Error>> {
     let exe = std::env::current_exe()?;
-    println!("melbyc {} {}", env!("CARGO_PKG_VERSION"), exe.display());
+    println!("melbyc {} {} {}", env!("CARGO_PKG_VERSION"), GIT_REV, exe.display());
 
     let channel = connect(cli).await?;
     let mut client = VersionClient::new(channel);
     let response = client.get_version(tonic::Request::new(VersionRequest {})).await?;
     let v = response.get_ref();
-    println!("melbyd {} {}", v.version, v.root_dir);
+    println!("melbyd {} {} {}", v.version, v.git_rev, v.root_dir);
 
     Ok(())
 }
@@ -1088,7 +1120,7 @@ async fn version(cli: &Cli) -> Result<(), Box<dyn Error>> {
 
 #+header: :tangle client/melby-client.nix
 #+begin_src nix
-{ sources ? import ../package/nix/sources.nix }:
+{ sources ? import ../package/nix/sources.nix, gitRev ? "unknown" }:
 let
   # Overlays
   oxalica-rust-overlay = import sources.rust-overlay;
@@ -1116,6 +1148,11 @@ in
     buildInputs = [
       pkgs.protobuf
     ];
+    # Only set this for the final build, not the one for dependencies, so that
+    # a new commit doesn't rebuild all our crates.
+    overrideMain = old: {
+      MELBY_GIT_REV = gitRev;
+    };
   }
 #+end_src
 
@@ -3315,12 +3352,17 @@ defmodule Melbyd.Version.Service do
   Tells melbyc which build of melbyd is running.
   """
 
+  # The Nix build sets this. Read it at compile time, so that it is baked into
+  # the release.
+  @git_rev System.get_env("MELBY_GIT_REV", "unknown")
+
   @spec get_version(MelbyClient.VersionRequest.t(), GRPC.Server.Stream.t()) ::
           MelbyClient.VersionResponse.t()
   def get_version(_req, _stream) do
     %MelbyClient.VersionResponse{
       version: to_string(Application.spec(:melbyd, :vsn)),
-      root_dir: to_string(:code.root_dir())
+      root_dir: to_string(:code.root_dir()),
+      git_rev: @git_rev
     }
   end
 end
@@ -7602,7 +7644,7 @@ instead, we compile with ~--warnings-as-errors~ (via ~compileFlags~).
 #+caption: daemon/melby-daemon.nix
 #+header: :tangle daemon/melby-daemon.nix
 #+begin_src nix
-{ sources ? import ../package/nix/sources.nix }:
+{ sources ? import ../package/nix/sources.nix, gitRev ? "unknown" }:
 let
   # Overlays
   oxalica-rust-overlay = import sources.rust-overlay;
@@ -7722,6 +7764,8 @@ in
     # Fail the build if a module that other code calls is missing from "files"
     # above (see the prose above this block).
     compileFlags = [ "--warnings-as-errors" ];
+    # Read by Melbyd.Version.Service at compile time.
+    MELBY_GIT_REV = gitRev;
     buildInputs = [
       pkgs.rust-bin.stable.latest.default
       pkgs.rust-analyzer

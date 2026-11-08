@@ -78,6 +78,7 @@ defmodule MelbyClient.VersionResponse do
 
   field :version, 1, type: :string
   field :root_dir, 2, type: :string, json_name: "rootDir"
+  field :git_rev, 3, type: :string, json_name: "gitRev"
 end
 
 defmodule MelbyClient.View.Service do

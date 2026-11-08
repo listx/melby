@@ -1,4 +1,4 @@
-{ sources ? import ../package/nix/sources.nix }:
+{ sources ? import ../package/nix/sources.nix, gitRev ? "unknown" }:
 let
   # Overlays
   oxalica-rust-overlay = import sources.rust-overlay;
@@ -26,4 +26,9 @@ in
     buildInputs = [
       pkgs.protobuf
     ];
+    # Only set this for the final build, not the one for dependencies, so that
+    # a new commit doesn't rebuild all our crates.
+    overrideMain = old: {
+      MELBY_GIT_REV = gitRev;
+    };
   }

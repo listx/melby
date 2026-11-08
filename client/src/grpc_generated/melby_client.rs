@@ -44,6 +44,10 @@ pub struct VersionResponse {
     /// Nix, this is its path in the Nix store.
     #[prost(string, tag = "2")]
     pub root_dir: ::prost::alloc::string::String,
+    /// Git commit that melbyd was built from, such as "9ce7bd1" or
+    /// "9ce7bd1-dirty", or "unknown".
+    #[prost(string, tag = "3")]
+    pub git_rev: ::prost::alloc::string::String,
 }
 #[allow(clippy::all)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]

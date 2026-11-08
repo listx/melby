@@ -55,4 +55,8 @@ message VersionResponse {
   // Root directory of the running melbyd release. For a release built with
   // Nix, this is its path in the Nix store.
   string root_dir = 2;
+
+  // Git commit that melbyd was built from, such as "9ce7bd1" or
+  // "9ce7bd1-dirty", or "unknown".
+  string git_rev = 3;
 }

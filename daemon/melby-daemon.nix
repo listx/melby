@@ -1,4 +1,4 @@
-{ sources ? import ../package/nix/sources.nix }:
+{ sources ? import ../package/nix/sources.nix, gitRev ? "unknown" }:
 let
   # Overlays
   oxalica-rust-overlay = import sources.rust-overlay;
@@ -118,6 +118,8 @@ in
     # Fail the build if a module that other code calls is missing from "files"
     # above (see the prose above this block).
     compileFlags = [ "--warnings-as-errors" ];
+    # Read by Melbyd.Version.Service at compile time.
+    MELBY_GIT_REV = gitRev;
     buildInputs = [
       pkgs.rust-bin.stable.latest.default
       pkgs.rust-analyzer
