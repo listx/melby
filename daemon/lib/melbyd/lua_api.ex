@@ -28,15 +28,39 @@ defmodule Melbyd.LuaInterop do
          # the Lua file has "function ... end" definitions and nothing else, the
          # only way to load these functions is to run Luerl.dofile/1 here. If we
          # use Luerl.loadfile/1 instead, the custom Lua functions are not loaded
-         # into the state. The :return option makes Luerl say why it couldn't
-         # load the file (such as a syntax error), instead of returning a bare
-         # :error.
-         {:ok, res, st2} <- Luerl.dofile(st1, String.to_charlist(lua_file), [:return]) do
+         # into the state.
+         {:ok, res, st2} <- dofile(st1, lua_file) do
       {:ok, res, st2}
     else
+      {:error, reason} when is_binary(reason) -> {:error, reason}
       reason -> {:error, "#{inspect(reason)}"}
     end
   end
+
+  # Like Luerl.dofile/2, but if Luerl can't load the file (such as because of a
+  # syntax error), return {:error, reason} where the reason says why in plain
+  # words, like "melby.lua:3: syntax error before: '='". Without the :return
+  # option, Luerl returns a bare :error instead.
+  def dofile(st, lua_file) do
+    case Luerl.dofile(st, String.to_charlist(lua_file), [:return]) do
+      {:error, errors, _warnings} ->
+        {:error, Enum.map_join(errors, "\n", &format_load_error(lua_file, &1))}
+
+      {:error, errors} ->
+        {:error, Enum.map_join(errors, "\n", &format_load_error(lua_file, &1))}
+
+      res ->
+        res
+    end
+  end
+
+  # Each error names the Erlang module that knows how to describe it, the same
+  # way that the Erlang compiler reports its errors.
+  defp format_load_error(lua_file, {line, mod, reason}) when is_integer(line),
+    do: "#{lua_file}:#{line}: #{mod.format_error(reason)}"
+
+  defp format_load_error(lua_file, {_line, mod, reason}),
+    do: "#{lua_file}: #{mod.format_error(reason)}"
 end
 
 import Cachex.Spec
@@ -70,7 +94,7 @@ defmodule Melbyd.LuaConfigValidation do
              ["melbyd", "get_path_aliases"],
              {:erl_func, &Melbyd.LuaSdk.__handle_lua_call__get_path_aliases_fake/2}
            ),
-         {:ok, _, st4} <- Luerl.dofile(st3, String.to_charlist(lua_file), [:return]),
+         {:ok, _, st4} <- Melbyd.LuaInterop.dofile(st3, lua_file),
          vm_fingerprint <- get_vm_fingerprint(st4),
          {res, view_params_types} <-
            Cachex.fetch(:lua_config_validation_cache, {lua_file, vm_fingerprint}, fn key ->
@@ -83,6 +107,7 @@ defmodule Melbyd.LuaConfigValidation do
         :error -> {:error, "failed cache key validation2"}
       end
     else
+      {:error, reason} when is_binary(reason) -> {:error, reason}
       e -> {:error, e}
     end
   end
@@ -135,7 +160,7 @@ defmodule Melbyd.LuaConfigValidation do
     # fakes that were generated as part of validing this particular
     # vm_fingerprint, because otherwise we would be deleting other resources
     # that might be in the middle of validating a different Lua config.
-    with {:ok, _, st1} <- Luerl.dofile(preloaded_fake_lua_vm, String.to_charlist(lua_file), [:return]),
+    with {:ok, _, st1} <- Melbyd.LuaInterop.dofile(preloaded_fake_lua_vm, lua_file),
          view_params_types <- get_view_params_types(st1),
          :ok <- assert_expected_views(st1, view_params_types, vm_fingerprint) do
       {:commit, view_params_types}

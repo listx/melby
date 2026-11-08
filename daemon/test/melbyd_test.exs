@@ -220,6 +220,15 @@ defmodule MelbydTest do
     assert WaitForIt.wait(fake_srs_ids() == [], frequency: 50, timeout: 5_000)
   end
 
+  # A config that Luerl can't even load must say why, with the file and line.
+  test "describe a syntax error in the config" do
+    lua_file = Path.join(mk_tmp_dir("syntax_error"), "melby.lua")
+    File.write!(lua_file, "Config = {}\nx = = 1\n")
+
+    assert {:error, reason} = Melbyd.LuaConfigValidation.validate(lua_file)
+    assert reason == "#{lua_file}:2: syntax error before: '='"
+  end
+
   # Return the ids of all fake SRS GenServers that are running.
   defp fake_srs_ids() do
     :gproc.select([{{{:n, :l, {Melbyd.StandardResource, :"$1"}}, :_, :_}, [], [:"$1"]}])
