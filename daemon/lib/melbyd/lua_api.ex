@@ -325,44 +325,53 @@ defmodule Melbyd.LuaConfigValidation do
     # Because we are running fake resources, the read() call will be synchronous
     # and force a re-read, incrementing the :read field in every SRS each time.
     errors =
-      Enum.reduce(view_tests, [], fn view_test, errors ->
-        # Check vals of fake env_vars in view_tests.
-        env_vars_fake = view_test["env"] |> Melbyd.LuerlUtil.table_to_native_map()
+      try do
+        Enum.reduce(view_tests, [], fn view_test, errors ->
+          # Check vals of fake env_vars in view_tests.
+          env_vars_fake = view_test["env"] |> Melbyd.LuerlUtil.table_to_native_map()
 
-        type_errors =
-          Enum.reduce(view_params_types["env"], [], fn {name, type_array}, errors ->
-            [req_or_opt, type] =
-              type_array
-              |> Melbyd.LuerlUtil.array_to_native_list()
+          type_errors =
+            Enum.reduce(view_params_types["env"], [], fn {name, type_array}, errors ->
+              [req_or_opt, type] =
+                type_array
+                |> Melbyd.LuerlUtil.array_to_native_list()
 
-            required = req_or_opt == "required"
+              required = req_or_opt == "required"
 
-            # Check vals of real env_vars.
-            case assert_env_var_type(env_vars_fake, name, required, type) do
+              # Check vals of real env_vars.
+              case assert_env_var_type(env_vars_fake, name, required, type) do
+                :ok -> errors
+                {:error, reason} -> ["#{name} (view_test): " <> reason | errors]
+              end
+            end)
+
+          if type_errors == [] do
+            case assert_expected_view(st1, view_test, env_vars_fake) do
               :ok -> errors
-              {:error, reason} -> ["#{name} (view_test): " <> reason | errors]
+              {:error, errs} -> [errs | errors]
             end
-          end)
-
-        if type_errors == [] do
-          case assert_expected_view(st1, view_test, env_vars_fake) do
-            :ok -> errors
-            {:error, errs} -> [errs | errors]
+          else
+            type_errors ++ errors
           end
-        else
-          type_errors ++ errors
-        end
-      end)
-
-    # Send message to delete all fake SRS GenServers, because we're done using
-    # them. We won't need them until we need to run this function again, which
-    # will only happen when the cache entry for this vm_fingerprint expires
-    # (which should technically only happen when melbyd restarts).
-    Phoenix.PubSub.broadcast(
-      Melbyd.PubSub,
-      "fake_" <> vm_fingerprint,
-      {:EXIT, self(), :release_fake_resource}
-    )
+        end)
+      after
+        # Send message to delete all fake SRS GenServers, because we're done
+        # using them. We won't need them until we need to run this function
+        # again, which will only happen when the cache entry for this
+        # vm_fingerprint expires (which should technically only happen when
+        # melbyd restarts), or when we retry after a failed validation.
+        #
+        # Do this even if a view test crashed (such as when Config.view calls a
+        # Lua SDK function with the wrong arguments). Otherwise the fakes stay
+        # around, and when we retry the validation of this same config (with
+        # the same vm_fingerprint) we reuse them, and the view tests fail
+        # because they expect fresh fakes.
+        Phoenix.PubSub.broadcast(
+          Melbyd.PubSub,
+          "fake_" <> vm_fingerprint,
+          {:EXIT, self(), :release_fake_resource}
+        )
+      end
 
     if Kernel.length(errors) > 0 do
       Logger.warning("got #{Kernel.length(errors)} errors reading fake readers")

@@ -205,6 +205,27 @@ defmodule MelbydTest do
     assert {:ok, _} = Melbyd.LuaConfigValidation.validate(lua_file)
   end
 
+  # Even if a view test crashes, validation must release the fakes it started.
+  # Otherwise retrying the validation of the same config would reuse them.
+  test "release the fakes of a validation that crashed" do
+    {:ok, mix_root} = File.cwd()
+    lua_file = Path.join(mk_tmp_dir("crashed_validation"), "melby.lua")
+    sample = File.read!(mix_root <> "/test/sample/melby.lua")
+
+    # Crash in Config.view, after it has read (and so started) its fakes.
+    File.write!(lua_file, String.replace(sample, "  script = melbyd.to_shell_script(export)",
+                                         "  error(\"boom\")"))
+    assert {:error, _} = Melbyd.LuaConfigValidation.validate(lua_file)
+
+    assert WaitForIt.wait(fake_srs_ids() == [], frequency: 50, timeout: 5_000)
+  end
+
+  # Return the ids of all fake SRS GenServers that are running.
+  defp fake_srs_ids() do
+    :gproc.select([{{{:n, :l, {Melbyd.StandardResource, :"$1"}}, :_, :_}, [], [:"$1"]}])
+    |> Enum.filter(fn {_type, id} -> String.starts_with?(id, "fake->") end)
+  end
+
   test "only pass the declared env vars to the Lua config" do
     view_params_types = %{
       "env" => %{
