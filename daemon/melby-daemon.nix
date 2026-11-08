@@ -72,6 +72,7 @@ let
     ./lib/melbyd/grpc.ex
     ./lib/melbyd/shell_logger.ex
     ./lib/melbyd/lua_api.ex
+    ./lib/melbyd/lua_vm_cache.ex
     ./lib/melbyd/nifs.ex
     ./lib/melbyd/path.ex
     ./Makefile
@@ -114,6 +115,9 @@ in
   packages.mixRelease {
     inherit pname src version mixNixDeps;
     #inherit pname src version mixFodDeps;
+    # Fail the build if a module that other code calls is missing from "files"
+    # above (see the prose above this block).
+    compileFlags = [ "--warnings-as-errors" ];
     buildInputs = [
       pkgs.rust-bin.stable.latest.default
       pkgs.rust-analyzer

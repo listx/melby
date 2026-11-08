@@ -7506,6 +7506,12 @@ in
 
 We package up =melbyd= as a standalone "package".
 
+The ~files~ list below names every file that goes into the build, so a new
+source file must be added to it by hand. If we forget, Elixir still compiles the
+rest, and calls into the missing module only produce "is undefined" warnings, so
+the release builds fine and then crashes on startup. To catch this at build time
+instead, we compile with ~--warnings-as-errors~ (via ~compileFlags~).
+
 #+caption: daemon/melby-daemon.nix
 #+header: :tangle daemon/melby-daemon.nix
 #+begin_src nix
@@ -7583,6 +7589,7 @@ let
     ./lib/melbyd/grpc.ex
     ./lib/melbyd/shell_logger.ex
     ./lib/melbyd/lua_api.ex
+    ./lib/melbyd/lua_vm_cache.ex
     ./lib/melbyd/nifs.ex
     ./lib/melbyd/path.ex
     ./Makefile
@@ -7625,6 +7632,9 @@ in
   packages.mixRelease {
     inherit pname src version mixNixDeps;
     #inherit pname src version mixFodDeps;
+    # Fail the build if a module that other code calls is missing from "files"
+    # above (see the prose above this block).
+    compileFlags = [ "--warnings-as-errors" ];
     buildInputs = [
       pkgs.rust-bin.stable.latest.default
       pkgs.rust-analyzer
