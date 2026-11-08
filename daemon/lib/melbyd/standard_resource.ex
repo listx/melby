@@ -745,9 +745,14 @@ defmodule Melbyd.StandardResource do
         # "namespace" and does not clash with real resource ids. It could be the
         # case that the real resource's id command or function would also output a
         # leading "fake->" string, but this is very unlikely.
+        #
+        # Also include the vm_fingerprint of the config being validated. The view
+        # tests of a config expect its fakes to start from scratch, so validating
+        # a changed config (with a new vm_fingerprint) must not reuse the fakes of
+        # an earlier validation, even if one is somehow still around.
         resource_id =
           if resource_opts["fake"] do
-            "fake->#{resource_id}"
+            "fake->#{resource_opts["vm_fingerprint"]}->#{resource_id}"
           else
             resource_id
           end
@@ -780,9 +785,20 @@ defmodule Melbyd.StandardResource do
             # Because we wrap the start_watcher() call inside a Task, it also runs
             # asynchronously (so that we don't block until the startup is finished
             # before returning the "LOADING" status below).
-            Task.Supervisor.start_child(Melbyd.TaskSupervisor, fn ->
+            #
+            # Fakes are the exception: we start them synchronously, so that they
+            # subscribe to their "fake_<vm_fingerprint>" topic (in init/1) before
+            # we return. Otherwise validation could finish and broadcast the
+            # message to release them before they subscribe, and they would miss
+            # it and stay around until their TTL runs out. This is cheap, because
+            # init/1 leaves the initial read to handle_continue/2.
+            if resource_opts["fake"] do
               Melbyd.StandardResourceSupervisor.start_srs(srs_id, resource, resource_opts)
-            end)
+            else
+              Task.Supervisor.start_child(Melbyd.TaskSupervisor, fn ->
+                Melbyd.StandardResourceSupervisor.start_srs(srs_id, resource, resource_opts)
+              end)
+            end
 
             # We started the watcher just above asynchronously. For now return a
             # blank struct with the "LOADING" status so that the caller can know

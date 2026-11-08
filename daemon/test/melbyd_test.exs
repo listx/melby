@@ -188,6 +188,23 @@ defmodule MelbydTest do
              Melbyd.LuaConfigValidation.validate(mix_root <> "/test/sample/melby.lua")
   end
 
+  # Validating a changed config must not see the fakes left over from validating
+  # the old one. The sample config's first view test expects its fake resources
+  # to still be loading ("Git..."), which they would not be if they were reused.
+  test "validate the sample config again after changing it" do
+    {:ok, mix_root} = File.cwd()
+    lua_file = Path.join(mk_tmp_dir("revalidate"), "melby.lua")
+    sample = File.read!(mix_root <> "/test/sample/melby.lua")
+
+    File.write!(lua_file, sample)
+    assert {:ok, _} = Melbyd.LuaConfigValidation.validate(lua_file)
+
+    # Change the config in a way that changes its vm_fingerprint.
+    File.write!(lua_file, String.replace(sample, "RENDER_FORMAT_UNIX_TERMINAL",
+                                         "RENDER_FORMAT_ZSH_PROMPT"))
+    assert {:ok, _} = Melbyd.LuaConfigValidation.validate(lua_file)
+  end
+
   test "only pass the declared env vars to the Lua config" do
     view_params_types = %{
       "env" => %{
