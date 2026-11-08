@@ -754,7 +754,28 @@ enum ViewStatus {
   // (possibly empty), and the real view will be ready for a later request.
   VIEW_STATUS_PENDING = 3;
 }
+
+// melbyc asks melbyd which build of melbyd is running.
+service Version {
+  rpc GetVersion (VersionRequest) returns (VersionResponse);
+}
+
+message VersionRequest {}
+
+message VersionResponse {
+  // Version of melbyd, from its mix.exs.
+  string version = 1;
+
+  // Root directory of the running melbyd release. For a release built with
+  // Nix, this is its path in the Nix store.
+  string root_dir = 2;
+}
 #+end_src
+
+The =Version= service only exists so that =melbyc version= can tell which build
+of melbyd is running. The version number in =mix.exs= rarely changes, so we also
+send the release's root directory, which for a Nix build differs between any two
+builds with different sources.
 
 The client builds in a sandbox that only sees its own directory, so we also
 tangle a copy of the proto into it.
@@ -887,6 +908,7 @@ pub mod melby_client;
 <<melbyc--option-handling-2>>
 <<melbyc--main>>
 <<melbyc--business-logic>>
+<<melbyc--version>>
 #+end_src
 
 Basic imports.
@@ -898,7 +920,7 @@ use std::error::Error;
 use std::path::PathBuf;
 use std::time::Duration;
 use clap::{Parser, Subcommand};
-use tonic::transport::Endpoint;
+use tonic::transport::{Channel, Endpoint};
 #+end_src
 
 Import generated gRPC code. These are built by =build.rs=.
@@ -908,6 +930,8 @@ Import generated gRPC code. These are built by =build.rs=.
 pub mod grpc_generated;
 use grpc_generated::melby_client::view_client::ViewClient;
 use grpc_generated::melby_client::ViewRequest;
+use grpc_generated::melby_client::version_client::VersionClient;
+use grpc_generated::melby_client::VersionRequest;
 #+end_src
 
 Global options.
@@ -940,7 +964,7 @@ struct Cli {
 }
 #+end_src
 
-Subcommands. There's only 1 right now, but we'll have more in the future.
+Subcommands.
 
 #+name: melbyc--option-handling-2
 #+begin_src rust
@@ -951,6 +975,8 @@ enum Commands {
         #[arg(short, long, default_value_t = 0)]
         shell_pid: u32,
     },
+    /// Print which builds of melbyc and melbyd are running.
+    Version,
 }
 #+end_src
 
@@ -959,19 +985,32 @@ Entrypoint.
 #+name: melbyc--main
 #+begin_src rust
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() {
     let cli = Cli::parse();
 
-    match &cli.command {
-        Some(Commands::View { shell_pid }) => {
-            view(&cli, *shell_pid).await?;
-        }
-        None => {
-            ()
-        }
-    }
+    let result = match &cli.command {
+        Some(Commands::View { shell_pid }) => view(&cli, *shell_pid).await,
+        Some(Commands::Version) => version(&cli).await,
+        None => Ok(()),
+    };
 
-    Ok(())
+    if let Err(e) = result {
+        eprintln!("melbyc: {}", describe(e.as_ref()));
+        std::process::exit(1);
+    }
+}
+
+// Describe an error along with all of its causes. Errors from tonic are often
+// vague on their own (such as "transport error"), and only their causes say
+// what actually went wrong (such as "Connection refused").
+fn describe(e: &dyn Error) -> String {
+    let mut msg = e.to_string();
+    let mut cause = e.source();
+    while let Some(c) = cause {
+        msg.push_str(&format!(": {}", c));
+        cause = c.source();
+    }
+    msg
 }
 #+end_src
 
@@ -988,13 +1027,19 @@ prompt.
 #+begin_src rust
 const VIEW_TIMEOUT: Duration = Duration::from_millis(1000);
 
-async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
+async fn connect(cli: &Cli) -> Result<Channel, Box<dyn Error>> {
     let url = format!("http://127.0.0.1:{0}", cli.melbyd_port);
     let channel = Endpoint::from_shared(url)?
         .connect_timeout(VIEW_TIMEOUT)
         .timeout(VIEW_TIMEOUT)
         .connect()
-        .await?;
+        .await
+        .map_err(|e| format!("cannot reach melbyd on port {}: {}", cli.melbyd_port, describe(&e)))?;
+    Ok(channel)
+}
+
+async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
+    let channel = connect(cli).await?;
     let mut client = ViewClient::new(channel);
 
     let mut env_vars: HashMap<String, String> = HashMap::new();
@@ -1013,6 +1058,27 @@ async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
     let response = client.get_view(request).await?;
 
     println!("{}", response.get_ref().view);
+
+    Ok(())
+}
+#+end_src
+
+Print which builds of melbyc and melbyd are running. Besides the version
+numbers, we print where each one is installed, because for a Nix build that path
+changes whenever the sources do. We print the client's line first, so that it
+still shows up if melbyd is down.
+
+#+name: melbyc--version
+#+begin_src rust
+async fn version(cli: &Cli) -> Result<(), Box<dyn Error>> {
+    let exe = std::env::current_exe()?;
+    println!("melbyc {} {}", env!("CARGO_PKG_VERSION"), exe.display());
+
+    let channel = connect(cli).await?;
+    let mut client = VersionClient::new(channel);
+    let response = client.get_version(tonic::Request::new(VersionRequest {})).await?;
+    let v = response.get_ref();
+    println!("melbyd {} {}", v.version, v.root_dir);
 
     Ok(())
 }
@@ -3222,6 +3288,7 @@ defmodule Melbyd.GRPC do
   intercept GRPC.Server.Interceptors.Logger, level: :info
 
   run Melbyd.View.Service
+  run Melbyd.Version.Service
 end
 
 defmodule Melbyd.View.Service do
@@ -3240,10 +3307,30 @@ defmodule Melbyd.View.Service do
     Melbyd.View.generate_within(req)
   end
 end
+
+defmodule Melbyd.Version.Service do
+  use GRPC.Server, service: MelbyClient.Version.Service, compressors: [GRPC.Compressor.Gzip]
+
+  @moduledoc """
+  Tells melbyc which build of melbyd is running.
+  """
+
+  @spec get_version(MelbyClient.VersionRequest.t(), GRPC.Server.Stream.t()) ::
+          MelbyClient.VersionResponse.t()
+  def get_version(_req, _stream) do
+    %MelbyClient.VersionResponse{
+      version: to_string(Application.spec(:melbyd, :vsn)),
+      root_dir: to_string(:code.root_dir())
+    }
+  end
+end
 #+end_src
 
 Notice that we define the top-level =Melbyd.Endpont= module, which contains the
-=View= service.
+=View= and =Version= services. The =Version= service answers =melbyc version=.
+In a release, ~:code.root_dir/0~ is the release's own directory (its Nix store
+path), but when running from a development checkout it is the Erlang
+installation's directory instead.
 
 **** View
 :PROPERTIES:

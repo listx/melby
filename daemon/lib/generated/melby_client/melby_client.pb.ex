@@ -59,6 +59,27 @@ defmodule MelbyClient.ViewResponse do
   field :error, 3, type: :string
 end
 
+defmodule MelbyClient.VersionRequest do
+  @moduledoc false
+
+  use Protobuf,
+    full_name: "melby_client.VersionRequest",
+    protoc_gen_elixir_version: "0.17.1",
+    syntax: :proto3
+end
+
+defmodule MelbyClient.VersionResponse do
+  @moduledoc false
+
+  use Protobuf,
+    full_name: "melby_client.VersionResponse",
+    protoc_gen_elixir_version: "0.17.1",
+    syntax: :proto3
+
+  field :version, 1, type: :string
+  field :root_dir, 2, type: :string, json_name: "rootDir"
+end
+
 defmodule MelbyClient.View.Service do
   @moduledoc false
 
@@ -71,4 +92,18 @@ defmodule MelbyClient.View.Stub do
   @moduledoc false
 
   use GRPC.Stub, service: MelbyClient.View.Service
+end
+
+defmodule MelbyClient.Version.Service do
+  @moduledoc false
+
+  use GRPC.Service, name: "melby_client.Version", protoc_gen_elixir_version: "0.17.1"
+
+  rpc :GetVersion, MelbyClient.VersionRequest, MelbyClient.VersionResponse
+end
+
+defmodule MelbyClient.Version.Stub do
+  @moduledoc false
+
+  use GRPC.Stub, service: MelbyClient.Version.Service
 end

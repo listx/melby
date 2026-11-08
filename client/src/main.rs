@@ -3,11 +3,13 @@ use std::error::Error;
 use std::path::PathBuf;
 use std::time::Duration;
 use clap::{Parser, Subcommand};
-use tonic::transport::Endpoint;
+use tonic::transport::{Channel, Endpoint};
 
 pub mod grpc_generated;
 use grpc_generated::melby_client::view_client::ViewClient;
 use grpc_generated::melby_client::ViewRequest;
+use grpc_generated::melby_client::version_client::VersionClient;
+use grpc_generated::melby_client::VersionRequest;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -41,33 +43,54 @@ enum Commands {
         #[arg(short, long, default_value_t = 0)]
         shell_pid: u32,
     },
+    /// Print which builds of melbyc and melbyd are running.
+    Version,
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() {
     let cli = Cli::parse();
 
-    match &cli.command {
-        Some(Commands::View { shell_pid }) => {
-            view(&cli, *shell_pid).await?;
-        }
-        None => {
-            ()
-        }
-    }
+    let result = match &cli.command {
+        Some(Commands::View { shell_pid }) => view(&cli, *shell_pid).await,
+        Some(Commands::Version) => version(&cli).await,
+        None => Ok(()),
+    };
 
-    Ok(())
+    if let Err(e) = result {
+        eprintln!("melbyc: {}", describe(e.as_ref()));
+        std::process::exit(1);
+    }
+}
+
+// Describe an error along with all of its causes. Errors from tonic are often
+// vague on their own (such as "transport error"), and only their causes say
+// what actually went wrong (such as "Connection refused").
+fn describe(e: &dyn Error) -> String {
+    let mut msg = e.to_string();
+    let mut cause = e.source();
+    while let Some(c) = cause {
+        msg.push_str(&format!(": {}", c));
+        cause = c.source();
+    }
+    msg
 }
 
 const VIEW_TIMEOUT: Duration = Duration::from_millis(1000);
 
-async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
+async fn connect(cli: &Cli) -> Result<Channel, Box<dyn Error>> {
     let url = format!("http://127.0.0.1:{0}", cli.melbyd_port);
     let channel = Endpoint::from_shared(url)?
         .connect_timeout(VIEW_TIMEOUT)
         .timeout(VIEW_TIMEOUT)
         .connect()
-        .await?;
+        .await
+        .map_err(|e| format!("cannot reach melbyd on port {}: {}", cli.melbyd_port, describe(&e)))?;
+    Ok(channel)
+}
+
+async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
+    let channel = connect(cli).await?;
     let mut client = ViewClient::new(channel);
 
     let mut env_vars: HashMap<String, String> = HashMap::new();
@@ -86,6 +109,19 @@ async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
     let response = client.get_view(request).await?;
 
     println!("{}", response.get_ref().view);
+
+    Ok(())
+}
+
+async fn version(cli: &Cli) -> Result<(), Box<dyn Error>> {
+    let exe = std::env::current_exe()?;
+    println!("melbyc {} {}", env!("CARGO_PKG_VERSION"), exe.display());
+
+    let channel = connect(cli).await?;
+    let mut client = VersionClient::new(channel);
+    let response = client.get_version(tonic::Request::new(VersionRequest {})).await?;
+    let v = response.get_ref();
+    println!("melbyd {} {}", v.version, v.root_dir);
 
     Ok(())
 }

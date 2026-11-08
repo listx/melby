@@ -40,3 +40,19 @@ enum ViewStatus {
   // (possibly empty), and the real view will be ready for a later request.
   VIEW_STATUS_PENDING = 3;
 }
+
+// melbyc asks melbyd which build of melbyd is running.
+service Version {
+  rpc GetVersion (VersionRequest) returns (VersionResponse);
+}
+
+message VersionRequest {}
+
+message VersionResponse {
+  // Version of melbyd, from its mix.exs.
+  string version = 1;
+
+  // Root directory of the running melbyd release. For a release built with
+  // Nix, this is its path in the Nix store.
+  string root_dir = 2;
+}
