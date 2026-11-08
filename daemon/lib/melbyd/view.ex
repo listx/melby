@@ -120,6 +120,11 @@ defmodule Melbyd.View do
       !File.exists?(config_path) ->
         {:error, "file #{config_path} does not exist"}
 
+      # Luerl appends ".lua" to any file name that doesn't already end in it,
+      # so it would fail to find (say) "melby.lua.orig".
+      Path.extname(config_path) != ".lua" ->
+        {:error, "file #{config_path} must end in .lua"}
+
       String.length(shell_pid) == 0 ->
         {:error, "shell_pid cannot be an empty string"}
 

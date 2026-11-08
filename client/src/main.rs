@@ -7,7 +7,7 @@ use tonic::transport::{Channel, Endpoint};
 
 pub mod grpc_generated;
 use grpc_generated::melby_client::view_client::ViewClient;
-use grpc_generated::melby_client::ViewRequest;
+use grpc_generated::melby_client::{ViewRequest, ViewStatus};
 use grpc_generated::melby_client::version_client::VersionClient;
 use grpc_generated::melby_client::VersionRequest;
 
@@ -107,8 +107,13 @@ async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
 
     let request = tonic::Request::new(req);
     let response = client.get_view(request).await?;
+    let res = response.get_ref();
 
-    println!("{}", response.get_ref().view);
+    if res.status() == ViewStatus::Error {
+        return Err(format!("melbyd: {}", res.error).into());
+    }
+
+    println!("{}", res.view);
 
     Ok(())
 }

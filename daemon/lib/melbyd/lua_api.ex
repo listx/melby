@@ -28,8 +28,10 @@ defmodule Melbyd.LuaInterop do
          # the Lua file has "function ... end" definitions and nothing else, the
          # only way to load these functions is to run Luerl.dofile/1 here. If we
          # use Luerl.loadfile/1 instead, the custom Lua functions are not loaded
-         # into the state.
-         {:ok, res, st2} <- Luerl.dofile(st1, String.to_charlist(lua_file)) do
+         # into the state. The :return option makes Luerl say why it couldn't
+         # load the file (such as a syntax error), instead of returning a bare
+         # :error.
+         {:ok, res, st2} <- Luerl.dofile(st1, String.to_charlist(lua_file), [:return]) do
       {:ok, res, st2}
     else
       reason -> {:error, "#{inspect(reason)}"}
@@ -68,7 +70,7 @@ defmodule Melbyd.LuaConfigValidation do
              ["melbyd", "get_path_aliases"],
              {:erl_func, &Melbyd.LuaSdk.__handle_lua_call__get_path_aliases_fake/2}
            ),
-         {:ok, _, st4} <- Luerl.dofile(st3, String.to_charlist(lua_file)),
+         {:ok, _, st4} <- Luerl.dofile(st3, String.to_charlist(lua_file), [:return]),
          vm_fingerprint <- get_vm_fingerprint(st4),
          {res, view_params_types} <-
            Cachex.fetch(:lua_config_validation_cache, {lua_file, vm_fingerprint}, fn key ->
@@ -133,7 +135,7 @@ defmodule Melbyd.LuaConfigValidation do
     # fakes that were generated as part of validing this particular
     # vm_fingerprint, because otherwise we would be deleting other resources
     # that might be in the middle of validating a different Lua config.
-    with {:ok, _, st1} <- Luerl.dofile(preloaded_fake_lua_vm, String.to_charlist(lua_file)),
+    with {:ok, _, st1} <- Luerl.dofile(preloaded_fake_lua_vm, String.to_charlist(lua_file), [:return]),
          view_params_types <- get_view_params_types(st1),
          :ok <- assert_expected_views(st1, view_params_types, vm_fingerprint) do
       {:commit, view_params_types}

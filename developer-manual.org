@@ -951,7 +951,7 @@ Import generated gRPC code. These are built by =build.rs=.
 #+begin_src rust
 pub mod grpc_generated;
 use grpc_generated::melby_client::view_client::ViewClient;
-use grpc_generated::melby_client::ViewRequest;
+use grpc_generated::melby_client::{ViewRequest, ViewStatus};
 use grpc_generated::melby_client::version_client::VersionClient;
 use grpc_generated::melby_client::VersionRequest;
 #+end_src
@@ -1045,6 +1045,11 @@ prompt must never hang along with it. So we also give up on our own after
 exit with an error without printing a view, so the shell keeps its previous
 prompt.
 
+If melbyd replies with an error (such as when the environment lacks a variable
+that the config requires), we likewise exit with that error instead of printing
+the empty view that comes with it. Otherwise the caller would get a blank line
+and a successful exit code, with no clue as to what went wrong.
+
 #+name: melbyc--business-logic
 #+begin_src rust
 const VIEW_TIMEOUT: Duration = Duration::from_millis(1000);
@@ -1078,8 +1083,13 @@ async fn view(cli: &Cli, shell_pid: u32) -> Result<(), Box<dyn Error>> {
 
     let request = tonic::Request::new(req);
     let response = client.get_view(request).await?;
+    let res = response.get_ref();
 
-    println!("{}", response.get_ref().view);
+    if res.status() == ViewStatus::Error {
+        return Err(format!("melbyd: {}", res.error).into());
+    }
+
+    println!("{}", res.view);
 
     Ok(())
 }
@@ -3554,6 +3564,11 @@ defmodule Melbyd.View do
       !File.exists?(config_path) ->
         {:error, "file #{config_path} does not exist"}
 
+      # Luerl appends ".lua" to any file name that doesn't already end in it,
+      # so it would fail to find (say) "melby.lua.orig".
+      Path.extname(config_path) != ".lua" ->
+        {:error, "file #{config_path} must end in .lua"}
+
       String.length(shell_pid) == 0 ->
         {:error, "shell_pid cannot be an empty string"}
 
@@ -3665,8 +3680,10 @@ defmodule Melbyd.LuaInterop do
          # the Lua file has "function ... end" definitions and nothing else, the
          # only way to load these functions is to run Luerl.dofile/1 here. If we
          # use Luerl.loadfile/1 instead, the custom Lua functions are not loaded
-         # into the state.
-         {:ok, res, st2} <- Luerl.dofile(st1, String.to_charlist(lua_file)) do
+         # into the state. The :return option makes Luerl say why it couldn't
+         # load the file (such as a syntax error), instead of returning a bare
+         # :error.
+         {:ok, res, st2} <- Luerl.dofile(st1, String.to_charlist(lua_file), [:return]) do
       {:ok, res, st2}
     else
       reason -> {:error, "#{inspect(reason)}"}
@@ -3738,7 +3755,7 @@ defmodule Melbyd.LuaConfigValidation do
              ["melbyd", "get_path_aliases"],
              {:erl_func, &Melbyd.LuaSdk.__handle_lua_call__get_path_aliases_fake/2}
            ),
-         {:ok, _, st4} <- Luerl.dofile(st3, String.to_charlist(lua_file)),
+         {:ok, _, st4} <- Luerl.dofile(st3, String.to_charlist(lua_file), [:return]),
          vm_fingerprint <- get_vm_fingerprint(st4),
          {res, view_params_types} <-
            Cachex.fetch(:lua_config_validation_cache, {lua_file, vm_fingerprint}, fn key ->
@@ -3803,7 +3820,7 @@ defmodule Melbyd.LuaConfigValidation do
     # fakes that were generated as part of validing this particular
     # vm_fingerprint, because otherwise we would be deleting other resources
     # that might be in the middle of validating a different Lua config.
-    with {:ok, _, st1} <- Luerl.dofile(preloaded_fake_lua_vm, String.to_charlist(lua_file)),
+    with {:ok, _, st1} <- Luerl.dofile(preloaded_fake_lua_vm, String.to_charlist(lua_file), [:return]),
          view_params_types <- get_view_params_types(st1),
          :ok <- assert_expected_views(st1, view_params_types, vm_fingerprint) do
       {:commit, view_params_types}
